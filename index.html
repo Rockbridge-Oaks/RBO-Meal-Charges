@@ -65,7 +65,7 @@
       <!-- TOP CONTROL GRID: BATCH PRESETS + RESIDENT MANAGEMENT -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-        <!-- PRESET CONTROLLER (SIDEBAR ON DESKTOP, STICKY ON MOBILE) -->
+        <!-- PRESET CONTROLLER -->
         <div class="lg:col-span-4 bg-slate-900 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xl relative overflow-hidden">
           <div class="absolute -right-12 -top-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
@@ -134,7 +134,7 @@
           </div>
         </div>
 
-        <!-- SEARCH + BALANCE RANGE SELECTOR + ADD RESIDENT -->
+        <!-- SEARCH + ROOM TOOLS -->
         <div class="lg:col-span-8 flex flex-col justify-between space-y-4">
           
           <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
@@ -144,9 +144,14 @@
                 <h2 class="text-base font-bold text-slate-200">Tap Resident Card to Log $5</h2>
               </div>
               
-              <button onclick="openNewResidentModal()" class="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-lg shadow-emerald-600/20">
-                <i class="fa-solid fa-user-plus"></i> Add New Resident
-              </button>
+              <div class="flex items-center gap-2">
+                <button onclick="openManageRoomsModal()" class="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-semibold rounded-xl text-xs transition-all border border-slate-700">
+                  <i class="fa-solid fa-gear"></i> Manage Rooms
+                </button>
+                <button onclick="openNewResidentModal()" class="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-lg shadow-emerald-600/20">
+                  <i class="fa-solid fa-user-plus"></i> Add New Resident
+                </button>
+              </div>
             </div>
 
             <!-- SEARCH + BALANCE FILTER CONTROLS -->
@@ -169,9 +174,9 @@
           <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs text-slate-400">
             <span class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span id="mini-log-text">Database connected. Ready to log charges.</span>
+              <span id="mini-log-text">Ready to log charges.</span>
             </span>
-            <span id="total-residents-badge" class="font-mono text-slate-300">Loading...</span>
+            <span id="total-residents-badge" class="font-mono text-slate-300">0 Active Residents</span>
           </div>
         </div>
       </div>
@@ -182,8 +187,9 @@
           <!-- Dynamically Injected Cards -->
         </div>
         <div id="no-residents-found" class="hidden text-center py-16 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
-          <i class="fa-solid fa-magnifying-glass text-slate-600 text-3xl mb-2"></i>
-          <p class="text-slate-400 font-medium">No residents match your search</p>
+          <i class="fa-solid fa-users-slash text-slate-600 text-3xl mb-2"></i>
+          <p class="text-slate-400 font-medium">No residents found</p>
+          <p class="text-xs text-slate-500 mt-1">Use "+ Add New Resident" above to add your first room.</p>
         </div>
       </div>
     </div>
@@ -341,10 +347,38 @@
     </div>
   </div>
 
+  <!-- ================================================= -->
+  <!-- MODAL: MANAGE & DELETE RESIDENTS -->
+  <!-- ================================================= -->
+  <div id="manage-rooms-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-slate-100 text-base flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-emerald-400"></i> Manage & Delete Rooms
+        </h3>
+        <button onclick="closeManageRoomsModal()" class="text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-400">Deleting a room removes the resident and all of their historical meal logs.</p>
+
+      <div id="manage-rooms-list" class="max-h-72 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-800/60">
+        <!-- Injected list of rooms with delete buttons -->
+      </div>
+
+      <div class="pt-2 flex justify-end">
+        <button type="button" onclick="closeManageRoomsModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs transition-all">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST NOTIFICATION -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-slate-900 border border-emerald-500/50 text-emerald-300 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold">
     <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
-    <span id="toast-message">Charge successfully recorded!</span>
+    <span id="toast-message">Action successful!</span>
   </div>
 
   <!-- ================================================= -->
@@ -360,7 +394,7 @@
     let residents = [];
     let charges = [];
     let currentView = 'daily';
-    let balanceRange = 'month'; // 'today', 'week', 'month'
+    let balanceRange = 'month';
     let calendarDate = new Date();
     let selectedDrilldownDate = null;
 
@@ -388,16 +422,11 @@
         residents = resResidents.data || [];
         charges = resCharges.data || [];
 
-        // Seed with sample data if the cloud database is completely empty
-        if (residents.length === 0) {
-          await seedInitialData();
-        } else {
-          renderCurrentView();
-          updateTotalResidentsBadge();
-        }
+        renderCurrentView();
+        updateTotalResidentsBadge();
       } catch (err) {
         console.error('Supabase load error:', err);
-        showToast('Error syncing with database. Check console.', true);
+        showToast('Error syncing with database.', true);
       }
     }
 
@@ -420,51 +449,6 @@
       ]);
       if (!resResidents.error && resResidents.data) residents = resResidents.data;
       if (!resCharges.error && resCharges.data) charges = resCharges.data;
-
-      renderCurrentView();
-      updateTotalResidentsBadge();
-    }
-
-    async function seedInitialData() {
-      const initialRooms = [
-        { room: '101', name: 'Martha Stewart' },
-        { room: '102', name: 'Harold Finch' },
-        { room: '104', name: 'Beatrice Webb' },
-        { room: '105', name: 'Arthur Pendelton' },
-        { room: '201', name: 'Dorothy Parker' },
-        { room: '204', name: 'Walter Higgins' },
-        { room: '208', name: 'Eleanor Roosevelt' },
-        { room: '210', name: 'Samuel Vance' }
-      ];
-
-      const { data: insertedResidents } = await supabase.from('residents').insert(initialRooms).select();
-      residents = insertedResidents || [];
-
-      // Add a few initial demo charges
-      if (residents.length > 0) {
-        const demoCharges = [
-          {
-            resident_id: residents[0].id,
-            room: residents[0].room,
-            resident_name: residents[0].name,
-            date: todayISO,
-            meal: 'Breakfast',
-            charge_type: 'Room Charge',
-            amount: 5.00
-          },
-          {
-            resident_id: residents[1].id,
-            room: residents[1].room,
-            resident_name: residents[1].name,
-            date: todayISO,
-            meal: 'Lunch',
-            charge_type: 'Caregiver Charge',
-            amount: 5.00
-          }
-        ];
-        const { data: insertedCharges } = await supabase.from('charges').insert(demoCharges).select();
-        charges = insertedCharges || [];
-      }
 
       renderCurrentView();
       updateTotalResidentsBadge();
@@ -544,7 +528,7 @@
         amount: 5.00
       };
 
-      // Optimistic visual feedback
+      // Optimistic animation feedback
       const cardEl = document.getElementById(`card-${resident.id}`);
       if (cardEl) {
         cardEl.classList.add('tap-pulse');
@@ -553,7 +537,6 @@
 
       showToast(`+$5.00 logged for Rm ${resident.room} (${resident.name.split(' ')[0]})`);
 
-      // Write to Supabase
       const { data, error } = await supabase.from('charges').insert([newCharge]).select();
       if (error) {
         console.error('Charge failed:', error);
@@ -573,7 +556,6 @@
       const resident = residents.find(r => r.id === residentId);
       if (!resident) return;
 
-      // Find newest charge for this resident on the batch preset date
       const targetCharge = charges.find(c => c.resident_id === residentId && c.date === batchPreset.date);
       if (!targetCharge) {
         alert(`No charges found for Rm ${resident.room} on ${batchPreset.date} to undo.`);
@@ -692,7 +674,7 @@
     }
 
     // ===================================================
-    // RESIDENT CREATION (MODAL)
+    // RESIDENT MANAGEMENT (ADD & DELETE)
     // ===================================================
     function openNewResidentModal() {
       document.getElementById('new-resident-modal').classList.remove('hidden');
@@ -728,6 +710,53 @@
       }
     }
 
+    function openManageRoomsModal() {
+      const modal = document.getElementById('manage-rooms-modal');
+      const list = document.getElementById('manage-rooms-list');
+      modal.classList.remove('hidden');
+
+      if (residents.length === 0) {
+        list.innerHTML = `<p class="text-center text-slate-500 py-6 text-xs italic">No rooms currently in database.</p>`;
+        return;
+      }
+
+      list.innerHTML = residents.map(r => `
+        <div class="flex items-center justify-between py-2.5 px-2 hover:bg-slate-950/40 rounded-xl transition-colors">
+          <div>
+            <span class="font-mono text-emerald-400 font-bold text-xs bg-slate-950 px-2 py-0.5 rounded border border-slate-800">Rm ${r.room}</span>
+            <span class="text-slate-200 text-xs sm:text-sm font-medium ml-2">${r.name}</span>
+          </div>
+          <button onclick="deleteResident('${r.id}', '${r.room}', '${r.name}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-950/80 p-2 rounded-lg text-xs transition-colors" title="Delete resident">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function closeManageRoomsModal() {
+      document.getElementById('manage-rooms-modal').classList.add('hidden');
+    }
+
+    async function deleteResident(residentId, room, name) {
+      if (!confirm(`Are you sure you want to permanently delete Room ${room} (${name}) and all associated charge logs?`)) {
+        return;
+      }
+
+      const { error } = await supabase.from('residents').delete().eq('id', residentId);
+      if (error) {
+        showToast('Error deleting resident', true);
+        return;
+      }
+
+      residents = residents.filter(r => r.id !== residentId);
+      charges = charges.filter(c => c.resident_id !== residentId);
+      
+      openManageRoomsModal();
+      renderResidentsGrid();
+      updateTotalResidentsBadge();
+      showToast(`Room ${room} deleted`);
+    }
+
     // ===================================================
     // VIEW 2: MONTHLY SUMMARY MATRIX SPREADSHEET
     // ===================================================
@@ -739,7 +768,6 @@
       const tbody = document.getElementById('summary-table-body');
       const tfoot = document.getElementById('summary-table-footer');
 
-      // Filter charges for chosen month
       const monthCharges = charges.filter(c => c.date.startsWith(selectedMonth));
 
       let grandTotals = {
@@ -762,7 +790,6 @@
         const count = rCharges.length;
         const totalCost = count * 5;
 
-        // Accumulate grand totals
         grandTotals.b += b;
         grandTotals.l += l;
         grandTotals.d += d;
@@ -850,12 +877,10 @@
       const grid = document.getElementById('calendar-days-grid');
       grid.innerHTML = '';
 
-      // Blank slots before 1st of month
       for (let i = 0; i < firstDayIndex; i++) {
         grid.innerHTML += `<div class="min-h-[75px] sm:min-h-[95px] bg-slate-950/40 rounded-xl border border-slate-900"></div>`;
       }
 
-      // Populate calendar days
       for (let day = 1; day <= totalDays; day++) {
         const monthStr = String(month + 1).padStart(2, '0');
         const dayStr = String(day).padStart(2, '0');
@@ -981,12 +1006,10 @@
     // INITIALIZATION ON LOAD
     // ===================================================
     window.onload = function () {
-      // Set preset date picker to today
       const datePicker = document.getElementById('preset-date');
       if (datePicker) datePicker.value = todayISO;
       updatePresetBadge();
 
-      // Connect and hydrate data
       loadDataFromSupabase();
       subscribeToRealtime();
     };
