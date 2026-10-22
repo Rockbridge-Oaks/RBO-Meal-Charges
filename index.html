@@ -120,7 +120,6 @@
           </div>
 
           <div class="space-y-4 text-xs sm:text-sm">
-            <!-- TARGET CHARGE DATE (POPUP CALENDAR TRIGGER) -->
             <div>
               <label class="block text-stone-600 font-medium mb-1.5">Target Charge Date</label>
               <button type="button" onclick="openSingleDatePicker()" class="w-full bg-cream-dark border border-cream-border hover:border-brandGreen rounded-xl px-3.5 py-2.5 text-stone-800 text-xs sm:text-sm flex items-center justify-between transition-all">
@@ -185,12 +184,27 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2">
-              <div class="sm:col-span-7 relative">
+              <!-- SEARCH -->
+              <div class="sm:col-span-5 relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
-                <input type="text" id="resident-search" oninput="renderResidentsGrid()" placeholder="Search room number or name..." class="w-full bg-cream-dark border border-cream-border rounded-xl pl-9 pr-3.5 py-2.5 text-stone-900 placeholder-stone-400 text-xs sm:text-sm focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
+                <input type="text" id="resident-search" oninput="renderResidentsGrid()" placeholder="Search room or name..." class="w-full bg-cream-dark border border-cream-border rounded-xl pl-9 pr-3.5 py-2.5 text-stone-900 placeholder-stone-400 text-xs sm:text-sm focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
               </div>
 
-              <div class="sm:col-span-5 flex items-center bg-cream-dark border border-cream-border rounded-xl p-1 text-xs font-medium">
+              <!-- SORT BY DROPDOWN -->
+              <div class="sm:col-span-3">
+                <div class="relative">
+                  <select id="cards-sort-by" onchange="renderResidentsGrid()" class="w-full bg-cream-dark border border-cream-border rounded-xl px-3 py-2.5 text-stone-800 text-xs sm:text-sm font-medium focus:outline-none focus:border-brandGreen appearance-none cursor-pointer">
+                    <option value="room">Sort: Room #</option>
+                    <option value="frequency">Sort: Most Frequent</option>
+                    <option value="amount">Sort: Total Billed ($)</option>
+                    <option value="name">Sort: Name (A-Z)</option>
+                  </select>
+                  <i class="fa-solid fa-arrow-down-wide-short absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none"></i>
+                </div>
+              </div>
+
+              <!-- BALANCE FILTER RANGE -->
+              <div class="sm:col-span-4 flex items-center bg-cream-dark border border-cream-border rounded-xl p-1 text-xs font-medium">
                 <button onclick="setBalanceRange('selectedDate')" id="range-selectedDate" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 transition-all truncate px-1">Selected Day</button>
                 <button onclick="setBalanceRange('week')" id="range-week" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 transition-all truncate px-1">7 Days</button>
                 <button onclick="setBalanceRange('month')" id="range-month" class="flex-1 py-1.5 text-center rounded-lg bg-white text-brandAmber font-bold shadow-sm transition-all truncate px-1">This Month</button>
@@ -213,14 +227,14 @@
         <div id="residents-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>
         <div id="no-residents-found" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-cream-borderDark">
           <i class="fa-solid fa-users-slash text-stone-400 text-3xl mb-2"></i>
-          <p class="text-stone-600 font-medium">No residents currently found</p>
-          <p class="text-xs text-stone-400 mt-1">Click "+ Add New Resident" above to create your first room card.</p>
+          <p class="text-stone-600 font-medium">No active residents found</p>
+          <p class="text-xs text-stone-400 mt-1">Add a resident or restore archived residents under Manage Rooms.</p>
         </div>
       </div>
     </div>
 
     <!-- ================================================= -->
-    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (EDITABLE) -->
+    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (EDITABLE + SORT) -->
     <!-- ================================================= -->
     <div id="view-summary" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
@@ -232,6 +246,17 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <!-- SORT SUMMARY SPREADSHEET -->
+          <div class="relative">
+            <select id="summary-sort-by" onchange="renderSummarySheet()" class="bg-cream-dark border border-cream-border rounded-xl pl-3 pr-8 py-2 text-stone-800 text-xs sm:text-sm font-medium focus:outline-none focus:border-brandGreen appearance-none cursor-pointer shadow-sm">
+              <option value="room">Sort: Room #</option>
+              <option value="totalDesc">Sort: Total Billed (High to Low)</option>
+              <option value="countDesc">Sort: Total Count (Most to Least)</option>
+              <option value="name">Sort: Name (A-Z)</option>
+            </select>
+            <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-stone-400 pointer-events-none"></i>
+          </div>
+
           <!-- DATE RANGE POPUP TRIGGER -->
           <button onclick="openRangePicker('summary')" class="px-3.5 py-2 bg-cream-dark border border-cream-border hover:border-brandGreen text-stone-800 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
             <i class="fa-solid fa-calendar-week text-brandAmber"></i>
@@ -272,7 +297,7 @@
     </div>
 
     <!-- ================================================= -->
-    <!-- VIEW 3: GENERAL CHARGE HISTORY -->
+    <!-- VIEW 3: GENERAL CHARGE HISTORY (WITH DATE PICKER) -->
     <!-- ================================================= -->
     <div id="view-history" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
@@ -280,12 +305,19 @@
           <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
             <i class="fa-solid fa-clock-rotate-left text-brandAmber"></i> Complete Charge History
           </h2>
-          <p class="text-xs text-stone-500">Chronological list of all charges. Deleting an item immediately recalculates totals.</p>
+          <p class="text-xs text-stone-500">Chronological feed of charges. Deleting an item immediately updates totals across all views.</p>
         </div>
 
-        <div class="flex items-center gap-3">
-          <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, name, or meal..." class="bg-cream-dark border border-cream-border rounded-xl px-3 py-1.5 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
-          <span id="history-count-badge" class="font-mono text-xs text-stone-600 bg-cream-dark px-2.5 py-1.5 rounded-lg border border-cream-border font-semibold">0 Charges</span>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- HISTORY DATE RANGE PICKER -->
+          <button onclick="openRangePicker('history')" class="px-3.5 py-2 bg-cream-dark border border-cream-border hover:border-brandGreen text-stone-800 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
+            <i class="fa-solid fa-calendar-days text-brandAmber"></i>
+            <span id="history-range-display">Select Range</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-stone-400"></i>
+          </button>
+
+          <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, name, or meal..." class="bg-cream-dark border border-cream-border rounded-xl px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
+          <span id="history-count-badge" class="font-mono text-xs text-stone-600 bg-cream-dark px-2.5 py-2 rounded-xl border border-cream-border font-semibold">0 Charges</span>
         </div>
       </div>
 
@@ -470,19 +502,22 @@
     </div>
   </div>
 
-  <!-- MODAL: MANAGE & DELETE RESIDENTS -->
+  <!-- MODAL: MANAGE, ARCHIVE & DELETE RESIDENTS -->
   <div id="manage-rooms-modal" class="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white border border-cream-border rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+    <div class="bg-white border border-cream-border rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-cream-border pb-3">
         <h3 class="font-bold text-stone-900 text-base flex items-center gap-2">
-          <i class="fa-solid fa-sliders text-brandAmber"></i> Manage & Delete Rooms
+          <i class="fa-solid fa-sliders text-brandAmber"></i> Manage & Archive Rooms
         </h3>
         <button onclick="closeManageRoomsModal()" class="text-stone-400 hover:text-stone-600">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <p class="text-xs text-stone-500">Deleting a room permanently removes the resident and all recorded meal logs.</p>
+      <div class="text-xs text-stone-500 bg-cream-dark p-2.5 rounded-xl border border-cream-border flex items-start gap-2">
+        <i class="fa-solid fa-circle-info text-brandGreen mt-0.5"></i>
+        <span><strong>Archived residents</strong> are hidden from daily Quick Charge cards when they move out, but all their billing and historical logs stay preserved permanently.</span>
+      </div>
 
       <div id="manage-rooms-list" class="max-h-72 overflow-y-auto space-y-2 pr-1 divide-y divide-cream-border"></div>
 
@@ -512,7 +547,6 @@
     let balanceRange = 'month';
     let selectedDrilldownDate = null;
 
-    // Helper: ISO Date String YYYY-MM-DD
     function getFormattedDate(d) {
       const yr = d.getFullYear();
       const mo = String(d.getMonth() + 1).padStart(2, '0');
@@ -520,7 +554,6 @@
       return `${yr}-${mo}-${da}`;
     }
 
-    // Helper: Human-Readable Written Date "Month DD, YYYY"
     function formatWrittenDate(isoString) {
       if (!isoString) return '';
       const [year, month, day] = isoString.split('-').map(Number);
@@ -539,10 +572,11 @@
     const lastDayThisMonth = getFormattedDate(new Date(todayObj.getFullYear(), todayObj.getMonth() + 1, 0));
 
     let summaryRange = { start: firstDayThisMonth, end: lastDayThisMonth };
+    let historyRange = { start: firstDayThisMonth, end: lastDayThisMonth };
     let calendarRange = { start: firstDayThisMonth, end: lastDayThisMonth };
 
     let pickerMode = 'range';
-    let pickerTarget = 'summary';
+    let pickerTarget = 'summary'; // 'summary', 'history', 'calendar', or 'preset'
     let pickerCurrentMonth = new Date(todayObj.getFullYear(), todayObj.getMonth(), 1);
     let pickerSelection = { start: null, end: null };
 
@@ -608,7 +642,7 @@
       });
       const activeBtn = document.getElementById(`type-${type}`);
       if (activeBtn) {
-        activeBtn.classList.remove('border-cream-border', 'bg-cream-dark', 'text-stone-600');
+        activeBtn.classList.remove('border-stone-800', 'bg-stone-950', 'text-stone-400');
         activeBtn.classList.add('border-brandGreen', 'bg-brandGreen/10', 'text-brandGreen', 'font-bold');
       }
       updatePresetBadge();
@@ -733,15 +767,41 @@
         .reduce((sum, c) => sum + Number(c.amount), 0);
     }
 
+    // ===================================================
+    // RENDER: RESIDENTS GRID (EXCLUDES ARCHIVED + SORTS)
+    // ===================================================
     function renderResidentsGrid() {
       const grid = document.getElementById('residents-grid');
       const searchVal = document.getElementById('resident-search').value.toLowerCase().trim();
+      const sortBy = document.getElementById('cards-sort-by') ? document.getElementById('cards-sort-by').value : 'room';
       const emptyState = document.getElementById('no-residents-found');
 
-      const filtered = residents.filter(r => 
+      // 1. Only show residents that are NOT archived on the Quick Charge screen
+      let activeResidents = residents.filter(r => !r.is_archived);
+
+      // 2. Filter by Search
+      let filtered = activeResidents.filter(r => 
         String(r.room).toLowerCase().includes(searchVal) || 
         String(r.name).toLowerCase().includes(searchVal)
       );
+
+      // 3. Sort Residents dynamically
+      filtered.sort((a, b) => {
+        if (sortBy === 'room') {
+          return a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
+        } else if (sortBy === 'amount') {
+          const balA = calculateResidentBalance(a.id, balanceRange);
+          const balB = calculateResidentBalance(b.id, balanceRange);
+          return balB - balA; // Highest billed first
+        } else if (sortBy === 'frequency') {
+          const countA = charges.filter(c => String(c.resident_id) === String(a.id)).length;
+          const countB = charges.filter(c => String(c.resident_id) === String(b.id)).length;
+          return countB - countA; // Most charges first
+        } else if (sortBy === 'name') {
+          return a.name.localeCompare(b.name);
+        }
+        return 0;
+      });
 
       if (filtered.length === 0) {
         grid.innerHTML = '';
@@ -757,17 +817,20 @@
         const dayCharges = charges.filter(c => String(c.resident_id) === String(r.id) && c.date === batchPreset.date);
         const dayCount = dayCharges.length;
         const dayCost = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
+        const totalFrequency = charges.filter(c => String(c.resident_id) === String(r.id)).length;
 
         return `
-          <div id="card-${r.id}" class="bg-white border border-cream-border rounded-2xl p-4 sm:p-5 flex flex-col justify-between hover:border-cream-borderDark transition-all shadow-sm">
+          <div id="card-${r.id}" class="bg-white border border-cream-border rounded-2xl p-4 sm:p-5 flex flex-col justify-between hover:border-cream-borderDark transition-all shadow-sm relative group">
+            
             <div class="flex items-start justify-between gap-2 mb-3">
               <div>
                 <span class="inline-block bg-cream-dark border border-cream-border font-mono text-brandAmber text-xs px-2.5 py-0.5 rounded-lg font-bold">
                   Rm ${r.room}
                 </span>
-                <h3 class="text-sm sm:text-base font-bold text-stone-900 mt-1.5 leading-snug truncate max-w-[170px]">
+                <h3 class="text-sm sm:text-base font-bold text-stone-900 mt-1.5 leading-snug truncate max-w-[170px]" title="${r.name}">
                   ${r.name}
                 </h3>
+                <span class="text-[10px] text-stone-400 block">${totalFrequency} lifetime entries</span>
               </div>
               <div class="text-right">
                 <span class="text-xs text-stone-400 uppercase tracking-wider block text-[10px]">Total</span>
@@ -780,7 +843,10 @@
               <span class="font-mono ${dayCount > 0 ? 'text-brandAmber font-bold' : 'text-stone-400'} whitespace-nowrap">${dayCount} ($${dayCost.toFixed(2)})</span>
             </div>
 
-            <div class="grid grid-cols-5 gap-2 mt-2">
+            <div class="grid grid-cols-6 gap-2 mt-2">
+              <button onclick="quickArchiveResident('${r.id}', '${r.room}', '${r.name}')" title="Archive resident (move out)" class="col-span-1 bg-cream-dark hover:bg-stone-200 text-stone-400 hover:text-stone-700 border border-cream-border rounded-xl flex items-center justify-center py-2.5 active:scale-95 transition-all text-xs">
+                <i class="fa-solid fa-box-archive"></i>
+              </button>
               <button onclick="undoLastCharge('${r.id}', event)" title="Undo last charge on this date" class="col-span-1 bg-cream-dark hover:bg-rose-50 hover:text-rose-600 text-stone-500 border border-cream-border rounded-xl flex items-center justify-center py-2.5 active:scale-95 transition-all text-xs">
                 <i class="fa-solid fa-rotate-left"></i>
               </button>
@@ -794,10 +860,17 @@
     }
 
     function updateTotalResidentsBadge() {
+      const activeCount = residents.filter(r => !r.is_archived).length;
+      const totalCount = residents.length;
       const badge = document.getElementById('total-residents-badge');
-      if (badge) badge.textContent = `${residents.length} Active Residents`;
+      if (badge) {
+        badge.textContent = `${activeCount} Active Residents${totalCount > activeCount ? ` (${totalCount - activeCount} archived)` : ''}`;
+      }
     }
 
+    // ===================================================
+    // RESIDENT MANAGEMENT (ARCHIVE, UNARCHIVE, DELETE)
+    // ===================================================
     function openNewResidentModal() {
       document.getElementById('new-resident-modal').classList.remove('hidden');
       document.getElementById('new-room').focus();
@@ -815,7 +888,7 @@
       const name = document.getElementById('new-name').value.trim();
       if (!room || !name) return;
 
-      const newRes = { id: crypto.randomUUID(), room, name };
+      const newRes = { id: crypto.randomUUID(), room, name, is_archived: false };
       residents.push(newRes);
       residents.sort((a, b) => a.room.localeCompare(b.room, undefined, { numeric: true }));
 
@@ -825,7 +898,7 @@
       showToast(`Room ${room} (${name}) created!`);
 
       if (db) {
-        await db.from('residents').insert([{ room, name }]);
+        await db.from('residents').insert([{ room, name, is_archived: false }]);
       }
     }
 
@@ -843,11 +916,17 @@
         <div class="flex items-center justify-between py-2.5 px-2 hover:bg-cream-dark/60 rounded-xl transition-colors">
           <div>
             <span class="font-mono text-brandAmber font-bold text-xs bg-cream-dark px-2 py-0.5 rounded border border-cream-border">Rm ${r.room}</span>
-            <span class="text-stone-800 text-xs sm:text-sm font-medium ml-2">${r.name}</span>
+            <span class="text-stone-800 text-xs sm:text-sm font-medium ml-2 ${r.is_archived ? 'line-through text-stone-400' : ''}">${r.name}</span>
+            ${r.is_archived ? `<span class="ml-2 text-[10px] bg-stone-200 text-stone-600 px-1.5 py-0.5 rounded font-semibold">Archived</span>` : ''}
           </div>
-          <button onclick="deleteResident('${r.id}', '${r.room}', '${r.name}')" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-2 rounded-lg text-xs transition-colors" title="Delete resident">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
+          <div class="flex items-center gap-1.5">
+            <button onclick="toggleArchiveResident('${r.id}')" class="px-2.5 py-1 text-xs rounded-lg border border-cream-border ${r.is_archived ? 'bg-brandGreen text-white hover:bg-brandGreen-hover' : 'bg-cream-dark text-stone-600 hover:bg-cream-border'} transition-colors">
+              ${r.is_archived ? '<i class="fa-solid fa-box-open mr-1"></i> Restore' : '<i class="fa-solid fa-box-archive mr-1"></i> Archive'}
+            </button>
+            <button onclick="deleteResident('${r.id}', '${r.room}', '${r.name}')" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded-lg text-xs transition-colors" title="Delete resident">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
         </div>
       `).join('');
     }
@@ -856,8 +935,32 @@
       document.getElementById('manage-rooms-modal').classList.add('hidden');
     }
 
+    async function quickArchiveResident(residentId, room, name) {
+      if (!confirm(`Archive Rm ${room} (${name})? They will be removed from this Quick Charge screen, but their entire billing history stays intact.`)) {
+        return;
+      }
+      await toggleArchiveResident(residentId, true);
+    }
+
+    async function toggleArchiveResident(residentId, forceArchive = null) {
+      const resident = residents.find(r => String(r.id) === String(residentId));
+      if (!resident) return;
+
+      const newState = forceArchive !== null ? forceArchive : !resident.is_archived;
+      resident.is_archived = newState;
+
+      openManageRoomsModal();
+      renderResidentsGrid();
+      updateTotalResidentsBadge();
+      showToast(newState ? `Rm ${resident.room} archived` : `Rm ${resident.room} restored to active cards`);
+
+      if (db) {
+        await db.from('residents').update({ is_archived: newState }).eq('id', residentId);
+      }
+    }
+
     async function deleteResident(residentId, room, name) {
-      if (!confirm(`Permanently delete Room ${room} (${name})?`)) return;
+      if (!confirm(`Permanently delete Room ${room} (${name}) and all its historical records? (Tip: Use 'Archive' instead if they simply moved out).`)) return;
 
       residents = residents.filter(r => String(r.id) !== String(residentId));
       charges = charges.filter(c => String(c.resident_id) !== String(residentId));
@@ -878,7 +981,11 @@
     function openRangePicker(target) {
       pickerMode = 'range';
       pickerTarget = target;
-      const current = target === 'summary' ? summaryRange : calendarRange;
+      let current;
+      if (target === 'summary') current = summaryRange;
+      else if (target === 'history') current = historyRange;
+      else current = calendarRange;
+
       pickerSelection = { start: current.start, end: current.end };
       
       const parsedStart = new Date(current.start + 'T00:00:00');
@@ -1035,6 +1142,10 @@
         if (!pickerSelection.end) pickerSelection.end = pickerSelection.start;
         summaryRange = { start: pickerSelection.start, end: pickerSelection.end };
         renderSummarySheet();
+      } else if (pickerTarget === 'history') {
+        if (!pickerSelection.end) pickerSelection.end = pickerSelection.start;
+        historyRange = { start: pickerSelection.start, end: pickerSelection.end };
+        renderHistoryTable();
       } else {
         if (!pickerSelection.end) pickerSelection.end = pickerSelection.start;
         calendarRange = { start: pickerSelection.start, end: pickerSelection.end };
@@ -1047,90 +1158,120 @@
 
     function updateRangeDisplayBadges() {
       document.getElementById('summary-range-display').textContent = `${formatWrittenDate(summaryRange.start)} – ${formatWrittenDate(summaryRange.end)}`;
+      if (document.getElementById('history-range-display')) {
+        document.getElementById('history-range-display').textContent = `${formatWrittenDate(historyRange.start)} – ${formatWrittenDate(historyRange.end)}`;
+      }
       document.getElementById('calendar-range-display').textContent = `${formatWrittenDate(calendarRange.start)} – ${formatWrittenDate(calendarRange.end)}`;
     }
 
     // ===================================================
-    // VIEW 2: BILLING MATRIX SPREADSHEET (INLINE EDITING)
+    // VIEW 2: BILLING MATRIX SPREADSHEET (INLINE EDITING + SORTING)
     // ===================================================
     function renderSummarySheet() {
       const tbody = document.getElementById('summary-table-body');
       const tfoot = document.getElementById('summary-table-footer');
+      const sortBy = document.getElementById('summary-sort-by') ? document.getElementById('summary-sort-by').value : 'room';
 
       const rangeCharges = charges.filter(c => c.date >= summaryRange.start && c.date <= summaryRange.end);
 
-      let grandTotals = { 
-        bDollars: 0, 
-        lDollars: 0, 
-        dDollars: 0, 
-        roomTrayDollars: 0, 
-        caregiverDollars: 0, 
-        holidayDollars: 0, 
-        count: 0, 
-        amount: 0 
-      };
+      // In the Monthly Sheet, include ALL residents who have charges in this range OR are active
+      let targetResidents = residents.filter(r => {
+        const hasCharges = rangeCharges.some(c => String(c.resident_id) === String(r.id));
+        return hasCharges || !r.is_archived;
+      });
 
-      tbody.innerHTML = residents.map(r => {
+      // Compute row totals for sorting
+      const computedRows = targetResidents.map(r => {
         const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
-        
         const bCost = rCharges.filter(c => c.meal === 'Breakfast').reduce((acc, c) => acc + Number(c.amount), 0);
         const lCost = rCharges.filter(c => c.meal === 'Lunch').reduce((acc, c) => acc + Number(c.amount), 0);
         const dCost = rCharges.filter(c => c.meal === 'Dinner').reduce((acc, c) => acc + Number(c.amount), 0);
-
         const roomTrayCost = rCharges.filter(c => c.charge_type === 'Room Charge').reduce((acc, c) => acc + Number(c.amount), 0);
         const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0);
         const holidayCost = rCharges.filter(c => c.charge_type === 'Holiday Charge').reduce((acc, c) => acc + Number(c.amount), 0);
-
         const count = rCharges.length;
         const total = rCharges.reduce((acc, c) => acc + Number(c.amount), 0);
 
-        grandTotals.bDollars += bCost; 
-        grandTotals.lDollars += lCost; 
-        grandTotals.dDollars += dCost;
-        grandTotals.roomTrayDollars += roomTrayCost; 
-        grandTotals.caregiverDollars += caregiverCost; 
-        grandTotals.holidayDollars += holidayCost;
-        grandTotals.count += count; 
-        grandTotals.amount += total;
+        return {
+          resident: r,
+          bCost, lCost, dCost,
+          roomTrayCost, caregiverCost, holidayCost,
+          count, total
+        };
+      });
+
+      // Sort rows
+      computedRows.sort((a, b) => {
+        if (sortBy === 'room') {
+          return a.resident.room.localeCompare(b.resident.room, undefined, { numeric: true, sensitivity: 'base' });
+        } else if (sortBy === 'totalDesc') {
+          return b.total - a.total;
+        } else if (sortBy === 'countDesc') {
+          return b.count - a.count;
+        } else if (sortBy === 'name') {
+          return a.resident.name.localeCompare(b.resident.name);
+        }
+        return 0;
+      });
+
+      let grandTotals = { 
+        bDollars: 0, lDollars: 0, dDollars: 0, 
+        roomTrayDollars: 0, caregiverDollars: 0, holidayDollars: 0, 
+        count: 0, amount: 0 
+      };
+
+      tbody.innerHTML = computedRows.map(row => {
+        const r = row.resident;
+        grandTotals.bDollars += row.bCost; 
+        grandTotals.lDollars += row.lCost; 
+        grandTotals.dDollars += row.dCost;
+        grandTotals.roomTrayDollars += row.roomTrayCost; 
+        grandTotals.caregiverDollars += row.caregiverCost; 
+        grandTotals.holidayDollars += row.holidayCost;
+        grandTotals.count += row.count; 
+        grandTotals.amount += row.total;
 
         return `
           <tr class="hover:bg-cream-dark/50">
-            <td class="py-2.5 px-4 font-bold text-stone-900">Rm ${r.room}</td>
+            <td class="py-2.5 px-4 font-bold text-stone-900">
+              Rm ${r.room}
+              ${r.is_archived ? `<span class="ml-1 text-[9px] bg-stone-200 text-stone-600 px-1 py-0.2 rounded font-sans font-semibold">Archived</span>` : ''}
+            </td>
             <td class="py-2.5 px-4 text-stone-700 font-sans">${r.name}</td>
 
             <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${bCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Breakfast', this.value, ${bCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+              <input type="number" step="0.01" min="0" value="${row.bCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Breakfast', this.value, ${row.bCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
             <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${lCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Lunch', this.value, ${lCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+              <input type="number" step="0.01" min="0" value="${row.lCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Lunch', this.value, ${row.lCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
             <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${dCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Dinner', this.value, ${dCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+              <input type="number" step="0.01" min="0" value="${row.dCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Dinner', this.value, ${row.dCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
             <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${roomTrayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${roomTrayCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+              <input type="number" step="0.01" min="0" value="${row.roomTrayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${row.roomTrayCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
             <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${caregiverCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+              <input type="number" step="0.01" min="0" value="${row.caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${row.caregiverCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
             <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${holidayCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+              <input type="number" step="0.01" min="0" value="${row.holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${row.holidayCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
-            <td class="py-2.5 px-4 text-right font-semibold text-stone-600">${count}</td>
-            <td class="py-2.5 px-5 text-right font-black text-brandAmber">$${total.toFixed(2)}</td>
+            <td class="py-2.5 px-4 text-right font-semibold text-stone-600">${row.count}</td>
+            <td class="py-2.5 px-5 text-right font-black text-brandAmber">$${row.total.toFixed(2)}</td>
           </tr>
         `;
       }).join('');
 
       tfoot.innerHTML = `
         <td class="py-3 px-4 uppercase text-stone-600 tracking-wider">Totals</td>
-        <td class="py-3 px-4 text-stone-600 font-sans">${residents.length} Residents</td>
+        <td class="py-3 px-4 text-stone-600 font-sans">${computedRows.length} Residents</td>
         <td class="py-3 px-3 text-right text-stone-800 font-mono">$${grandTotals.bDollars.toFixed(2)}</td>
         <td class="py-3 px-3 text-right text-stone-800 font-mono">$${grandTotals.lDollars.toFixed(2)}</td>
         <td class="py-3 px-3 text-right text-stone-800 font-mono">$${grandTotals.dDollars.toFixed(2)}</td>
@@ -1215,22 +1356,24 @@
     function exportToCSV() {
       const rangeCharges = charges.filter(c => c.date >= summaryRange.start && c.date <= summaryRange.end);
       let csv = [`"Billing Range: ${formatWrittenDate(summaryRange.start)} to ${formatWrittenDate(summaryRange.end)}"`];
-      csv.push('Room,Resident Name,Breakfast ($),Lunch ($),Dinner ($),Room Charge ($),Caregiver Charge ($),Holiday Charge ($),Total Charges,Total Billed ($)');
+      csv.push('Room,Resident Name,Status,Breakfast ($),Lunch ($),Dinner ($),Room Charge ($),Caregiver Charge ($),Holiday Charge ($),Total Charges,Total Billed ($)');
 
       residents.forEach(r => {
         const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
+        if (rCharges.length === 0 && r.is_archived) return;
+
         const bCost = rCharges.filter(c => c.meal === 'Breakfast').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const lCost = rCharges.filter(c => c.meal === 'Lunch').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const dCost = rCharges.filter(c => c.meal === 'Dinner').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
-
         const roomTrayCost = rCharges.filter(c => c.charge_type === 'Room Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const holidayCost = rCharges.filter(c => c.charge_type === 'Holiday Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
 
         const count = rCharges.length;
         const total = rCharges.reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+        const status = r.is_archived ? 'Archived' : 'Active';
 
-        csv.push(`"${r.room}","${r.name}",${bCost},${lCost},${dCost},${roomTrayCost},${caregiverCost},${holidayCost},${count},${total}`);
+        csv.push(`"${r.room}","${r.name}","${status}",${bCost},${lCost},${dCost},${roomTrayCost},${caregiverCost},${holidayCost},${count},${total}`);
       });
 
       const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
@@ -1241,14 +1384,17 @@
     }
 
     // ===================================================
-    // VIEW 3: GENERAL CHARGE HISTORY (WITHOUT TIMESTAMPS)
+    // VIEW 3: GENERAL CHARGE HISTORY (FILTERED BY DATE RANGE)
     // ===================================================
     function renderHistoryTable() {
       const tbody = document.getElementById('history-table-body');
       const badge = document.getElementById('history-count-badge');
       const query = (document.getElementById('history-search').value || '').toLowerCase().trim();
 
-      const filtered = charges.filter(c => {
+      // Filter charges strictly between historyRange.start and historyRange.end
+      const inRangeCharges = charges.filter(c => c.date >= historyRange.start && c.date <= historyRange.end);
+
+      const filtered = inRangeCharges.filter(c => {
         const writtenDate = formatWrittenDate(c.date).toLowerCase();
         return (
           String(c.room).toLowerCase().includes(query) ||
@@ -1263,7 +1409,7 @@
       badge.textContent = `${filtered.length} Charges`;
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-stone-400 italic">No charges found matching your search.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-stone-400 italic">No charges found in selected date range.</td></tr>`;
         return;
       }
 
@@ -1285,7 +1431,7 @@
     }
 
     // ===================================================
-    // VIEW 4: AUDIT CALENDAR (WITHOUT TIMESTAMPS)
+    // VIEW 4: AUDIT CALENDAR
     // ===================================================
     function setCalendarToCurrentMonth() {
       const now = new Date();
