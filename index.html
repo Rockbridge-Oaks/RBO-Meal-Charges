@@ -16,6 +16,16 @@
     .tap-pulse {
       animation: pulse-green 0.35s ease-out;
     }
+    /* Calendar popover styling */
+    .cal-day-in-range {
+      background-color: rgba(16, 185, 129, 0.2) !important;
+      color: #6ee7b7 !important;
+    }
+    .cal-day-selected {
+      background-color: #059669 !important;
+      color: #022c22 !important;
+      font-weight: 900 !important;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-slate-900">
@@ -172,14 +182,20 @@
       <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl">
         <div>
           <h2 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
-            <i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i> Monthly Billing Matrix
+            <i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i> Room Service Billing Matrix
           </h2>
-          <p class="text-xs text-slate-400">Itemized dollar amounts per category for monthly billing audits.</p>
+          <p class="text-xs text-slate-400">Totals per room calculated across the selected billing period.</p>
         </div>
 
-        <div class="flex items-center gap-2">
-          <input type="month" id="summary-month-select" onchange="renderSummarySheet()" class="bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
-          <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- DATE RANGE POPUP TRIGGER -->
+          <button onclick="openRangePicker('summary')" class="px-3.5 py-2 bg-slate-950 border border-slate-700/80 hover:border-emerald-500 text-slate-200 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow transition-all">
+            <i class="fa-solid fa-calendar-week text-emerald-400"></i>
+            <span id="summary-range-display">Select Range</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-500"></i>
+          </button>
+
+          <button onclick="exportToCSV()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all">
             <i class="fa-solid fa-download"></i> Export CSV
           </button>
         </div>
@@ -218,17 +234,28 @@
           <h2 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
             <i class="fa-solid fa-calendar-check text-emerald-400"></i> Charge Audit Calendar
           </h2>
-          <p class="text-xs text-slate-400">Select any date to inspect charges or delete erroneous taps.</p>
+          <p class="text-xs text-slate-400">Select any day block to inspect entries or delete mistakes.</p>
         </div>
 
-        <div class="flex items-center gap-2">
-          <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-300">
-            <i class="fa-solid fa-chevron-left text-xs"></i>
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- CALENDAR RANGE PICKER TRIGGER -->
+          <button onclick="openRangePicker('calendar')" class="px-3.5 py-1.5 bg-slate-950 border border-slate-700 hover:border-emerald-500 text-slate-200 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-all">
+            <i class="fa-regular fa-calendar text-emerald-400"></i>
+            <span id="calendar-range-display">Select Range</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-500"></i>
           </button>
-          <span id="calendar-month-label" class="font-bold text-xs sm:text-sm min-w-[130px] text-center text-slate-100"></span>
-          <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-300">
-            <i class="fa-solid fa-chevron-right text-xs"></i>
-          </button>
+
+          <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-xl p-1">
+            <button onclick="changeCalendarMonth(-1)" class="w-7 h-7 rounded-lg hover:bg-slate-800 flex items-center justify-center text-slate-300">
+              <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <button onclick="setCalendarToCurrentMonth()" class="px-2 text-xs font-semibold text-slate-200 hover:text-emerald-400">
+              This Month
+            </button>
+            <button onclick="changeCalendarMonth(1)" class="w-7 h-7 rounded-lg hover:bg-slate-800 flex items-center justify-center text-slate-300">
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -271,6 +298,63 @@
       </div>
     </div>
   </main>
+
+  <!-- ================================================= -->
+  <!-- MODAL: DATE RANGE POPUP CALENDAR -->
+  <!-- ================================================= -->
+  <div id="range-picker-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="font-bold text-slate-100 text-base flex items-center gap-2">
+            <i class="fa-regular fa-calendar-days text-emerald-400"></i> Select Date Range
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5" id="range-picker-instructions">Tap a start date, then tap an end date.</p>
+        </div>
+        <button onclick="closeRangePicker()" class="text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- SHORTCUT PILLS -->
+      <div class="grid grid-cols-4 gap-1.5 text-xs">
+        <button onclick="applyPresetRange('thisMonth')" class="py-1.5 px-2 bg-slate-950 hover:bg-slate-800 rounded-lg text-slate-300 font-medium text-center">This Month</button>
+        <button onclick="applyPresetRange('lastMonth')" class="py-1.5 px-2 bg-slate-950 hover:bg-slate-800 rounded-lg text-slate-300 font-medium text-center">Last Month</button>
+        <button onclick="applyPresetRange('last30')" class="py-1.5 px-2 bg-slate-950 hover:bg-slate-800 rounded-lg text-slate-300 font-medium text-center">Last 30d</button>
+        <button onclick="applyPresetRange('ytd')" class="py-1.5 px-2 bg-slate-950 hover:bg-slate-800 rounded-lg text-slate-300 font-medium text-center">This Year</button>
+      </div>
+
+      <!-- CALENDAR MONTH NAVIGATION -->
+      <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+        <div class="flex items-center justify-between mb-3">
+          <button onclick="navigatePickerMonth(-1)" class="w-7 h-7 rounded-lg hover:bg-slate-800 text-slate-400 flex items-center justify-center">
+            <i class="fa-solid fa-chevron-left text-xs"></i>
+          </button>
+          <span id="picker-month-header" class="font-bold text-sm text-slate-200"></span>
+          <button onclick="navigatePickerMonth(1)" class="w-7 h-7 rounded-lg hover:bg-slate-800 text-slate-400 flex items-center justify-center">
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1 mb-1 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+        </div>
+        <div id="picker-days-grid" class="grid grid-cols-7 gap-1"></div>
+      </div>
+
+      <!-- SELECTION STATUS & ACTIONS -->
+      <div class="flex items-center justify-between pt-1 border-t border-slate-800">
+        <div class="text-xs font-mono">
+          <span class="text-slate-400">Span: </span>
+          <span id="picker-selection-label" class="text-emerald-400 font-bold">Pick start date</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeRangePicker()" class="px-3 py-1.5 rounded-xl text-slate-400 hover:text-slate-200 text-xs font-medium">Cancel</button>
+          <button type="button" onclick="confirmRangeSelection()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold rounded-xl text-xs shadow-lg shadow-emerald-600/20">Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: ADD NEW RESIDENT -->
   <div id="new-resident-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -315,7 +399,7 @@
         </button>
       </div>
 
-      <p class="text-xs text-slate-400">Deleting a room permanently removes the resident and their logs.</p>
+      <p class="text-xs text-slate-400">Deleting a room permanently removes the resident and all of their historical meal logs.</p>
 
       <div id="manage-rooms-list" class="max-h-72 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-800/60"></div>
 
@@ -343,18 +427,30 @@
     let charges = [];
     let currentView = 'daily';
     let balanceRange = 'month';
-    let calendarDate = new Date();
     let selectedDrilldownDate = null;
 
-    function getTodayString() {
-      const d = new Date();
+    function getFormattedDate(d) {
       const yr = d.getFullYear();
       const mo = String(d.getMonth() + 1).padStart(2, '0');
       const da = String(d.getDate()).padStart(2, '0');
       return `${yr}-${mo}-${da}`;
     }
 
-    const todayISO = getTodayString();
+    const todayObj = new Date();
+    const todayISO = getFormattedDate(todayObj);
+
+    // Initial Date Ranges (Defaults to Current Month)
+    const firstDayThisMonth = getFormattedDate(new Date(todayObj.getFullYear(), todayObj.getMonth(), 1));
+    const lastDayThisMonth = getFormattedDate(new Date(todayObj.getFullYear(), todayObj.getMonth() + 1, 0));
+
+    let summaryRange = { start: firstDayThisMonth, end: lastDayThisMonth };
+    let calendarRange = { start: firstDayThisMonth, end: lastDayThisMonth };
+
+    // Range Picker State
+    let pickerTarget = 'summary'; // 'summary' or 'calendar'
+    let pickerCurrentMonth = new Date(todayObj.getFullYear(), todayObj.getMonth(), 1);
+    let pickerSelection = { start: null, end: null };
+
     let batchPreset = {
       date: todayISO,
       meal: 'Breakfast',
@@ -389,10 +485,14 @@
         document.getElementById('sync-text').textContent = 'Local Standby';
       }
 
+      updateRangeDisplayBadges();
       renderCurrentView();
       updateTotalResidentsBadge();
     }
 
+    // ===================================================
+    // BATCH PRESET CONTROLS
+    // ===================================================
     function setMeal(meal) {
       batchPreset.meal = meal;
       document.querySelectorAll('.meal-btn').forEach(btn => {
@@ -458,6 +558,9 @@
       renderResidentsGrid();
     }
 
+    // ===================================================
+    // CHARGE ACTIONS
+    // ===================================================
     async function addQuickCharge(residentId) {
       const resident = residents.find(r => String(r.id) === String(residentId));
       if (!resident) return;
@@ -604,6 +707,9 @@
       if (badge) badge.textContent = `${residents.length} Active Residents`;
     }
 
+    // ===================================================
+    // RESIDENT MANAGEMENT (MODALS)
+    // ===================================================
     function openNewResidentModal() {
       document.getElementById('new-resident-modal').classList.remove('hidden');
       document.getElementById('new-room').focus();
@@ -679,16 +785,149 @@
     }
 
     // ===================================================
-    // VIEW 2: MONTHLY SUMMARY MATRIX SPREADSHEET (IN DOLLARS)
+    // DATE RANGE PICKER (POPUP MODAL)
+    // ===================================================
+    function openRangePicker(target) {
+      pickerTarget = target;
+      const current = target === 'summary' ? summaryRange : calendarRange;
+      pickerSelection = { start: current.start, end: current.end };
+      
+      const parsedStart = new Date(current.start + 'T00:00:00');
+      pickerCurrentMonth = new Date(parsedStart.getFullYear(), parsedStart.getMonth(), 1);
+
+      document.getElementById('range-picker-modal').classList.remove('hidden');
+      renderPickerCalendar();
+      updatePickerStatus();
+    }
+
+    function closeRangePicker() {
+      document.getElementById('range-picker-modal').classList.add('hidden');
+    }
+
+    function navigatePickerMonth(delta) {
+      pickerCurrentMonth.setMonth(pickerCurrentMonth.getMonth() + delta);
+      renderPickerCalendar();
+    }
+
+    function renderPickerCalendar() {
+      const year = pickerCurrentMonth.getFullYear();
+      const month = pickerCurrentMonth.getMonth();
+      const headerText = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(pickerCurrentMonth);
+      document.getElementById('picker-month-header').textContent = headerText;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+      const grid = document.getElementById('picker-days-grid');
+      grid.innerHTML = '';
+
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div class="h-8"></div>`;
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        let extraClass = 'text-slate-300 hover:bg-slate-800';
+        if (pickerSelection.start && pickerSelection.end) {
+          if (dateISO === pickerSelection.start || dateISO === pickerSelection.end) {
+            extraClass = 'cal-day-selected';
+          } else if (dateISO > pickerSelection.start && dateISO < pickerSelection.end) {
+            extraClass = 'cal-day-in-range';
+          }
+        } else if (pickerSelection.start && dateISO === pickerSelection.start) {
+          extraClass = 'cal-day-selected';
+        }
+
+        grid.innerHTML += `
+          <button type="button" onclick="handlePickerDayClick('${dateISO}')" class="h-8 w-full rounded-lg text-xs font-mono font-medium flex items-center justify-center transition-all ${extraClass}">
+            ${day}
+          </button>
+        `;
+      }
+    }
+
+    function handlePickerDayClick(dateISO) {
+      if (!pickerSelection.start || (pickerSelection.start && pickerSelection.end)) {
+        // First click sets start
+        pickerSelection.start = dateISO;
+        pickerSelection.end = null;
+      } else {
+        // Second click sets end
+        if (dateISO < pickerSelection.start) {
+          pickerSelection.end = pickerSelection.start;
+          pickerSelection.start = dateISO;
+        } else {
+          pickerSelection.end = dateISO;
+        }
+      }
+      renderPickerCalendar();
+      updatePickerStatus();
+    }
+
+    function updatePickerStatus() {
+      const label = document.getElementById('picker-selection-label');
+      if (pickerSelection.start && pickerSelection.end) {
+        label.textContent = `${pickerSelection.start} → ${pickerSelection.end}`;
+      } else if (pickerSelection.start) {
+        label.textContent = `${pickerSelection.start} → (Tap end date)`;
+      } else {
+        label.textContent = 'Pick start date';
+      }
+    }
+
+    function applyPresetRange(type) {
+      const now = new Date();
+      if (type === 'thisMonth') {
+        const start = getFormattedDate(new Date(now.getFullYear(), now.getMonth(), 1));
+        const end = getFormattedDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+        pickerSelection = { start, end };
+      } else if (type === 'lastMonth') {
+        const start = getFormattedDate(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+        const end = getFormattedDate(new Date(now.getFullYear(), now.getMonth(), 0));
+        pickerSelection = { start, end };
+      } else if (type === 'last30') {
+        const past = new Date();
+        past.setDate(past.getDate() - 30);
+        pickerSelection = { start: getFormattedDate(past), end: todayISO };
+      } else if (type === 'ytd') {
+        const start = `${now.getFullYear()}-01-01`;
+        pickerSelection = { start, end: todayISO };
+      }
+      pickerCurrentMonth = new Date(pickerSelection.start + 'T00:00:00');
+      renderPickerCalendar();
+      updatePickerStatus();
+    }
+
+    function confirmRangeSelection() {
+      if (!pickerSelection.start) return;
+      if (!pickerSelection.end) pickerSelection.end = pickerSelection.start;
+
+      if (pickerTarget === 'summary') {
+        summaryRange = { start: pickerSelection.start, end: pickerSelection.end };
+        renderSummarySheet();
+      } else {
+        calendarRange = { start: pickerSelection.start, end: pickerSelection.end };
+        renderCalendar();
+      }
+
+      updateRangeDisplayBadges();
+      closeRangePicker();
+    }
+
+    function updateRangeDisplayBadges() {
+      document.getElementById('summary-range-display').textContent = `${summaryRange.start} to ${summaryRange.end}`;
+      document.getElementById('calendar-range-display').textContent = `${calendarRange.start} to ${calendarRange.end}`;
+    }
+
+    // ===================================================
+    // VIEW 2: BILLING MATRIX SPREADSHEET (CUSTOM RANGE)
     // ===================================================
     function renderSummarySheet() {
-      const monthInput = document.getElementById('summary-month-select');
-      const selectedMonth = monthInput.value || todayISO.slice(0, 7);
-      monthInput.value = selectedMonth;
-
       const tbody = document.getElementById('summary-table-body');
       const tfoot = document.getElementById('summary-table-footer');
-      const monthCharges = charges.filter(c => c.date.startsWith(selectedMonth));
+
+      // Filter charges strictly within selected date range
+      const rangeCharges = charges.filter(c => c.date >= summaryRange.start && c.date <= summaryRange.end);
 
       let grandTotals = { 
         bDollars: 0, 
@@ -702,7 +941,7 @@
       };
 
       tbody.innerHTML = residents.map(r => {
-        const rCharges = monthCharges.filter(c => String(c.resident_id) === String(r.id));
+        const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
         
         const bCost = rCharges.filter(c => c.meal === 'Breakfast').reduce((acc, c) => acc + Number(c.amount), 0);
         const lCost = rCharges.filter(c => c.meal === 'Lunch').reduce((acc, c) => acc + Number(c.amount), 0);
@@ -755,12 +994,12 @@
     }
 
     function exportToCSV() {
-      const selectedMonth = document.getElementById('summary-month-select').value || todayISO.slice(0, 7);
-      const monthCharges = charges.filter(c => c.date.startsWith(selectedMonth));
-      let csv = ['Room,Resident Name,Breakfast ($),Lunch ($),Dinner ($),Room Charge ($),Caregiver Charge ($),Holiday Charge ($),Total Charges,Total Billed ($)'];
+      const rangeCharges = charges.filter(c => c.date >= summaryRange.start && c.date <= summaryRange.end);
+      let csv = [`"Billing Range: ${summaryRange.start} to ${summaryRange.end}"`];
+      csv.push('Room,Resident Name,Breakfast ($),Lunch ($),Dinner ($),Room Charge ($),Caregiver Charge ($),Holiday Charge ($),Total Charges,Total Billed ($)');
 
       residents.forEach(r => {
-        const rCharges = monthCharges.filter(c => String(c.resident_id) === String(r.id));
+        const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
         const bCost = rCharges.filter(c => c.meal === 'Breakfast').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const lCost = rCharges.filter(c => c.meal === 'Lunch').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const dCost = rCharges.filter(c => c.meal === 'Dinner').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
@@ -778,31 +1017,50 @@
       const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
       const a = document.createElement('a');
       a.href = window.URL.createObjectURL(blob);
-      a.download = `Meal_Charges_${selectedMonth}.csv`;
+      a.download = `Meal_Charges_${summaryRange.start}_to_${summaryRange.end}.csv`;
       a.click();
     }
 
+    // ===================================================
+    // VIEW 3: AUDIT CALENDAR (CUSTOM RANGE OR MONTH)
+    // ===================================================
+    function setCalendarToCurrentMonth() {
+      const now = new Date();
+      calendarRange.start = getFormattedDate(new Date(now.getFullYear(), now.getMonth(), 1));
+      calendarRange.end = getFormattedDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+      updateRangeDisplayBadges();
+      renderCalendar();
+    }
+
     function changeCalendarMonth(delta) {
-      calendarDate.setMonth(calendarDate.getMonth() + delta);
+      const parsed = new Date(calendarRange.start + 'T00:00:00');
+      parsed.setMonth(parsed.getMonth() + delta);
+      calendarRange.start = getFormattedDate(new Date(parsed.getFullYear(), parsed.getMonth(), 1));
+      calendarRange.end = getFormattedDate(new Date(parsed.getFullYear(), parsed.getMonth() + 1, 0));
+      updateRangeDisplayBadges();
       renderCalendar();
     }
 
     function renderCalendar() {
-      const year = calendarDate.getFullYear();
-      const month = calendarDate.getMonth();
-      document.getElementById('calendar-month-label').textContent = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(calendarDate);
-
-      const firstDay = new Date(year, month, 1).getDay();
-      const totalDays = new Date(year, month + 1, 0).getDate();
       const grid = document.getElementById('calendar-days-grid');
       grid.innerHTML = '';
 
-      for (let i = 0; i < firstDay; i++) {
+      const startDate = new Date(calendarRange.start + 'T00:00:00');
+      const endDate = new Date(calendarRange.end + 'T00:00:00');
+
+      // Add leading empty slots matching start day of week
+      const startDayOfWeek = startDate.getDay();
+      for (let i = 0; i < startDayOfWeek; i++) {
         grid.innerHTML += `<div class="min-h-[75px] bg-slate-950/40 rounded-xl border border-slate-900"></div>`;
       }
 
-      for (let day = 1; day <= totalDays; day++) {
-        const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      // Loop through all dates in custom range
+      let curr = new Date(startDate);
+      while (curr <= endDate) {
+        const dateISO = getFormattedDate(curr);
+        const dayNum = curr.getDate();
+        const monthShort = curr.toLocaleDateString('en-US', { month: 'short' });
+
         const dayCharges = charges.filter(c => c.date === dateISO);
         const dayTotal = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
         const isToday = dateISO === todayISO;
@@ -810,12 +1068,16 @@
         grid.innerHTML += `
           <div onclick="selectCalendarDate('${dateISO}')" class="min-h-[75px] p-2 bg-slate-950 border ${isToday ? 'border-emerald-500' : 'border-slate-800'} rounded-xl cursor-pointer hover:border-slate-600 transition-all flex flex-col justify-between">
             <div class="flex items-center justify-between text-xs font-bold">
-              <span class="${isToday ? 'text-emerald-400' : 'text-slate-400'}">${day}</span>
+              <span class="${isToday ? 'text-emerald-400 font-black' : 'text-slate-400'}">
+                ${dayNum === 1 || dateISO === calendarRange.start ? `<span class="text-[9px] uppercase tracking-tighter text-slate-500 mr-0.5">${monthShort}</span>` : ''}${dayNum}
+              </span>
               ${dayCharges.length > 0 ? `<span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 rounded">${dayCharges.length}</span>` : ''}
             </div>
             ${dayCharges.length > 0 ? `<div class="font-bold text-xs text-emerald-400 font-mono">$${dayTotal.toFixed(2)}</div>` : `<div class="text-[10px] text-slate-700 italic">-</div>`}
           </div>
         `;
+
+        curr.setDate(curr.getDate() + 1);
       }
     }
 
@@ -831,7 +1093,7 @@
 
       const tbody = document.getElementById('drilldown-table-body');
       if (dayCharges.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-500 italic">No charges recorded.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-500 italic">No charges recorded on this date.</td></tr>`;
         return;
       }
 
@@ -867,6 +1129,9 @@
       document.getElementById('calendar-drilldown-panel').classList.add('hidden');
     }
 
+    // ===================================================
+    // NAVIGATION & UTILS
+    // ===================================================
     function switchView(view) {
       currentView = view;
       ['daily', 'summary', 'calendar'].forEach(v => {
