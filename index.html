@@ -123,10 +123,10 @@
             <!-- TARGET CHARGE DATE (POPUP CALENDAR TRIGGER) -->
             <div>
               <label class="block text-stone-600 font-medium mb-1.5">Target Charge Date</label>
-              <button type="button" onclick="openSingleDatePicker()" class="w-full bg-cream-dark border border-cream-border hover:border-brandGreen rounded-xl px-3.5 py-2.5 text-stone-800 font-mono text-xs sm:text-sm flex items-center justify-between transition-all">
+              <button type="button" onclick="openSingleDatePicker()" class="w-full bg-cream-dark border border-cream-border hover:border-brandGreen rounded-xl px-3.5 py-2.5 text-stone-800 text-xs sm:text-sm flex items-center justify-between transition-all">
                 <span class="flex items-center gap-2">
                   <i class="fa-regular fa-calendar text-brandAmber"></i>
-                  <span id="preset-date-display">Today</span>
+                  <span id="preset-date-display" class="font-medium">Today</span>
                 </span>
                 <i class="fa-solid fa-chevron-down text-[10px] text-stone-400"></i>
               </button>
@@ -294,7 +294,7 @@
           <table class="w-full text-left text-xs sm:text-sm">
             <thead class="bg-cream-dark text-stone-600 uppercase text-[10px] font-semibold border-b border-cream-border">
               <tr>
-                <th class="py-3 px-4">Date & Time</th>
+                <th class="py-3 px-4">Date</th>
                 <th class="py-3 px-3">Room</th>
                 <th class="py-3 px-4">Resident</th>
                 <th class="py-3 px-3">Meal</th>
@@ -353,7 +353,7 @@
         <div class="flex items-center justify-between border-b border-cream-border pb-3">
           <div>
             <h3 class="font-bold text-stone-900 text-sm sm:text-base flex items-center gap-2">
-              <i class="fa-solid fa-list-check text-brandGreen"></i> Charges Logged on <span id="drilldown-date-title" class="text-brandAmber"></span>
+              <i class="fa-solid fa-list-check text-brandGreen"></i> Charges Logged on <span id="drilldown-date-title" class="text-brandAmber font-serif"></span>
             </h3>
             <p id="drilldown-stats" class="text-xs text-stone-500 mt-0.5"></p>
           </div>
@@ -366,7 +366,6 @@
           <table class="w-full text-left text-xs sm:text-sm">
             <thead class="bg-cream-dark text-stone-600 uppercase text-[10px] font-semibold">
               <tr>
-                <th class="py-2.5 px-3">Time</th>
                 <th class="py-2.5 px-3">Room</th>
                 <th class="py-2.5 px-3">Resident</th>
                 <th class="py-2.5 px-3">Meal</th>
@@ -428,9 +427,9 @@
 
       <!-- SELECTION STATUS & ACTIONS -->
       <div class="flex items-center justify-between pt-1 border-t border-cream-border">
-        <div class="text-xs font-mono">
+        <div class="text-xs">
           <span class="text-stone-500">Selected: </span>
-          <span id="picker-selection-label" class="text-brandAmber font-bold">Pick date</span>
+          <span id="picker-selection-label" class="text-brandAmber font-medium">Pick date</span>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" onclick="closeRangePicker()" class="px-3 py-1.5 rounded-xl text-stone-600 hover:text-stone-900 text-xs font-medium">Cancel</button>
@@ -513,11 +512,24 @@
     let balanceRange = 'month';
     let selectedDrilldownDate = null;
 
+    // Helper: ISO Date String YYYY-MM-DD
     function getFormattedDate(d) {
       const yr = d.getFullYear();
       const mo = String(d.getMonth() + 1).padStart(2, '0');
       const da = String(d.getDate()).padStart(2, '0');
       return `${yr}-${mo}-${da}`;
+    }
+
+    // Helper: Human-Readable Written Date "Month DD, YYYY"
+    function formatWrittenDate(isoString) {
+      if (!isoString) return '';
+      const [year, month, day] = isoString.split('-').map(Number);
+      const d = new Date(year, month - 1, day);
+      return d.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
     }
 
     const todayObj = new Date();
@@ -553,7 +565,7 @@
         try {
           const [resResidents, resCharges] = await Promise.all([
             db.from('residents').select('*').order('room', { ascending: true }),
-            db.from('charges').select('*').order('timestamp', { ascending: false })
+            db.from('charges').select('*').order('date', { ascending: false })
           ]);
 
           if (!resResidents.error && resResidents.data) residents = resResidents.data;
@@ -612,14 +624,15 @@
     function updatePresetDateBadge() {
       const display = document.getElementById('preset-date-display');
       if (display) {
-        display.textContent = batchPreset.date === todayISO ? `Today (${batchPreset.date})` : batchPreset.date;
+        const formatted = formatWrittenDate(batchPreset.date);
+        display.textContent = batchPreset.date === todayISO ? `Today (${formatted})` : formatted;
       }
     }
 
     function updatePresetBadge() {
       const badge = document.getElementById('preset-badge');
       if (badge) {
-        badge.textContent = `${batchPreset.meal} • ${batchPreset.type} (${batchPreset.date})`;
+        badge.textContent = `${batchPreset.meal} • ${batchPreset.type} (${formatWrittenDate(batchPreset.date)})`;
       }
     }
 
@@ -650,8 +663,7 @@
         date: batchPreset.date,
         meal: batchPreset.meal,
         charge_type: batchPreset.type,
-        amount: 5.00,
-        timestamp: new Date().toISOString()
+        amount: 5.00
       };
 
       const cardEl = document.getElementById(`card-${resident.id}`);
@@ -685,12 +697,12 @@
 
       const targetIndex = charges.findIndex(c => String(c.resident_id) === String(residentId) && c.date === batchPreset.date);
       if (targetIndex === -1) {
-        alert(`No charges found for Rm ${resident.room} on ${batchPreset.date} to undo.`);
+        alert(`No charges found for Rm ${resident.room} on ${formatWrittenDate(batchPreset.date)} to undo.`);
         return;
       }
 
       const targetCharge = charges[targetIndex];
-      if (confirm(`Remove latest $5.00 charge (${targetCharge.meal} - ${targetCharge.charge_type}) for Rm ${resident.room} on ${batchPreset.date}?`)) {
+      if (confirm(`Remove latest $5.00 charge (${targetCharge.meal} - ${targetCharge.charge_type}) for Rm ${resident.room} on ${formatWrittenDate(batchPreset.date)}?`)) {
         charges.splice(targetIndex, 1);
         renderResidentsGrid();
         showToast(`Reverted $5.00 for Rm ${resident.room}`);
@@ -738,6 +750,8 @@
       }
       emptyState.classList.add('hidden');
 
+      const writtenPresetDate = formatWrittenDate(batchPreset.date);
+
       grid.innerHTML = filtered.map(r => {
         const balance = calculateResidentBalance(r.id, balanceRange);
         const dayCharges = charges.filter(c => String(c.resident_id) === String(r.id) && c.date === batchPreset.date);
@@ -762,7 +776,7 @@
             </div>
 
             <div class="flex items-center justify-between text-[11px] text-stone-500 py-2 border-t border-cream-border my-1 font-medium">
-              <span class="truncate pr-1">On ${batchPreset.date}:</span>
+              <span class="truncate pr-1">On ${writtenPresetDate}:</span>
               <span class="font-mono ${dayCount > 0 ? 'text-brandAmber font-bold' : 'text-stone-400'} whitespace-nowrap">${dayCount} ($${dayCost.toFixed(2)})</span>
             </div>
 
@@ -974,12 +988,12 @@
     function updatePickerStatus() {
       const label = document.getElementById('picker-selection-label');
       if (pickerMode === 'single') {
-        label.textContent = pickerSelection.start || 'Pick date';
+        label.textContent = pickerSelection.start ? formatWrittenDate(pickerSelection.start) : 'Pick date';
       } else {
         if (pickerSelection.start && pickerSelection.end) {
-          label.textContent = `${pickerSelection.start} → ${pickerSelection.end}`;
+          label.textContent = `${formatWrittenDate(pickerSelection.start)} → ${formatWrittenDate(pickerSelection.end)}`;
         } else if (pickerSelection.start) {
-          label.textContent = `${pickerSelection.start} → (Tap end date)`;
+          label.textContent = `${formatWrittenDate(pickerSelection.start)} → (Tap end date)`;
         } else {
           label.textContent = 'Pick start date';
         }
@@ -1032,8 +1046,8 @@
     }
 
     function updateRangeDisplayBadges() {
-      document.getElementById('summary-range-display').textContent = `${summaryRange.start} to ${summaryRange.end}`;
-      document.getElementById('calendar-range-display').textContent = `${calendarRange.start} to ${calendarRange.end}`;
+      document.getElementById('summary-range-display').textContent = `${formatWrittenDate(summaryRange.start)} – ${formatWrittenDate(summaryRange.end)}`;
+      document.getElementById('calendar-range-display').textContent = `${formatWrittenDate(calendarRange.start)} – ${formatWrittenDate(calendarRange.end)}`;
     }
 
     // ===================================================
@@ -1151,8 +1165,7 @@
           date: summaryRange.end,
           meal: categoryType === 'meal' ? categoryValue : 'Breakfast',
           charge_type: categoryType === 'type' ? categoryValue : 'Room Charge',
-          amount: diff,
-          timestamp: new Date().toISOString()
+          amount: diff
         };
 
         charges.unshift(newCharge);
@@ -1201,7 +1214,7 @@
 
     function exportToCSV() {
       const rangeCharges = charges.filter(c => c.date >= summaryRange.start && c.date <= summaryRange.end);
-      let csv = [`"Billing Range: ${summaryRange.start} to ${summaryRange.end}"`];
+      let csv = [`"Billing Range: ${formatWrittenDate(summaryRange.start)} to ${formatWrittenDate(summaryRange.end)}"`];
       csv.push('Room,Resident Name,Breakfast ($),Lunch ($),Dinner ($),Room Charge ($),Caregiver Charge ($),Holiday Charge ($),Total Charges,Total Billed ($)');
 
       residents.forEach(r => {
@@ -1228,20 +1241,24 @@
     }
 
     // ===================================================
-    // VIEW 3: GENERAL CHARGE HISTORY
+    // VIEW 3: GENERAL CHARGE HISTORY (WITHOUT TIMESTAMPS)
     // ===================================================
     function renderHistoryTable() {
       const tbody = document.getElementById('history-table-body');
       const badge = document.getElementById('history-count-badge');
       const query = (document.getElementById('history-search').value || '').toLowerCase().trim();
 
-      const filtered = charges.filter(c => 
-        String(c.room).toLowerCase().includes(query) ||
-        String(c.resident_name).toLowerCase().includes(query) ||
-        String(c.meal).toLowerCase().includes(query) ||
-        String(c.charge_type).toLowerCase().includes(query) ||
-        String(c.date).includes(query)
-      );
+      const filtered = charges.filter(c => {
+        const writtenDate = formatWrittenDate(c.date).toLowerCase();
+        return (
+          String(c.room).toLowerCase().includes(query) ||
+          String(c.resident_name).toLowerCase().includes(query) ||
+          String(c.meal).toLowerCase().includes(query) ||
+          String(c.charge_type).toLowerCase().includes(query) ||
+          String(c.date).includes(query) ||
+          writtenDate.includes(query)
+        );
+      });
 
       badge.textContent = `${filtered.length} Charges`;
 
@@ -1252,10 +1269,7 @@
 
       tbody.innerHTML = filtered.map(c => `
         <tr class="hover:bg-cream-dark/50">
-          <td class="py-3 px-4 text-stone-700">
-            <span class="font-bold text-stone-900">${c.date}</span>
-            <span class="text-[11px] text-stone-500 ml-1.5">${c.timestamp ? new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
-          </td>
+          <td class="py-3 px-4 font-sans font-medium text-stone-900">${formatWrittenDate(c.date)}</td>
           <td class="py-3 px-3 font-bold text-brandAmber">Rm ${c.room}</td>
           <td class="py-3 px-4 text-stone-800 font-sans font-medium">${c.resident_name}</td>
           <td class="py-3 px-3 text-stone-700">${c.meal}</td>
@@ -1271,7 +1285,7 @@
     }
 
     // ===================================================
-    // VIEW 4: AUDIT CALENDAR
+    // VIEW 4: AUDIT CALENDAR (WITHOUT TIMESTAMPS)
     // ===================================================
     function setCalendarToCurrentMonth() {
       const now = new Date();
@@ -1332,7 +1346,7 @@
       selectedDrilldownDate = dateISO;
       const panel = document.getElementById('calendar-drilldown-panel');
       panel.classList.remove('hidden');
-      document.getElementById('drilldown-date-title').textContent = dateISO;
+      document.getElementById('drilldown-date-title').textContent = formatWrittenDate(dateISO);
 
       const dayCharges = charges.filter(c => c.date === dateISO);
       const dayCost = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
@@ -1340,19 +1354,18 @@
 
       const tbody = document.getElementById('drilldown-table-body');
       if (dayCharges.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-stone-400 italic">No charges recorded on this date.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-stone-400 italic">No charges recorded on this date.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = dayCharges.map(c => `
         <tr class="hover:bg-cream-dark/50 font-mono text-xs">
-          <td class="py-2 px-3 text-stone-600">${c.timestamp ? new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
-          <td class="py-2 px-3 font-bold text-stone-900">Rm ${c.room}</td>
-          <td class="py-2 px-3 font-sans text-stone-800 font-medium">${c.resident_name}</td>
-          <td class="py-2 px-3 text-stone-600">${c.meal}</td>
-          <td class="py-2 px-3 text-stone-500">${c.charge_type}</td>
-          <td class="py-2 px-3 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
-          <td class="py-2 px-3 text-center">
+          <td class="py-2.5 px-3 font-bold text-stone-900">Rm ${c.room}</td>
+          <td class="py-2.5 px-3 font-sans text-stone-800 font-medium">${c.resident_name}</td>
+          <td class="py-2.5 px-3 text-stone-600">${c.meal}</td>
+          <td class="py-2.5 px-3 text-stone-500">${c.charge_type}</td>
+          <td class="py-2.5 px-3 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
+          <td class="py-2.5 px-3 text-center">
             <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50">
               <i class="fa-solid fa-trash-can"></i>
             </button>
