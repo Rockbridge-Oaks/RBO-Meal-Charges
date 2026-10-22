@@ -69,13 +69,15 @@
               <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Step 1</span>
               <h2 class="text-sm sm:text-base font-bold text-slate-200">Set Batch Preset</h2>
             </div>
-            <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md">Auto-applies</span>
+            <button type="button" onclick="resetToToday()" class="text-xs text-emerald-400 hover:text-emerald-300 bg-slate-800 px-2 py-1 rounded-md transition-colors">
+              Reset to Today
+            </button>
           </div>
 
           <div class="space-y-4 text-xs sm:text-sm">
             <div>
               <label class="block text-slate-400 font-medium mb-1.5">Target Charge Date</label>
-              <input type="date" id="preset-date" onchange="updateBatchPreset()" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-xs sm:text-sm focus:outline-none focus:border-emerald-500">
+              <input type="date" id="preset-date" onchange="updateBatchPreset()" oninput="updateBatchPreset()" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-xs sm:text-sm focus:outline-none focus:border-emerald-500">
             </div>
 
             <div>
@@ -137,9 +139,9 @@
               </div>
 
               <div class="sm:col-span-5 flex items-center bg-slate-950 border border-slate-800 rounded-xl p-1 text-xs font-medium">
-                <button onclick="setBalanceRange('today')" id="range-today" class="flex-1 py-1.5 text-center rounded-lg text-slate-400 transition-all">Today</button>
-                <button onclick="setBalanceRange('week')" id="range-week" class="flex-1 py-1.5 text-center rounded-lg text-slate-400 transition-all">7 Days</button>
-                <button onclick="setBalanceRange('month')" id="range-month" class="flex-1 py-1.5 text-center rounded-lg bg-emerald-600 text-slate-950 font-bold shadow transition-all">Month</button>
+                <button onclick="setBalanceRange('selectedDate')" id="range-selectedDate" class="flex-1 py-1.5 text-center rounded-lg text-slate-400 transition-all truncate px-1">Selected Day</button>
+                <button onclick="setBalanceRange('week')" id="range-week" class="flex-1 py-1.5 text-center rounded-lg text-slate-400 transition-all truncate px-1">7 Days</button>
+                <button onclick="setBalanceRange('month')" id="range-month" class="flex-1 py-1.5 text-center rounded-lg bg-emerald-600 text-slate-950 font-bold shadow transition-all truncate px-1">This Month</button>
               </div>
             </div>
           </div>
@@ -172,7 +174,7 @@
           <h2 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
             <i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i> Monthly Billing Matrix
           </h2>
-          <p class="text-xs text-slate-400">Itemized line items per resident for billing audits.</p>
+          <p class="text-xs text-slate-400">Itemized dollar amounts per category for monthly billing audits.</p>
         </div>
 
         <div class="flex items-center gap-2">
@@ -344,14 +346,21 @@
     let calendarDate = new Date();
     let selectedDrilldownDate = null;
 
-    const todayISO = new Date().toISOString().split('T')[0];
+    function getTodayString() {
+      const d = new Date();
+      const yr = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const da = String(d.getDate()).padStart(2, '0');
+      return `${yr}-${mo}-${da}`;
+    }
+
+    const todayISO = getTodayString();
     let batchPreset = {
       date: todayISO,
       meal: 'Breakfast',
       type: 'Room Charge'
     };
 
-    // Safe Supabase initialization
     try {
       if (window.supabase && typeof window.supabase.createClient === 'function') {
         db = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
@@ -412,10 +421,19 @@
       updatePresetBadge();
     }
 
+    function resetToToday() {
+      const picker = document.getElementById('preset-date');
+      picker.value = todayISO;
+      updateBatchPreset();
+    }
+
     function updateBatchPreset() {
-      const dateVal = document.getElementById('preset-date').value;
-      if (dateVal) batchPreset.date = dateVal;
+      const picker = document.getElementById('preset-date');
+      if (picker && picker.value) {
+        batchPreset.date = picker.value;
+      }
       updatePresetBadge();
+      renderResidentsGrid();
     }
 
     function updatePresetBadge() {
@@ -427,12 +445,14 @@
 
     function setBalanceRange(range) {
       balanceRange = range;
-      ['today', 'week', 'month'].forEach(r => {
+      ['selectedDate', 'week', 'month'].forEach(r => {
         const btn = document.getElementById(`range-${r}`);
-        if (r === range) {
-          btn.className = 'flex-1 py-1.5 text-center rounded-lg bg-emerald-600 text-slate-950 font-bold shadow transition-all';
-        } else {
-          btn.className = 'flex-1 py-1.5 text-center rounded-lg text-slate-400 hover:text-slate-200 transition-all';
+        if (btn) {
+          if (r === range) {
+            btn.className = 'flex-1 py-1.5 text-center rounded-lg bg-emerald-600 text-slate-950 font-bold shadow transition-all truncate px-1';
+          } else {
+            btn.className = 'flex-1 py-1.5 text-center rounded-lg text-slate-400 hover:text-slate-200 transition-all truncate px-1';
+          }
         }
       });
       renderResidentsGrid();
@@ -462,7 +482,7 @@
 
       charges.unshift(newCharge);
       renderResidentsGrid();
-      showToast(`+$5.00 logged for Rm ${resident.room}`);
+      showToast(`+$5.00 logged for Rm ${resident.room} on ${batchPreset.date}`);
 
       if (db) {
         const { error } = await db.from('charges').insert([{
@@ -490,7 +510,7 @@
       }
 
       const targetCharge = charges[targetIndex];
-      if (confirm(`Remove latest $5.00 charge (${targetCharge.meal} - ${targetCharge.charge_type}) for Rm ${resident.room}?`)) {
+      if (confirm(`Remove latest $5.00 charge (${targetCharge.meal} - ${targetCharge.charge_type}) for Rm ${resident.room} on ${batchPreset.date}?`)) {
         charges.splice(targetIndex, 1);
         renderResidentsGrid();
         showToast(`Reverted $5.00 for Rm ${resident.room}`);
@@ -502,19 +522,19 @@
     }
 
     function calculateResidentBalance(residentId, range) {
-      const now = new Date();
+      const baseDate = new Date(batchPreset.date + 'T00:00:00');
       return charges
         .filter(c => {
           if (String(c.resident_id) !== String(residentId)) return false;
           const chargeDate = new Date(c.date + 'T00:00:00');
-          if (range === 'today') {
-            return c.date === todayISO;
+          if (range === 'selectedDate') {
+            return c.date === batchPreset.date;
           } else if (range === 'week') {
-            const diffTime = Math.abs(now - chargeDate);
+            const diffTime = Math.abs(baseDate - chargeDate);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             return diffDays <= 7;
           } else if (range === 'month') {
-            return chargeDate.getMonth() === now.getMonth() && chargeDate.getFullYear() === now.getFullYear();
+            return chargeDate.getMonth() === baseDate.getMonth() && chargeDate.getFullYear() === baseDate.getFullYear();
           }
           return true;
         })
@@ -540,7 +560,9 @@
 
       grid.innerHTML = filtered.map(r => {
         const balance = calculateResidentBalance(r.id, balanceRange);
-        const todayCount = charges.filter(c => String(c.resident_id) === String(r.id) && c.date === batchPreset.date).length;
+        const dayCharges = charges.filter(c => String(c.resident_id) === String(r.id) && c.date === batchPreset.date);
+        const dayCount = dayCharges.length;
+        const dayCost = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
 
         return `
           <div id="card-${r.id}" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col justify-between hover:border-slate-700 transition-all shadow-lg">
@@ -560,12 +582,12 @@
             </div>
 
             <div class="flex items-center justify-between text-[11px] text-slate-400 py-2 border-t border-slate-800/60 my-1 font-medium">
-              <span>Selected Date:</span>
-              <span class="font-mono ${todayCount > 0 ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${todayCount} ($${(todayCount * 5).toFixed(2)})</span>
+              <span class="truncate pr-1">On ${batchPreset.date}:</span>
+              <span class="font-mono ${dayCount > 0 ? 'text-emerald-400 font-bold' : 'text-slate-500'} whitespace-nowrap">${dayCount} ($${dayCost.toFixed(2)})</span>
             </div>
 
             <div class="grid grid-cols-5 gap-2 mt-2">
-              <button onclick="undoLastCharge('${r.id}', event)" class="col-span-1 bg-slate-950 hover:bg-rose-950 hover:text-rose-400 text-slate-400 border border-slate-800 rounded-xl flex items-center justify-center py-2.5 active:scale-95 transition-all text-xs">
+              <button onclick="undoLastCharge('${r.id}', event)" title="Undo last charge on this date" class="col-span-1 bg-slate-950 hover:bg-rose-950 hover:text-rose-400 text-slate-400 border border-slate-800 rounded-xl flex items-center justify-center py-2.5 active:scale-95 transition-all text-xs">
                 <i class="fa-solid fa-rotate-left"></i>
               </button>
               <button onclick="addQuickCharge('${r.id}')" class="col-span-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-slate-950 font-black text-xs sm:text-sm rounded-xl py-2.5 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all">
@@ -629,7 +651,7 @@
             <span class="font-mono text-emerald-400 font-bold text-xs bg-slate-950 px-2 py-0.5 rounded border border-slate-800">Rm ${r.room}</span>
             <span class="text-slate-200 text-xs sm:text-sm font-medium ml-2">${r.name}</span>
           </div>
-          <button onclick="deleteResident('${r.id}', '${r.room}', '${r.name}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-950/80 p-2 rounded-lg text-xs transition-colors">
+          <button onclick="deleteResident('${r.id}', '${r.room}', '${r.name}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-950/80 p-2 rounded-lg text-xs transition-colors" title="Delete resident">
             <i class="fa-solid fa-trash-can"></i>
           </button>
         </div>
@@ -656,6 +678,9 @@
       }
     }
 
+    // ===================================================
+    // VIEW 2: MONTHLY SUMMARY MATRIX SPREADSHEET (IN DOLLARS)
+    // ===================================================
     function renderSummarySheet() {
       const monthInput = document.getElementById('summary-month-select');
       const selectedMonth = monthInput.value || todayISO.slice(0, 7);
@@ -665,34 +690,51 @@
       const tfoot = document.getElementById('summary-table-footer');
       const monthCharges = charges.filter(c => c.date.startsWith(selectedMonth));
 
-      let grandTotals = { b: 0, l: 0, d: 0, roomTray: 0, caregiver: 0, holiday: 0, count: 0, amount: 0 };
+      let grandTotals = { 
+        bDollars: 0, 
+        lDollars: 0, 
+        dDollars: 0, 
+        roomTrayDollars: 0, 
+        caregiverDollars: 0, 
+        holidayDollars: 0, 
+        count: 0, 
+        amount: 0 
+      };
 
       tbody.innerHTML = residents.map(r => {
         const rCharges = monthCharges.filter(c => String(c.resident_id) === String(r.id));
-        const b = rCharges.filter(c => c.meal === 'Breakfast').length;
-        const l = rCharges.filter(c => c.meal === 'Lunch').length;
-        const d = rCharges.filter(c => c.meal === 'Dinner').length;
-        const roomTray = rCharges.filter(c => c.charge_type === 'Room Charge').length;
-        const caregiver = rCharges.filter(c => c.charge_type === 'Caregiver Charge').length;
-        const holiday = rCharges.filter(c => c.charge_type === 'Holiday Charge').length;
-        const count = rCharges.length;
-        const total = count * 5;
+        
+        const bCost = rCharges.filter(c => c.meal === 'Breakfast').reduce((acc, c) => acc + Number(c.amount), 0);
+        const lCost = rCharges.filter(c => c.meal === 'Lunch').reduce((acc, c) => acc + Number(c.amount), 0);
+        const dCost = rCharges.filter(c => c.meal === 'Dinner').reduce((acc, c) => acc + Number(c.amount), 0);
 
-        grandTotals.b += b; grandTotals.l += l; grandTotals.d += d;
-        grandTotals.roomTray += roomTray; grandTotals.caregiver += caregiver; grandTotals.holiday += holiday;
-        grandTotals.count += count; grandTotals.amount += total;
+        const roomTrayCost = rCharges.filter(c => c.charge_type === 'Room Charge').reduce((acc, c) => acc + Number(c.amount), 0);
+        const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0);
+        const holidayCost = rCharges.filter(c => c.charge_type === 'Holiday Charge').reduce((acc, c) => acc + Number(c.amount), 0);
+
+        const count = rCharges.length;
+        const total = rCharges.reduce((acc, c) => acc + Number(c.amount), 0);
+
+        grandTotals.bDollars += bCost; 
+        grandTotals.lDollars += lCost; 
+        grandTotals.dDollars += dCost;
+        grandTotals.roomTrayDollars += roomTrayCost; 
+        grandTotals.caregiverDollars += caregiverCost; 
+        grandTotals.holidayDollars += holidayCost;
+        grandTotals.count += count; 
+        grandTotals.amount += total;
 
         return `
           <tr class="hover:bg-slate-800/40">
             <td class="py-2.5 px-4 font-bold text-slate-200">Rm ${r.room}</td>
             <td class="py-2.5 px-4 text-slate-300 font-sans">${r.name}</td>
-            <td class="py-2.5 px-3 text-right text-slate-400">${b || '-'}</td>
-            <td class="py-2.5 px-3 text-right text-slate-400">${l || '-'}</td>
-            <td class="py-2.5 px-3 text-right text-slate-400">${d || '-'}</td>
-            <td class="py-2.5 px-3 text-right text-slate-400">${roomTray || '-'}</td>
-            <td class="py-2.5 px-3 text-right text-slate-400">${caregiver || '-'}</td>
-            <td class="py-2.5 px-3 text-right text-slate-400">${holiday || '-'}</td>
-            <td class="py-2.5 px-4 text-right font-semibold text-slate-200">${count}</td>
+            <td class="py-2.5 px-3 text-right text-slate-300">${bCost > 0 ? '$' + bCost.toFixed(2) : '-'}</td>
+            <td class="py-2.5 px-3 text-right text-slate-300">${lCost > 0 ? '$' + lCost.toFixed(2) : '-'}</td>
+            <td class="py-2.5 px-3 text-right text-slate-300">${dCost > 0 ? '$' + dCost.toFixed(2) : '-'}</td>
+            <td class="py-2.5 px-3 text-right text-slate-300">${roomTrayCost > 0 ? '$' + roomTrayCost.toFixed(2) : '-'}</td>
+            <td class="py-2.5 px-3 text-right text-slate-300">${caregiverCost > 0 ? '$' + caregiverCost.toFixed(2) : '-'}</td>
+            <td class="py-2.5 px-3 text-right text-slate-300">${holidayCost > 0 ? '$' + holidayCost.toFixed(2) : '-'}</td>
+            <td class="py-2.5 px-4 text-right font-semibold text-slate-300">${count}</td>
             <td class="py-2.5 px-5 text-right font-black text-emerald-400">$${total.toFixed(2)}</td>
           </tr>
         `;
@@ -701,25 +743,36 @@
       tfoot.innerHTML = `
         <td class="py-3 px-4 uppercase text-slate-400">Totals</td>
         <td class="py-3 px-4 text-slate-400">${residents.length} Residents</td>
-        <td class="py-3 px-3 text-right">${grandTotals.b}</td>
-        <td class="py-3 px-3 text-right">${grandTotals.l}</td>
-        <td class="py-3 px-3 text-right">${grandTotals.d}</td>
-        <td class="py-3 px-3 text-right">${grandTotals.roomTray}</td>
-        <td class="py-3 px-3 text-right">${grandTotals.caregiver}</td>
-        <td class="py-3 px-3 text-right">${grandTotals.holiday}</td>
-        <td class="py-3 px-4 text-right text-emerald-400">${grandTotals.count}</td>
-        <td class="py-3 px-5 text-right text-emerald-400 font-black">$${grandTotals.amount.toFixed(2)}</td>
+        <td class="py-3 px-3 text-right text-slate-200 font-mono">$${grandTotals.bDollars.toFixed(2)}</td>
+        <td class="py-3 px-3 text-right text-slate-200 font-mono">$${grandTotals.lDollars.toFixed(2)}</td>
+        <td class="py-3 px-3 text-right text-slate-200 font-mono">$${grandTotals.dDollars.toFixed(2)}</td>
+        <td class="py-3 px-3 text-right text-slate-200 font-mono">$${grandTotals.roomTrayDollars.toFixed(2)}</td>
+        <td class="py-3 px-3 text-right text-slate-200 font-mono">$${grandTotals.caregiverDollars.toFixed(2)}</td>
+        <td class="py-3 px-3 text-right text-slate-200 font-mono">$${grandTotals.holidayDollars.toFixed(2)}</td>
+        <td class="py-3 px-4 text-right text-slate-200 font-mono">${grandTotals.count}</td>
+        <td class="py-3 px-5 text-right text-emerald-400 font-black font-mono text-base">$${grandTotals.amount.toFixed(2)}</td>
       `;
     }
 
     function exportToCSV() {
       const selectedMonth = document.getElementById('summary-month-select').value || todayISO.slice(0, 7);
       const monthCharges = charges.filter(c => c.date.startsWith(selectedMonth));
-      let csv = ['Room,Resident Name,Breakfast,Lunch,Dinner,Room Charge,Caregiver Charge,Holiday Charge,Total Charges,Total Billed'];
+      let csv = ['Room,Resident Name,Breakfast ($),Lunch ($),Dinner ($),Room Charge ($),Caregiver Charge ($),Holiday Charge ($),Total Charges,Total Billed ($)'];
 
       residents.forEach(r => {
         const rCharges = monthCharges.filter(c => String(c.resident_id) === String(r.id));
-        csv.push(`"${r.room}","${r.name}",${rCharges.filter(c => c.meal === 'Breakfast').length},${rCharges.filter(c => c.meal === 'Lunch').length},${rCharges.filter(c => c.meal === 'Dinner').length},${rCharges.filter(c => c.charge_type === 'Room Charge').length},${rCharges.filter(c => c.charge_type === 'Caregiver Charge').length},${rCharges.filter(c => c.charge_type === 'Holiday Charge').length},${rCharges.length},${(rCharges.length * 5).toFixed(2)}`);
+        const bCost = rCharges.filter(c => c.meal === 'Breakfast').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+        const lCost = rCharges.filter(c => c.meal === 'Lunch').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+        const dCost = rCharges.filter(c => c.meal === 'Dinner').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+
+        const roomTrayCost = rCharges.filter(c => c.charge_type === 'Room Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+        const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+        const holidayCost = rCharges.filter(c => c.charge_type === 'Holiday Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+
+        const count = rCharges.length;
+        const total = rCharges.reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+
+        csv.push(`"${r.room}","${r.name}",${bCost},${lCost},${dCost},${roomTrayCost},${caregiverCost},${holidayCost},${count},${total}`);
       });
 
       const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
@@ -751,6 +804,7 @@
       for (let day = 1; day <= totalDays; day++) {
         const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayCharges = charges.filter(c => c.date === dateISO);
+        const dayTotal = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
         const isToday = dateISO === todayISO;
 
         grid.innerHTML += `
@@ -759,7 +813,7 @@
               <span class="${isToday ? 'text-emerald-400' : 'text-slate-400'}">${day}</span>
               ${dayCharges.length > 0 ? `<span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 rounded">${dayCharges.length}</span>` : ''}
             </div>
-            ${dayCharges.length > 0 ? `<div class="font-bold text-xs text-emerald-400 font-mono">$${(dayCharges.length * 5).toFixed(2)}</div>` : `<div class="text-[10px] text-slate-700 italic">-</div>`}
+            ${dayCharges.length > 0 ? `<div class="font-bold text-xs text-emerald-400 font-mono">$${dayTotal.toFixed(2)}</div>` : `<div class="text-[10px] text-slate-700 italic">-</div>`}
           </div>
         `;
       }
@@ -772,7 +826,8 @@
       document.getElementById('drilldown-date-title').textContent = dateISO;
 
       const dayCharges = charges.filter(c => c.date === dateISO);
-      document.getElementById('drilldown-stats').textContent = `${dayCharges.length} total charges ($${(dayCharges.length * 5).toFixed(2)})`;
+      const dayCost = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
+      document.getElementById('drilldown-stats').textContent = `${dayCharges.length} total charges ($${dayCost.toFixed(2)})`;
 
       const tbody = document.getElementById('drilldown-table-body');
       if (dayCharges.length === 0) {
@@ -787,7 +842,7 @@
           <td class="py-2 px-3 font-sans text-slate-300">${c.resident_name}</td>
           <td class="py-2 px-3 text-slate-400">${c.meal}</td>
           <td class="py-2 px-3 text-slate-400">${c.charge_type}</td>
-          <td class="py-2 px-3 text-right font-black text-emerald-400">$5.00</td>
+          <td class="py-2 px-3 text-right font-black text-emerald-400">$${Number(c.amount).toFixed(2)}</td>
           <td class="py-2 px-3 text-center">
             <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-rose-950">
               <i class="fa-solid fa-trash-can"></i>
@@ -846,7 +901,11 @@
 
     window.onload = function () {
       const datePicker = document.getElementById('preset-date');
-      if (datePicker) datePicker.value = todayISO;
+      if (datePicker) {
+        datePicker.value = todayISO;
+        datePicker.addEventListener('input', updateBatchPreset);
+        datePicker.addEventListener('change', updateBatchPreset);
+      }
       updatePresetBadge();
       loadData();
     };
