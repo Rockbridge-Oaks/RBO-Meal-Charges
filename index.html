@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Room Service Meal Charge Tracker</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons CDN -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fffbeb',
+              100: '#fef3c7',
+              200: '#fde68a',
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+            },
+            slate: {
+              850: '#151f32',
+              900: '#0f172a',
+              950: '#080d1a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Pulse animation for fast-charge button */
+    @keyframes chargePulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); background-color: #f59e0b; color: #000; }
+      100% { transform: scale(1); }
+    }
+    .charged-pulse {
+      animation: chargePulse 0.35s ease-out;
+    }
+
+    /* Touch adjustments */
+    button, input, select {
+      touch-action: manipulation;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-black">
+
+  <!-- TOP APP BAR -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo / Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-amber-500/20">
+            <i class="ph-bold ph-fork-knife text-xl"></i>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold font-display tracking-tight text-white flex items-center gap-2">
+              CareServe <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">$5 Fixed Charge</span>
+            </h1>
+            <p class="text-xs text-slate-400 hidden sm:block">Assisted Living Room Service & Tray Tracker</p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center gap-1 sm:gap-2 bg-slate-950/70 p-1 rounded-xl border border-slate-800/80">
+          <button id="nav-btn-quick" onclick="switchTab('quick')" class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 bg-amber-500 text-slate-950 shadow-md">
+            <i class="ph-bold ph-lightning"></i>
+            <span>Quick Charge</span>
+          </button>
+          <button id="nav-btn-summary" onclick="switchTab('summary')" class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-1.5">
+            <i class="ph-bold ph-table"></i>
+            <span>Monthly Totals</span>
+          </button>
+          <button id="nav-btn-calendar" onclick="switchTab('calendar')" class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-1.5">
+            <i class="ph-bold ph-calendar-blank"></i>
+            <span>Audit Calendar</span>
+          </button>
+        </nav>
+
+        <!-- Quick Stats Badge -->
+        <div class="hidden md:flex items-center gap-3">
+          <button onclick="openAddResidentModal()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors">
+            <i class="ph-bold ph-plus-circle text-base"></i>
+            Add Room
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- MAIN VIEWPORT CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: QUICK CHARGE DASHBOARD -->
+    <!-- ========================================================================= -->
+    <section id="view-quick" class="space-y-6">
+      
+      <!-- Top banner on mobile to quickly jump/add room -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold font-display text-white">Daily Meal Intake</h2>
+          <p class="text-sm text-slate-400">Configure your batch preset once on the panel, then tap [+] on rooms to instantly log.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openAddResidentModal()" class="sm:hidden w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 rounded-xl text-sm font-semibold flex items-center justify-center gap-2">
+            <i class="ph-bold ph-plus-circle"></i> Add New Room
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- MAIN SECTION: RESIDENTS GRID (Cols 1-8) -->
+        <div class="lg:col-span-8 space-y-4">
+          
+          <!-- Filters & Search Toolbar -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between shadow-sm">
+            <div class="relative flex-1">
+              <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
+              <input type="text" id="quick-search" oninput="renderResidentsGrid()" placeholder="Filter by room or resident name..." 
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors">
+            </div>
+
+            <!-- Date Range Selector for Card Balance Totals -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider hidden sm:inline">Balance:</span>
+              <div class="grid grid-cols-3 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-medium text-slate-300">
+                <button onclick="setDateRangeFilter('today')" id="btn-range-today" class="px-2.5 py-1.5 rounded-lg transition-colors">Today</button>
+                <button onclick="setDateRangeFilter('week')" id="btn-range-week" class="px-2.5 py-1.5 rounded-lg transition-colors">7 Days</button>
+                <button onclick="setDateRangeFilter('month')" id="btn-range-month" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-400 font-bold transition-colors">This Month</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Batch Preset Visual Confirmation Ribbon -->
+          <div class="bg-gradient-to-r from-amber-500/15 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-sm">
+            <div class="flex items-center gap-2.5">
+              <div class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></div>
+              <span class="text-xs uppercase tracking-wider text-amber-400 font-bold">Active Batch Mode:</span>
+              <span id="ribbon-text" class="text-slate-200 font-medium text-xs sm:text-sm">
+                Breakfast &bull; Room Charge &bull; Today
+              </span>
+            </div>
+            <div class="flex items-center gap-1 text-xs font-semibold text-slate-400">
+              <i class="ph-bold ph-lightning text-amber-400"></i> Tap <span class="text-amber-400 font-bold font-mono text-sm px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">+</span> = $5 charge logged
+            </div>
+          </div>
+
+          <!-- Dynamic Grid of Cards -->
+          <div id="residents-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Rendered via JS -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="residents-empty" class="hidden p-12 text-center border-2 border-dashed border-slate-800 rounded-3xl">
+            <i class="ph ph-user-list text-4xl text-slate-600 mb-2"></i>
+            <h3 class="text-base font-semibold text-slate-300">No rooms found</h3>
+            <p class="text-xs text-slate-500 mt-1">Try adjusting your search filter or click Add Room.</p>
+          </div>
+        </div>
+
+        <!-- SIDEBAR: PERSISTENT ACTIVE PRESET PANEL (Cols 9-12) -->
+        <div class="lg:col-span-4 sticky top-24 space-y-5">
+          <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-5">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div class="flex items-center gap-2">
+                <i class="ph-bold ph-sliders-horizontal text-amber-400 text-lg"></i>
+                <h3 class="font-bold text-white font-display">Batch Charge Presets</h3>
+              </div>
+              <span class="text-xs font-semibold px-2 py-0.5 bg-slate-800 text-slate-300 rounded-full border border-slate-700">Sticky</span>
+            </div>
+
+            <!-- Preset: Date Selector -->
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <span>Charge Date</span>
+                <button onclick="setPresetDateToToday()" class="text-amber-400 hover:underline normal-case font-medium text-xs">Set to Today</button>
+              </label>
+              <input type="date" id="preset-date" onchange="updateBatchPreset(); renderResidentsGrid();"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-medium focus:outline-none focus:border-amber-500">
+            </div>
+
+            <!-- Preset: Meal Type -->
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Meal Category</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" onclick="setPresetMeal('Breakfast')" id="btn-meal-Breakfast" class="preset-meal-btn py-2.5 px-2 rounded-xl text-xs font-bold transition-all border text-center flex flex-col items-center gap-1 bg-amber-500 text-slate-950 border-amber-400 shadow-md">
+                  <i class="ph-bold ph-sun text-base"></i>
+                  <span>Breakfast</span>
+                </button>
+                <button type="button" onclick="setPresetMeal('Lunch')" id="btn-meal-Lunch" class="preset-meal-btn py-2.5 px-2 rounded-xl text-xs font-medium transition-all border text-center flex flex-col items-center gap-1 bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700">
+                  <i class="ph-bold ph-cloud-sun text-base"></i>
+                  <span>Lunch</span>
+                </button>
+                <button type="button" onclick="setPresetMeal('Dinner')" id="btn-meal-Dinner" class="preset-meal-btn py-2.5 px-2 rounded-xl text-xs font-medium transition-all border text-center flex flex-col items-center gap-1 bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700">
+                  <i class="ph-bold ph-moon-stars text-base"></i>
+                  <span>Dinner</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Preset: Charge Type -->
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Charge Type</label>
+              <div class="grid grid-cols-1 gap-2">
+                <button type="button" onclick="setPresetType('Room Charge')" id="btn-type-Room Charge" class="preset-type-btn p-3 rounded-xl text-xs font-bold transition-all border text-left flex items-center justify-between bg-amber-500/10 text-amber-300 border-amber-500/40">
+                  <div class="flex items-center gap-2">
+                    <i class="ph-bold ph-bed text-base text-amber-400"></i>
+                    <span>Room Tray Charge</span>
+                  </div>
+                  <span class="font-mono font-bold">$5.00</span>
+                </button>
+                <button type="button" onclick="setPresetType('Caregiver Charge')" id="btn-type-Caregiver Charge" class="preset-type-btn p-3 rounded-xl text-xs font-medium transition-all border text-left flex items-center justify-between bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700">
+                  <div class="flex items-center gap-2">
+                    <i class="ph-bold ph-hand-heart text-base text-slate-400"></i>
+                    <span>Caregiver Assistance</span>
+                  </div>
+                  <span class="font-mono font-bold">$5.00</span>
+                </button>
+                <button type="button" onclick="setPresetType('Holiday Charge')" id="btn-type-Holiday Charge" class="preset-type-btn p-3 rounded-xl text-xs font-medium transition-all border text-left flex items-center justify-between bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700">
+                  <div class="flex items-center gap-2">
+                    <i class="ph-bold ph-sparkle text-base text-slate-400"></i>
+                    <span>Holiday Special Meal</span>
+                  </div>
+                  <span class="font-mono font-bold">$5.00</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Recent Activity Mini Log -->
+            <div class="pt-3 border-t border-slate-800 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Recent Activity</span>
+                <span id="activity-count-badge" class="text-[11px] text-slate-500 font-mono">0 today</span>
+              </div>
+              <div id="quick-activity-log" class="space-y-1.5 max-h-40 overflow-y-auto pr-1 text-xs text-slate-300">
+                <!-- Mini Log Rows -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (PIVOT GRID) -->
+    <!-- ========================================================================= -->
+    <section id="view-summary" class="hidden space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold font-display text-white">Monthly Billing Breakdown</h2>
+          <p class="text-sm text-slate-400">Aggregated charges per resident categorized by meal periods and charge types.</p>
+        </div>
+
+        <!-- Controls: Month Picker & CSV Export -->
+        <div class="flex items-center gap-3">
+          <input type="month" id="summary-month-picker" onchange="renderMonthlySummary()"
+            class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white font-medium focus:outline-none focus:border-amber-500">
+          
+          <button onclick="exportSummaryCSV()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-amber-500/10 transition-colors">
+            <i class="ph-bold ph-file-csv text-lg"></i>
+            Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Spreadsheet Grid Table Container -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm whitespace-nowrap">
+            <thead class="bg-slate-950/80 border-b border-slate-800 text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <tr>
+                <th scope="col" class="py-4 px-4 sticky left-0 bg-slate-950 z-10">Room</th>
+                <th scope="col" class="py-4 px-6 sticky left-16 bg-slate-950 z-10">Resident Name</th>
+                <th scope="col" class="py-4 px-4 text-center bg-slate-900/50">Breakfast</th>
+                <th scope="col" class="py-4 px-4 text-center bg-slate-900/50">Lunch</th>
+                <th scope="col" class="py-4 px-4 text-center bg-slate-900/50">Dinner</th>
+                <th scope="col" class="py-4 px-4 text-center bg-slate-900/80">Room Trays</th>
+                <th scope="col" class="py-4 px-4 text-center bg-slate-900/80">Caregiver</th>
+                <th scope="col" class="py-4 px-4 text-center bg-slate-900/80">Holiday</th>
+                <th scope="col" class="py-4 px-6 text-right font-display text-amber-400">Total Billed</th>
+              </tr>
+            </thead>
+            <tbody id="summary-table-body" class="divide-y divide-slate-800 font-medium text-slate-300">
+              <!-- Rendered via JS -->
+            </tbody>
+            <tfoot id="summary-table-footer" class="bg-slate-950 font-bold text-white border-t-2 border-slate-700">
+              <!-- Community Totals Row via JS -->
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: AUDIT CALENDAR -->
+    <!-- ========================================================================= -->
+    <section id="view-calendar" class="hidden space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold font-display text-white">Daily Charge Audit Calendar</h2>
+          <p class="text-sm text-slate-400">Click any day to inspect individual charge timestamps or remove mis-entered charges.</p>
+        </div>
+
+        <!-- Month Navigation Buttons -->
+        <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1 rounded-2xl">
+          <button onclick="prevCalendarMonth()" class="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors">
+            <i class="ph-bold ph-caret-left text-lg"></i>
+          </button>
+          <span id="calendar-month-label" class="px-3 font-display font-bold text-sm sm:text-base text-white min-w-[140px] text-center">
+            October 2026
+          </span>
+          <button onclick="nextCalendarMonth()" class="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors">
+            <i class="ph-bold ph-caret-right text-lg"></i>
+          </button>
+          <button onclick="jumpCalendarToday()" class="ml-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold rounded-xl transition-colors">
+            Today
+          </button>
+        </div>
+      </div>
+
+      <!-- Calendar Grid Layout -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-3 sm:p-5 shadow-2xl">
+        <!-- Day of Week Header -->
+        <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs font-bold text-slate-500 uppercase tracking-wider pb-3 border-b border-slate-800">
+          <div>Sun</div>
+          <div>Mon</div>
+          <div>Tue</div>
+          <div>Wed</div>
+          <div>Thu</div>
+          <div>Fri</div>
+          <div>Sat</div>
+        </div>
+
+        <!-- 35-42 Day Cells Container -->
+        <div id="calendar-grid-cells" class="grid grid-cols-7 gap-1 sm:gap-2 pt-3">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ADD NEW RESIDENT -->
+  <!-- ========================================================================= -->
+  <div id="modal-add-resident" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-in fade-in duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-lg font-bold font-display text-white flex items-center gap-2">
+          <i class="ph-bold ph-user-plus text-amber-400"></i> Add Room / Resident
+        </h3>
+        <button onclick="closeAddResidentModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <form id="form-add-resident" onsubmit="handleCreateResident(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Room Number</label>
+          <input type="text" id="input-room-number" required placeholder="e.g. 106, 214-B" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 font-medium">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Resident Full Name</label>
+          <input type="text" id="input-resident-name" required placeholder="e.g. Eleanor Vance" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 font-medium">
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeAddResidentModal()" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm shadow-md transition-colors flex items-center gap-2">
+            <i class="ph-bold ph-check"></i> Save Resident
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: CALENDAR DAY DRILL-DOWN / AUDIT LOG -->
+  <!-- ========================================================================= -->
+  <div id="modal-day-drilldown" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-xl w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <h3 id="drilldown-title" class="text-lg font-bold font-display text-white">October 22, 2026</h3>
+          <p id="drilldown-subtitle" class="text-xs text-amber-400 font-medium">4 charges recorded ($20.00)</p>
+        </div>
+        <button onclick="closeDayDrilldown()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Charges List -->
+      <div id="drilldown-list" class="flex-1 overflow-y-auto space-y-2 pr-1">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Footer -->
+      <div class="pt-3 border-t border-slate-800 flex justify-end">
+        <button onclick="closeDayDrilldown()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-colors">
+          Close Audit Window
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // ==========================================
+    // INITIALIZATION & STATE MANAGEMENT
+    // ==========================================
+    const STORAGE_KEY_RESIDENTS = 'careserver_residents_v1';
+    const STORAGE_KEY_CHARGES = 'careserver_charges_v1';
+
+    // Helper: format Date to YYYY-MM-DD
+    function formatDateISO(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // Default current Date
+    const todayObj = new Date();
+    const todayISO = formatDateISO(todayObj);
+
+    // Active Presets State
+    let batchState = {
+      date: todayISO,
+      meal: 'Breakfast',
+      chargeType: 'Room Charge'
+    };
+
+    // Card balance range filter: 'today', 'week', 'month'
+    let currentRangeFilter = 'month';
+
+    // Calendar view active pointer (Year, Month index 0-11)
+    let calendarDate = new Date(todayObj.getFullYear(), todayObj.getMonth(), 1);
+
+    // Seed realistic sample data if empty
+    function initializeSeedData() {
+      let storedResidents = localStorage.getItem(STORAGE_KEY_RESIDENTS);
+      let storedCharges = localStorage.getItem(STORAGE_KEY_CHARGES);
+
+      if (!storedResidents) {
+        const seedResidents = [
+          { id: 'res-101', roomNumber: '101', name: 'John Doe' },
+          { id: 'res-102', roomNumber: '102', name: 'Alice Smith' },
+          { id: 'res-104', roomNumber: '104', name: 'Robert Johnson' },
+          { id: 'res-201', roomNumber: '201', name: 'Margaret Williams' },
+          { id: 'res-205', roomNumber: '205', name: 'David Brown' },
+          { id: 'res-208', roomNumber: '208', name: 'Clara Oswald' },
+        ];
+        localStorage.setItem(STORAGE_KEY_RESIDENTS, JSON.stringify(seedResidents));
+      }
+
+      if (!storedCharges) {
+        // Generate a few charges for this month
+        const y = todayObj.getFullYear();
+        const m = todayObj.getMonth();
+        const seedCharges = [
+          { id: 'chg-1', residentId: 'res-101', date: todayISO, meal: 'Breakfast', chargeType: 'Room Charge', amount: 5.0, timestamp: new Date(y, m, todayObj.getDate(), 8, 15).toISOString() },
+          { id: 'chg-2', residentId: 'res-102', date: todayISO, meal: 'Breakfast', chargeType: 'Caregiver Charge', amount: 5.0, timestamp: new Date(y, m, todayObj.getDate(), 8, 30).toISOString() },
+          { id: 'chg-3', residentId: 'res-104', date: todayISO, meal: 'Lunch', chargeType: 'Room Charge', amount: 5.0, timestamp: new Date(y, m, todayObj.getDate(), 12, 10).toISOString() },
+          { id: 'chg-4', residentId: 'res-201', date: formatDateISO(new Date(y, m, Math.max(1, todayObj.getDate() - 1))), meal: 'Dinner', chargeType: 'Holiday Charge', amount: 5.0, timestamp: new Date(y, m, Math.max(1, todayObj.getDate() - 1), 18, 0).toISOString() },
+          { id: 'chg-5', residentId: 'res-205', date: formatDateISO(new Date(y, m, Math.max(1, todayObj.getDate() - 2))), meal: 'Breakfast', chargeType: 'Room Charge', amount: 5.0, timestamp: new Date(y, m, Math.max(1, todayObj.getDate() - 2), 8, 0).toISOString() },
+          { id: 'chg-6', residentId: 'res-101', date: formatDateISO(new Date(y, m, Math.max(1, todayObj.getDate() - 2))), meal: 'Lunch', chargeType: 'Room Charge', amount: 5.0, timestamp: new Date(y, m, Math.max(1, todayObj.getDate() - 2), 12, 30).toISOString() },
+        ];
+        localStorage.setItem(STORAGE_KEY_CHARGES, JSON.stringify(seedCharges));
+      }
+    }
+
+    function getResidents() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY_RESIDENTS) || '[]');
+    }
+
+    function saveResidents(arr) {
+      localStorage.setItem(STORAGE_KEY_RESIDENTS, JSON.stringify(arr));
+    }
+
+    function getCharges() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY_CHARGES) || '[]');
+    }
+
+    function saveCharges(arr) {
+      localStorage.setItem(STORAGE_KEY_CHARGES, JSON.stringify(arr));
+    }
+
+    // ==========================================
+    // TAB NAVIGATION
+    // ==========================================
+    function switchTab(tabId) {
+      ['quick', 'summary', 'calendar'].forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        const btn = document.getElementById(`nav-btn-${t}`);
+        if (t === tabId) {
+          view.classList.remove('hidden');
+          btn.className = 'px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 bg-amber-500 text-slate-950 shadow-md';
+        } else {
+          view.classList.add('hidden');
+          btn.className = 'px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-1.5';
+        }
+      });
+
+      if (tabId === 'quick') renderResidentsGrid();
+      if (tabId === 'summary') renderMonthlySummary();
+      if (tabId === 'calendar') renderCalendar();
+    }
+
+    // ==========================================
+    // TOAST SYSTEM
+    // ==========================================
+    function showToast(message, isUndo = false) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-slate-950 border transition-all duration-300 transform translate-y-3 pointer-events-auto ${
+        isUndo ? 'bg-rose-400 border-rose-300' : 'bg-amber-400 border-amber-300'
+      }`;
+      toast.innerHTML = `<i class="ph-bold ${isUndo ? 'ph-arrow-counter-clockwise' : 'ph-check-circle'} text-base"></i> <span>${message}</span>`;
+      
+      container.appendChild(toast);
+      // animate in
+      setTimeout(() => toast.classList.remove('translate-y-3'), 10);
+      // auto remove
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // ==========================================
+    // BATCH PRESET CONTROLS (VIEW 1)
+    // ==========================================
+    function setPresetDateToToday() {
+      document.getElementById('preset-date').value = todayISO;
+      batchState.date = todayISO;
+      updateBatchPreset();
+      renderResidentsGrid();
+    }
+
+    function setPresetMeal(meal) {
+      batchState.meal = meal;
+      ['Breakfast', 'Lunch', 'Dinner'].forEach(m => {
+        const b = document.getElementById(`btn-meal-${m}`);
+        if (m === meal) {
+          b.className = 'preset-meal-btn py-2.5 px-2 rounded-xl text-xs font-bold transition-all border text-center flex flex-col items-center gap-1 bg-amber-500 text-slate-950 border-amber-400 shadow-md';
+        } else {
+          b.className = 'preset-meal-btn py-2.5 px-2 rounded-xl text-xs font-medium transition-all border text-center flex flex-col items-center gap-1 bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700';
+        }
+      });
+      updateBatchPreset();
+    }
+
+    function setPresetType(type) {
+      batchState.chargeType = type;
+      ['Room Charge', 'Caregiver Charge', 'Holiday Charge'].forEach(t => {
+        const b = document.getElementById(`btn-type-${t}`);
+        if (t === type) {
+          b.className = 'preset-type-btn p-3 rounded-xl text-xs font-bold transition-all border text-left flex items-center justify-between bg-amber-500/15 text-amber-300 border-amber-500/40';
+        } else {
+          b.className = 'preset-type-btn p-3 rounded-xl text-xs font-medium transition-all border text-left flex items-center justify-between bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700';
+        }
+      });
+      updateBatchPreset();
+    }
+
+    function updateBatchPreset() {
+      const dateVal = document.getElementById('preset-date').value || todayISO;
+      batchState.date = dateVal;
+
+      // Update Ribbon
+      const formattedDate = (dateVal === todayISO) ? 'Today' : dateVal;
+      document.getElementById('ribbon-text').innerHTML = `
+        <strong class="text-amber-400">${batchState.meal}</strong> &bull; 
+        <span class="text-slate-300">${batchState.chargeType}</span> &bull; 
+        <span class="text-slate-400">${formattedDate}</span>
+      `;
+    }
+
+    function setDateRangeFilter(range) {
+      currentRangeFilter = range;
+      ['today', 'week', 'month'].forEach(r => {
+        const btn = document.getElementById(`btn-range-${r}`);
+        if (r === range) {
+          btn.className = 'px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-400 font-bold transition-colors';
+        } else {
+          btn.className = 'px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white transition-colors';
+        }
+      });
+      renderResidentsGrid();
+    }
+
+    // ==========================================
+    // DATA HELPERS & CALCULATIONS
+    // ==========================================
+    function calculateResidentTotal(residentId, filterType = currentRangeFilter) {
+      const charges = getCharges().filter(c => c.residentId === residentId);
+      const now = new Date();
+
+      const filtered = charges.filter(c => {
+        const cDate = new Date(c.date + 'T00:00:00');
+        if (filterType === 'today') {
+          return c.date === todayISO;
+        } else if (filterType === 'week') {
+          const oneWeekAgo = new Date();
+          oneWeekAgo.setDate(now.getDate() - 7);
+          return cDate >= oneWeekAgo && cDate <= now;
+        } else if (filterType === 'month') {
+          return cDate.getMonth() === now.getMonth() && cDate.getFullYear() === now.getFullYear();
+        }
+        return true;
+      });
+
+      return filtered.reduce((acc, curr) => acc + Number(curr.amount || 5), 0);
+    }
+
+    // Quick Action: Add $5.00 Charge
+    function handleAddCharge(residentId, roomNumber, resName, btnElement) {
+      const charges = getCharges();
+      const newCharge = {
+        id: 'chg-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        residentId: residentId,
+        date: batchState.date,
+        meal: batchState.meal,
+        chargeType: batchState.chargeType,
+        amount: 5.0,
+        timestamp: new Date().toISOString()
+      };
+
+      charges.push(newCharge);
+      saveCharges(charges);
+
+      // Trigger pulse animation
+      if (btnElement) {
+        btnElement.classList.add('charged-pulse');
+        setTimeout(() => btnElement.classList.remove('charged-pulse'), 350);
+      }
+
+      showToast(`Added $5.00 ${batchState.meal} for Rm ${roomNumber} (${resName})`);
+      renderResidentsGrid();
+      renderMiniActivityLog();
+    }
+
+    // Quick Action: Remove most recent charge for that resident on the batch date
+    function handleRemoveLastCharge(residentId, roomNumber) {
+      const charges = getCharges();
+      // find charges for this resident matching the selected preset date
+      const matching = charges.filter(c => c.residentId === residentId && c.date === batchState.date);
+      
+      if (matching.length === 0) {
+        showToast(`No charges logged for Rm ${roomNumber} on ${batchState.date}`, true);
+        return;
+      }
+
+      // Sort by timestamp desc and take the newest one
+      matching.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const targetId = matching[0].id;
+
+      const updated = charges.filter(c => c.id !== targetId);
+      saveCharges(updated);
+
+      showToast(`Removed latest $5.00 charge from Rm ${roomNumber}`, true);
+      renderResidentsGrid();
+      renderMiniActivityLog();
+    }
+
+    // ==========================================
+    // RENDER RESIDENTS GRID (VIEW 1)
+    // ==========================================
+    function renderResidentsGrid() {
+      const grid = document.getElementById('residents-grid');
+      const emptyState = document.getElementById('residents-empty');
+      const query = (document.getElementById('quick-search').value || '').trim().toLowerCase();
+
+      const residents = getResidents();
+      const filtered = residents.filter(r => 
+        r.roomNumber.toLowerCase().includes(query) || 
+        r.name.toLowerCase().includes(query)
+      );
+
+      // Sort naturally by room number
+      filtered.sort((a, b) => a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true }));
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      
+      const rangeLabels = {
+        today: "Today's Total",
+        week: "Past 7 Days",
+        month: "This Month"
+      };
+
+      grid.innerHTML = filtered.map(res => {
+        const total = calculateResidentTotal(res.id, currentRangeFilter);
+        
+        // Count today's charges for this resident
+        const todayCount = getCharges().filter(c => c.residentId === res.id && c.date === batchState.date).length;
+
+        return `
+          <div class="bg-slate-900 border border-slate-800 hover:border-slate-700/80 rounded-3xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 shadow-lg hover:shadow-amber-500/5 group">
+            
+            <!-- Room & Resident Header -->
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-amber-400 font-display font-extrabold text-base sm:text-lg tracking-tight group-hover:border-amber-500/40 transition-colors">
+                  ${res.roomNumber}
+                </div>
+                <div>
+                  <h4 class="font-bold text-white text-sm sm:text-base leading-tight">${res.name}</h4>
+                  <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                    <span class="w-1.5 h-1.5 rounded-full ${todayCount > 0 ? 'bg-emerald-400' : 'bg-slate-600'}"></span>
+                    ${todayCount} charge${todayCount === 1 ? '' : 's'} on selected date
+                  </p>
+                </div>
+              </div>
+
+              <!-- Filtered Dynamic Total Balance -->
+              <div class="text-right">
+                <div class="text-xs text-slate-400 font-medium">${rangeLabels[currentRangeFilter]}</div>
+                <div class="text-base sm:text-lg font-bold font-mono text-amber-400">
+                  $${total.toFixed(2)}
+                </div>
+              </div>
+            </div>
+
+            <!-- Interactive Increment/Decrement Actions -->
+            <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <!-- Undo / Minus Button -->
+                <button 
+                  onclick="handleRemoveLastCharge('${res.id}', '${res.roomNumber}')" 
+                  title="Undo last charge for selected date"
+                  class="w-10 h-10 rounded-xl bg-slate-950 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-800 hover:border-rose-500/30 flex items-center justify-center transition-colors text-lg active:scale-95"
+                >
+                  <i class="ph-bold ph-minus"></i>
+                </button>
+                <span class="text-xs text-slate-400 font-medium">-$5</span>
+              </div>
+
+              <!-- Big Touch +$5 Charge Button -->
+              <button 
+                onclick="handleAddCharge('${res.id}', '${res.roomNumber}', '${res.name.replace(/'/g, "\\'")}', this)" 
+                class="flex-1 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-display font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 transition-transform active:scale-98 select-none"
+              >
+                <i class="ph-bold ph-plus text-lg"></i>
+                <span>Add $5.00 Charge</span>
+              </button>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Mini Activity Log in Sidebar
+    function renderMiniActivityLog() {
+      const container = document.getElementById('quick-activity-log');
+      const badge = document.getElementById('activity-count-badge');
+      const charges = getCharges();
+      const residents = getResidents();
+      const resMap = Object.fromEntries(residents.map(r => [r.id, r]));
+
+      const todayCharges = charges.filter(c => c.date === batchState.date);
+      badge.textContent = `${todayCharges.length} logged`;
+
+      if (todayCharges.length === 0) {
+        container.innerHTML = `<p class="text-slate-600 italic py-2">No charges on ${batchState.date}</p>`;
+        return;
+      }
+
+      // Show latest 6
+      const sorted = [...todayCharges].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 6);
+
+      container.innerHTML = sorted.map(c => {
+        const res = resMap[c.residentId] || { roomNumber: '?', name: 'Unknown' };
+        const timeStr = new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="flex items-center justify-between py-1 border-b border-slate-800/60 last:border-0">
+            <span class="truncate pr-1"><strong class="text-amber-400">Rm ${res.roomNumber}</strong> &bull; ${c.meal}</span>
+            <span class="font-mono text-slate-400 shrink-0">${timeStr}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==========================================
+    // VIEW 2: MONTHLY SUMMARY SPREADSHEET
+    // ==========================================
+    function renderMonthlySummary() {
+      const picker = document.getElementById('summary-month-picker');
+      if (!picker.value) {
+        const y = todayObj.getFullYear();
+        const m = String(todayObj.getMonth() + 1).padStart(2, '0');
+        picker.value = `${y}-${m}`;
+      }
+
+      const [yearStr, monthStr] = picker.value.split('-');
+      const targetYear = parseInt(yearStr, 10);
+      const targetMonth = parseInt(monthStr, 10) - 1; // 0-based
+
+      const residents = getResidents();
+      residents.sort((a, b) => a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true }));
+      const charges = getCharges();
+
+      const tbody = document.getElementById('summary-table-body');
+      const tfoot = document.getElementById('summary-table-footer');
+
+      // Filter charges to this month
+      const monthCharges = charges.filter(c => {
+        const d = new Date(c.date + 'T00:00:00');
+        return d.getFullYear() === targetYear && d.getMonth() === targetMonth;
+      });
+
+      let grandTotalBreakfast = 0;
+      let grandTotalLunch = 0;
+      let grandTotalDinner = 0;
+      let grandTotalRoom = 0;
+      let grandTotalCaregiver = 0;
+      let grandTotalHoliday = 0;
+      let grandCommunityTotal = 0;
+
+      tbody.innerHTML = residents.map(r => {
+        const rCharges = monthCharges.filter(c => c.residentId === r.id);
+
+        const sumCategory = (meal) => rCharges.filter(c => c.meal === meal).reduce((s, c) => s + c.amount, 0);
+        const sumType = (type) => rCharges.filter(c => c.chargeType === type).reduce((s, c) => s + c.amount, 0);
+
+        const bfast = sumCategory('Breakfast');
+        const lunch = sumCategory('Lunch');
+        const dinner = sumCategory('Dinner');
+
+        const roomChg = sumType('Room Charge');
+        const careChg = sumType('Caregiver Charge');
+        const holiChg = sumType('Holiday Charge');
+
+        const resTotal = rCharges.reduce((s, c) => s + c.amount, 0);
+
+        grandTotalBreakfast += bfast;
+        grandTotalLunch += lunch;
+        grandTotalDinner += dinner;
+        grandTotalRoom += roomChg;
+        grandTotalCaregiver += careChg;
+        grandTotalHoliday += holiChg;
+        grandCommunityTotal += resTotal;
+
+        return `
+          <tr class="hover:bg-slate-800/50 transition-colors">
+            <td class="py-3 px-4 font-mono font-bold text-amber-400 sticky left-0 bg-slate-900 z-10">${r.roomNumber}</td>
+            <td class="py-3 px-6 font-semibold text-white sticky left-16 bg-slate-900 z-10">${r.name}</td>
+            <td class="py-3 px-4 text-center font-mono ${bfast ? 'text-slate-200' : 'text-slate-600'}">$${bfast.toFixed(2)}</td>
+            <td class="py-3 px-4 text-center font-mono ${lunch ? 'text-slate-200' : 'text-slate-600'}">$${lunch.toFixed(2)}</td>
+            <td class="py-3 px-4 text-center font-mono ${dinner ? 'text-slate-200' : 'text-slate-600'}">$${dinner.toFixed(2)}</td>
+            <td class="py-3 px-4 text-center font-mono ${roomChg ? 'text-slate-200' : 'text-slate-600'}">$${roomChg.toFixed(2)}</td>
+            <td class="py-3 px-4 text-center font-mono ${careChg ? 'text-slate-200' : 'text-slate-600'}">$${careChg.toFixed(2)}</td>
+            <td class="py-3 px-4 text-center font-mono ${holiChg ? 'text-slate-200' : 'text-slate-600'}">$${holiChg.toFixed(2)}</td>
+            <td class="py-3 px-6 text-right font-mono font-bold text-amber-400">$${resTotal.toFixed(2)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      tfoot.innerHTML = `
+        <tr>
+          <td class="py-4 px-4 sticky left-0 bg-slate-950 z-10">Total</td>
+          <td class="py-4 px-6 uppercase text-xs tracking-wider sticky left-16 bg-slate-950 z-10 text-slate-400">All Residents</td>
+          <td class="py-4 px-4 text-center font-mono">$${grandTotalBreakfast.toFixed(2)}</td>
+          <td class="py-4 px-4 text-center font-mono">$${grandTotalLunch.toFixed(2)}</td>
+          <td class="py-4 px-4 text-center font-mono">$${grandTotalDinner.toFixed(2)}</td>
+          <td class="py-4 px-4 text-center font-mono">$${grandTotalRoom.toFixed(2)}</td>
+          <td class="py-4 px-4 text-center font-mono">$${grandTotalCaregiver.toFixed(2)}</td>
+          <td class="py-4 px-4 text-center font-mono">$${grandTotalHoliday.toFixed(2)}</td>
+          <td class="py-4 px-6 text-right font-mono text-base text-amber-400 font-extrabold">$${grandCommunityTotal.toFixed(2)}</td>
+        </tr>
+      `;
+    }
+
+    // CSV Export
+    function exportSummaryCSV() {
+      const picker = document.getElementById('summary-month-picker');
+      const [yearStr, monthStr] = picker.value.split('-');
+      const targetYear = parseInt(yearStr, 10);
+      const targetMonth = parseInt(monthStr, 10) - 1;
+
+      const residents = getResidents();
+      residents.sort((a, b) => a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true }));
+      const charges = getCharges();
+
+      const monthCharges = charges.filter(c => {
+        const d = new Date(c.date + 'T00:00:00');
+        return d.getFullYear() === targetYear && d.getMonth() === targetMonth;
+      });
+
+      let csv = 'Room Number,Resident Name,Breakfast ($),Lunch ($),Dinner ($),Room Tray ($),Caregiver ($),Holiday ($),Grand Total ($)\n';
+
+      residents.forEach(r => {
+        const rCharges = monthCharges.filter(c => c.residentId === r.id);
+        const bfast = rCharges.filter(c => c.meal === 'Breakfast').reduce((s, c) => s + c.amount, 0);
+        const lunch = rCharges.filter(c => c.meal === 'Lunch').reduce((s, c) => s + c.amount, 0);
+        const dinner = rCharges.filter(c => c.meal === 'Dinner').reduce((s, c) => s + c.amount, 0);
+
+        const roomChg = rCharges.filter(c => c.chargeType === 'Room Charge').reduce((s, c) => s + c.amount, 0);
+        const careChg = rCharges.filter(c => c.chargeType === 'Caregiver Charge').reduce((s, c) => s + c.amount, 0);
+        const holiChg = rCharges.filter(c => c.chargeType === 'Holiday Charge').reduce((s, c) => s + c.amount, 0);
+
+        const resTotal = rCharges.reduce((s, c) => s + c.amount, 0);
+
+        csv += `"${r.roomNumber}","${r.name}",${bfast.toFixed(2)},${lunch.toFixed(2)},${dinner.toFixed(2)},${roomChg.toFixed(2)},${careChg.toFixed(2)},${holiChg.toFixed(2)},${resTotal.toFixed(2)}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Room_Charges_Summary_${picker.value}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast(`Exported CSV for ${picker.value}`);
+    }
+
+    // ==========================================
+    // VIEW 3: AUDIT CALENDAR
+    // ==========================================
+    function prevCalendarMonth() {
+      calendarDate.setMonth(calendarDate.getMonth() - 1);
+      renderCalendar();
+    }
+
+    function nextCalendarMonth() {
+      calendarDate.setMonth(calendarDate.getMonth() + 1);
+      renderCalendar();
+    }
+
+    function jumpCalendarToday() {
+      calendarDate = new Date(todayObj.getFullYear(), todayObj.getMonth(), 1);
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const year = calendarDate.getFullYear();
+      const month = calendarDate.getMonth();
+
+      const monthName = calendarDate.toLocaleString('default', { month: 'long' });
+      document.getElementById('calendar-month-label').textContent = `${monthName} ${year}`;
+
+      const grid = document.getElementById('calendar-grid-cells');
+      grid.innerHTML = '';
+
+      // First day of current month (0=Sun, 1=Mon, ..., 6=Sat)
+      const firstDayIdx = new Date(year, month, 1).getDay();
+      // Total days in current month
+      const totalDays = new Date(year, month + 1, 0).getDate();
+      // Total days in previous month
+      const prevMonthTotalDays = new Date(year, month, 0).getDate();
+
+      const charges = getCharges();
+      const residents = getResidents();
+      const resMap = Object.fromEntries(residents.map(r => [r.id, r]));
+
+      // 1. Fill leading days from previous month
+      for (let i = firstDayIdx - 1; i >= 0; i--) {
+        const dayNum = prevMonthTotalDays - i;
+        const cell = document.createElement('div');
+        cell.className = 'min-h-[90px] sm:min-h-[110px] p-2 bg-slate-950/40 border border-slate-900 rounded-2xl opacity-30 select-none';
+        cell.innerHTML = `<span class="text-xs font-mono text-slate-500">${dayNum}</span>`;
+        grid.appendChild(cell);
+      }
+
+      // 2. Fill days of active month
+      for (let day = 1; day <= totalDays; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayCharges = charges.filter(c => c.date === dateStr);
+        const daySum = dayCharges.reduce((acc, c) => acc + c.amount, 0);
+
+        const isToday = (dateStr === todayISO);
+
+        const cell = document.createElement('div');
+        cell.onclick = () => openDayDrilldown(dateStr, dayCharges);
+        cell.className = `min-h-[90px] sm:min-h-[110px] p-2 sm:p-2.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between hover:border-amber-500/50 ${
+          isToday ? 'bg-amber-500/10 border-amber-500/40 shadow-md' : 'bg-slate-950 border-slate-800/80 hover:bg-slate-900'
+        }`;
+
+        // Top line: Day number + Total Badge
+        let headerHtml = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold ${isToday ? 'text-amber-400' : 'text-slate-300'}">${day}</span>
+            ${daySum > 0 ? `<span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300">$${daySum.toFixed(0)}</span>` : ''}
+          </div>
+        `;
+
+        // Mini preview of chips
+        let chipsHtml = '';
+        if (dayCharges.length > 0) {
+          const previewList = dayCharges.slice(0, 2);
+          chipsHtml = `
+            <div class="space-y-1 my-1">
+              ${previewList.map(c => {
+                const r = resMap[c.residentId];
+                return `
+                  <div class="text-[10px] truncate rounded bg-slate-900 px-1 py-0.5 border border-slate-800 text-slate-300">
+                    <strong class="text-amber-400">Rm ${r ? r.roomNumber : '?'}</strong> ${c.meal.charAt(0)}
+                  </div>
+                `;
+              }).join('')}
+              ${dayCharges.length > 2 ? `<div class="text-[9px] text-slate-500 font-semibold">+${dayCharges.length - 2} more</div>` : ''}
+            </div>
+          `;
+        }
+
+        cell.innerHTML = headerHtml + chipsHtml + `
+          <div class="text-[9px] text-slate-500 font-medium">${dayCharges.length} charge${dayCharges.length === 1 ? '' : 's'}</div>
+        `;
+
+        grid.appendChild(cell);
+      }
+    }
+
+    // ==========================================
+    // DAY DRILLDOWN MODAL & RECORD DELETION
+    // ==========================================
+    let activeDrilldownDate = null;
+
+    function openDayDrilldown(dateStr, dayCharges) {
+      activeDrilldownDate = dateStr;
+      const modal = document.getElementById('modal-day-drilldown');
+      const title = document.getElementById('drilldown-title');
+      const subtitle = document.getElementById('drilldown-subtitle');
+      const list = document.getElementById('drilldown-list');
+
+      const d = new Date(dateStr + 'T00:00:00');
+      title.textContent = d.toLocaleDateString('default', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+      renderDrilldownItems(dayCharges);
+      modal.classList.remove('hidden');
+    }
+
+    function renderDrilldownItems(dayCharges) {
+      const list = document.getElementById('drilldown-list');
+      const subtitle = document.getElementById('drilldown-subtitle');
+      const residents = getResidents();
+      const resMap = Object.fromEntries(residents.map(r => [r.id, r]));
+
+      const total = dayCharges.reduce((acc, c) => acc + c.amount, 0);
+      subtitle.textContent = `${dayCharges.length} charges recorded ($${total.toFixed(2)})`;
+
+      if (dayCharges.length === 0) {
+        list.innerHTML = `<div class="p-8 text-center text-slate-500 italic">No charges logged for this day.</div>`;
+        return;
+      }
+
+      list.innerHTML = dayCharges.map(c => {
+        const res = resMap[c.residentId] || { roomNumber: '?', name: 'Unknown' };
+        const timeStr = new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div class="p-3 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between gap-3 hover:border-slate-700 transition-colors">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center font-bold font-mono text-amber-400">
+                ${res.roomNumber}
+              </div>
+              <div>
+                <h5 class="text-sm font-bold text-white">${res.name}</h5>
+                <p class="text-xs text-slate-400">
+                  <span class="text-amber-400 font-semibold">${c.meal}</span> &bull; ${c.chargeType} &bull; ${timeStr}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="font-mono font-bold text-sm text-white">$${c.amount.toFixed(2)}</span>
+              <button onclick="deleteSingleCharge('${c.id}')" title="Delete charge" class="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors">
+                <i class="ph-bold ph-trash text-base"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function deleteSingleCharge(chargeId) {
+      let charges = getCharges();
+      charges = charges.filter(c => c.id !== chargeId);
+      saveCharges(charges);
+
+      showToast('Charge deleted', true);
+
+      // Refresh drilldown list
+      const dayCharges = charges.filter(c => c.date === activeDrilldownDate);
+      renderDrilldownItems(dayCharges);
+
+      // Refresh calendar & dashboard
+      renderCalendar();
+      renderResidentsGrid();
+    }
+
+    function closeDayDrilldown() {
+      document.getElementById('modal-day-drilldown').classList.add('hidden');
+    }
+
+    // ==========================================
+    // MODAL: ADD NEW RESIDENT
+    // ==========================================
+    function openAddResidentModal() {
+      document.getElementById('input-room-number').value = '';
+      document.getElementById('input-resident-name').value = '';
+      document.getElementById('modal-add-resident').classList.remove('hidden');
+      document.getElementById('input-room-number').focus();
+    }
+
+    function closeAddResidentModal() {
+      document.getElementById('modal-add-resident').classList.add('hidden');
+    }
+
+    function handleCreateResident(e) {
+      e.preventDefault();
+      const roomNumber = document.getElementById('input-room-number').value.trim();
+      const name = document.getElementById('input-resident-name').value.trim();
+
+      if (!roomNumber || !name) return;
+
+      const residents = getResidents();
+      const newResident = {
+        id: 'res-' + Date.now(),
+        roomNumber: roomNumber,
+        name: name
+      };
+
+      residents.push(newResident);
+      saveResidents(residents);
+
+      closeAddResidentModal();
+      showToast(`Added Room ${roomNumber}: ${name}`);
+      renderResidentsGrid();
+    }
+
+    // ==========================================
+    // STARTUP / ONLOAD
+    // ==========================================
+    window.onload = function () {
+      initializeSeedData();
+      
+      // Initialize preset date picker
+      document.getElementById('preset-date').value = todayISO;
+      updateBatchPreset();
+
+      // Render default view
+      renderResidentsGrid();
+      renderMiniActivityLog();
+    };
+  </script>
+</body>
+</html>
