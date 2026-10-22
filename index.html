@@ -16,7 +16,6 @@
     .tap-pulse {
       animation: pulse-green 0.35s ease-out;
     }
-    /* Calendar popover styling */
     .cal-day-in-range {
       background-color: rgba(16, 185, 129, 0.2) !important;
       color: #6ee7b7 !important;
@@ -57,8 +56,11 @@
         <button id="tab-summary" onclick="switchView('summary')" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all">
           <i class="fa-solid fa-table mr-1"></i> Monthly Sheet
         </button>
+        <button id="tab-history" onclick="switchView('history')" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all">
+          <i class="fa-solid fa-clock-rotate-left mr-1"></i> History
+        </button>
         <button id="tab-calendar" onclick="switchView('calendar')" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all">
-          <i class="fa-solid fa-calendar-days mr-1"></i> Calendar Audit
+          <i class="fa-solid fa-calendar-days mr-1"></i> Calendar
         </button>
       </nav>
     </div>
@@ -67,7 +69,9 @@
   <!-- MAIN CONTAINER -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 pb-20">
 
+    <!-- ================================================= -->
     <!-- VIEW 1: DAILY QUICK CHARGE DASHBOARD -->
+    <!-- ================================================= -->
     <div id="view-daily" class="space-y-6">
       
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
@@ -85,9 +89,16 @@
           </div>
 
           <div class="space-y-4 text-xs sm:text-sm">
+            <!-- TARGET CHARGE DATE (POPUP CALENDAR TRIGGER) -->
             <div>
               <label class="block text-slate-400 font-medium mb-1.5">Target Charge Date</label>
-              <input type="date" id="preset-date" onchange="updateBatchPreset()" oninput="updateBatchPreset()" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-xs sm:text-sm focus:outline-none focus:border-emerald-500">
+              <button type="button" onclick="openSingleDatePicker()" class="w-full bg-slate-950 border border-slate-700/80 hover:border-emerald-500 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-xs sm:text-sm flex items-center justify-between transition-all">
+                <span class="flex items-center gap-2">
+                  <i class="fa-regular fa-calendar text-emerald-400"></i>
+                  <span id="preset-date-display">Today</span>
+                </span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-slate-500"></i>
+              </button>
             </div>
 
             <div>
@@ -177,14 +188,16 @@
       </div>
     </div>
 
-    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET -->
+    <!-- ================================================= -->
+    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (EDITABLE) -->
+    <!-- ================================================= -->
     <div id="view-summary" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl">
         <div>
           <h2 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
             <i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i> Room Service Billing Matrix
           </h2>
-          <p class="text-xs text-slate-400">Totals per room calculated across the selected billing period.</p>
+          <p class="text-xs text-slate-400">Click any category dollar amount below to directly edit or override charges.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -208,12 +221,12 @@
               <tr>
                 <th class="py-3 px-4">Room</th>
                 <th class="py-3 px-4">Resident</th>
-                <th class="py-3 px-3 text-right">Breakfast</th>
-                <th class="py-3 px-3 text-right">Lunch</th>
-                <th class="py-3 px-3 text-right">Dinner</th>
-                <th class="py-3 px-3 text-right">Room Tray</th>
-                <th class="py-3 px-3 text-right">Caregiver</th>
-                <th class="py-3 px-3 text-right">Holiday</th>
+                <th class="py-3 px-3 text-right">Breakfast ($)</th>
+                <th class="py-3 px-3 text-right">Lunch ($)</th>
+                <th class="py-3 px-3 text-right">Dinner ($)</th>
+                <th class="py-3 px-3 text-right">Room Tray ($)</th>
+                <th class="py-3 px-3 text-right">Caregiver ($)</th>
+                <th class="py-3 px-3 text-right">Holiday ($)</th>
                 <th class="py-3 px-4 text-right">Total Charges</th>
                 <th class="py-3 px-5 text-right font-black text-emerald-400">Total Billed</th>
               </tr>
@@ -227,7 +240,47 @@
       </div>
     </div>
 
-    <!-- VIEW 3: AUDIT CALENDAR -->
+    <!-- ================================================= -->
+    <!-- VIEW 3: GENERAL CHARGE HISTORY -->
+    <!-- ================================================= -->
+    <div id="view-history" class="hidden space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i> Complete Charge History
+          </h2>
+          <p class="text-xs text-slate-400">Chronological feed of all recorded entries. Deleting updates totals everywhere immediately.</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, name, or meal..." class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+          <span id="history-count-badge" class="font-mono text-xs text-slate-400 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">0 Charges</span>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] font-semibold border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Date & Time</th>
+                <th class="py-3 px-3">Room</th>
+                <th class="py-3 px-4">Resident</th>
+                <th class="py-3 px-3">Meal</th>
+                <th class="py-3 px-3">Charge Category</th>
+                <th class="py-3 px-4 text-right">Amount</th>
+                <th class="py-3 px-4 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body" class="divide-y divide-slate-800/80 font-mono"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================= -->
+    <!-- VIEW 4: AUDIT CALENDAR -->
+    <!-- ================================================= -->
     <div id="view-calendar" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl">
         <div>
@@ -238,7 +291,6 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <!-- CALENDAR RANGE PICKER TRIGGER -->
           <button onclick="openRangePicker('calendar')" class="px-3.5 py-1.5 bg-slate-950 border border-slate-700 hover:border-emerald-500 text-slate-200 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 transition-all">
             <i class="fa-regular fa-calendar text-emerald-400"></i>
             <span id="calendar-range-display">Select Range</span>
@@ -300,24 +352,25 @@
   </main>
 
   <!-- ================================================= -->
-  <!-- MODAL: DATE RANGE POPUP CALENDAR -->
+  <!-- MODAL: DATE RANGE / SINGLE DATE POPUP CALENDAR -->
   <!-- ================================================= -->
   <div id="range-picker-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
           <h3 class="font-bold text-slate-100 text-base flex items-center gap-2">
-            <i class="fa-regular fa-calendar-days text-emerald-400"></i> Select Date Range
+            <i class="fa-regular fa-calendar-days text-emerald-400"></i>
+            <span id="range-picker-title">Select Date</span>
           </h3>
-          <p class="text-xs text-slate-400 mt-0.5" id="range-picker-instructions">Tap a start date, then tap an end date.</p>
+          <p class="text-xs text-slate-400 mt-0.5" id="range-picker-instructions">Tap a date to select.</p>
         </div>
         <button onclick="closeRangePicker()" class="text-slate-400 hover:text-slate-200">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <!-- SHORTCUT PILLS -->
-      <div class="grid grid-cols-4 gap-1.5 text-xs">
+      <!-- SHORTCUT PILLS (HIDDEN IN SINGLE DATE MODE) -->
+      <div id="range-shortcuts" class="grid grid-cols-4 gap-1.5 text-xs">
         <button onclick="applyPresetRange('thisMonth')" class="py-1.5 px-2 bg-slate-950 hover:bg-slate-800 rounded-lg text-slate-300 font-medium text-center">This Month</button>
         <button onclick="applyPresetRange('lastMonth')" class="py-1.5 px-2 bg-slate-950 hover:bg-slate-800 rounded-lg text-slate-300 font-medium text-center">Last Month</button>
         <button onclick="applyPresetRange('last30')" class="py-1.5 px-2 bg-slate-950 hover:bg-slate-800 rounded-lg text-slate-300 font-medium text-center">Last 30d</button>
@@ -345,8 +398,8 @@
       <!-- SELECTION STATUS & ACTIONS -->
       <div class="flex items-center justify-between pt-1 border-t border-slate-800">
         <div class="text-xs font-mono">
-          <span class="text-slate-400">Span: </span>
-          <span id="picker-selection-label" class="text-emerald-400 font-bold">Pick start date</span>
+          <span class="text-slate-400">Selected: </span>
+          <span id="picker-selection-label" class="text-emerald-400 font-bold">Pick date</span>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" onclick="closeRangePicker()" class="px-3 py-1.5 rounded-xl text-slate-400 hover:text-slate-200 text-xs font-medium">Cancel</button>
@@ -446,8 +499,9 @@
     let summaryRange = { start: firstDayThisMonth, end: lastDayThisMonth };
     let calendarRange = { start: firstDayThisMonth, end: lastDayThisMonth };
 
-    // Range Picker State
-    let pickerTarget = 'summary'; // 'summary' or 'calendar'
+    // Range / Date Picker State
+    let pickerMode = 'range'; // 'range' or 'single'
+    let pickerTarget = 'summary'; // 'summary', 'calendar', or 'preset'
     let pickerCurrentMonth = new Date(todayObj.getFullYear(), todayObj.getMonth(), 1);
     let pickerSelection = { start: null, end: null };
 
@@ -486,6 +540,7 @@
       }
 
       updateRangeDisplayBadges();
+      updatePresetDateBadge();
       renderCurrentView();
       updateTotalResidentsBadge();
     }
@@ -522,18 +577,17 @@
     }
 
     function resetToToday() {
-      const picker = document.getElementById('preset-date');
-      picker.value = todayISO;
-      updateBatchPreset();
-    }
-
-    function updateBatchPreset() {
-      const picker = document.getElementById('preset-date');
-      if (picker && picker.value) {
-        batchPreset.date = picker.value;
-      }
+      batchPreset.date = todayISO;
+      updatePresetDateBadge();
       updatePresetBadge();
       renderResidentsGrid();
+    }
+
+    function updatePresetDateBadge() {
+      const display = document.getElementById('preset-date-display');
+      if (display) {
+        display.textContent = batchPreset.date === todayISO ? `Today (${batchPreset.date})` : batchPreset.date;
+      }
     }
 
     function updatePresetBadge() {
@@ -785,9 +839,10 @@
     }
 
     // ===================================================
-    // DATE RANGE PICKER (POPUP MODAL)
+    // DATE PICKER POPUP (SUPPORTS RANGE AND SINGLE-DATE)
     // ===================================================
     function openRangePicker(target) {
+      pickerMode = 'range';
       pickerTarget = target;
       const current = target === 'summary' ? summaryRange : calendarRange;
       pickerSelection = { start: current.start, end: current.end };
@@ -795,7 +850,28 @@
       const parsedStart = new Date(current.start + 'T00:00:00');
       pickerCurrentMonth = new Date(parsedStart.getFullYear(), parsedStart.getMonth(), 1);
 
+      document.getElementById('range-shortcuts').classList.remove('hidden');
+      document.getElementById('range-picker-title').textContent = 'Select Date Range';
+      document.getElementById('range-picker-instructions').textContent = 'Tap a start date, then tap an end date.';
       document.getElementById('range-picker-modal').classList.remove('hidden');
+
+      renderPickerCalendar();
+      updatePickerStatus();
+    }
+
+    function openSingleDatePicker() {
+      pickerMode = 'single';
+      pickerTarget = 'preset';
+      pickerSelection = { start: batchPreset.date, end: batchPreset.date };
+
+      const parsed = new Date(batchPreset.date + 'T00:00:00');
+      pickerCurrentMonth = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
+
+      document.getElementById('range-shortcuts').classList.add('hidden');
+      document.getElementById('range-picker-title').textContent = 'Select Target Date';
+      document.getElementById('range-picker-instructions').textContent = 'Tap any date to apply as the active batch date.';
+      document.getElementById('range-picker-modal').classList.remove('hidden');
+
       renderPickerCalendar();
       updatePickerStatus();
     }
@@ -828,14 +904,20 @@
         const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
         let extraClass = 'text-slate-300 hover:bg-slate-800';
-        if (pickerSelection.start && pickerSelection.end) {
-          if (dateISO === pickerSelection.start || dateISO === pickerSelection.end) {
+        if (pickerMode === 'single') {
+          if (pickerSelection.start === dateISO) {
             extraClass = 'cal-day-selected';
-          } else if (dateISO > pickerSelection.start && dateISO < pickerSelection.end) {
-            extraClass = 'cal-day-in-range';
           }
-        } else if (pickerSelection.start && dateISO === pickerSelection.start) {
-          extraClass = 'cal-day-selected';
+        } else {
+          if (pickerSelection.start && pickerSelection.end) {
+            if (dateISO === pickerSelection.start || dateISO === pickerSelection.end) {
+              extraClass = 'cal-day-selected';
+            } else if (dateISO > pickerSelection.start && dateISO < pickerSelection.end) {
+              extraClass = 'cal-day-in-range';
+            }
+          } else if (pickerSelection.start && dateISO === pickerSelection.start) {
+            extraClass = 'cal-day-selected';
+          }
         }
 
         grid.innerHTML += `
@@ -847,12 +929,17 @@
     }
 
     function handlePickerDayClick(dateISO) {
+      if (pickerMode === 'single') {
+        pickerSelection.start = dateISO;
+        pickerSelection.end = dateISO;
+        confirmRangeSelection();
+        return;
+      }
+
       if (!pickerSelection.start || (pickerSelection.start && pickerSelection.end)) {
-        // First click sets start
         pickerSelection.start = dateISO;
         pickerSelection.end = null;
       } else {
-        // Second click sets end
         if (dateISO < pickerSelection.start) {
           pickerSelection.end = pickerSelection.start;
           pickerSelection.start = dateISO;
@@ -866,12 +953,16 @@
 
     function updatePickerStatus() {
       const label = document.getElementById('picker-selection-label');
-      if (pickerSelection.start && pickerSelection.end) {
-        label.textContent = `${pickerSelection.start} → ${pickerSelection.end}`;
-      } else if (pickerSelection.start) {
-        label.textContent = `${pickerSelection.start} → (Tap end date)`;
+      if (pickerMode === 'single') {
+        label.textContent = pickerSelection.start || 'Pick date';
       } else {
-        label.textContent = 'Pick start date';
+        if (pickerSelection.start && pickerSelection.end) {
+          label.textContent = `${pickerSelection.start} → ${pickerSelection.end}`;
+        } else if (pickerSelection.start) {
+          label.textContent = `${pickerSelection.start} → (Tap end date)`;
+        } else {
+          label.textContent = 'Pick start date';
+        }
       }
     }
 
@@ -900,12 +991,18 @@
 
     function confirmRangeSelection() {
       if (!pickerSelection.start) return;
-      if (!pickerSelection.end) pickerSelection.end = pickerSelection.start;
 
-      if (pickerTarget === 'summary') {
+      if (pickerTarget === 'preset') {
+        batchPreset.date = pickerSelection.start;
+        updatePresetDateBadge();
+        updatePresetBadge();
+        renderResidentsGrid();
+      } else if (pickerTarget === 'summary') {
+        if (!pickerSelection.end) pickerSelection.end = pickerSelection.start;
         summaryRange = { start: pickerSelection.start, end: pickerSelection.end };
         renderSummarySheet();
       } else {
+        if (!pickerSelection.end) pickerSelection.end = pickerSelection.start;
         calendarRange = { start: pickerSelection.start, end: pickerSelection.end };
         renderCalendar();
       }
@@ -920,13 +1017,12 @@
     }
 
     // ===================================================
-    // VIEW 2: BILLING MATRIX SPREADSHEET (CUSTOM RANGE)
+    // VIEW 2: BILLING MATRIX SPREADSHEET (DIRECT INLINE EDITING)
     // ===================================================
     function renderSummarySheet() {
       const tbody = document.getElementById('summary-table-body');
       const tfoot = document.getElementById('summary-table-footer');
 
-      // Filter charges strictly within selected date range
       const rangeCharges = charges.filter(c => c.date >= summaryRange.start && c.date <= summaryRange.end);
 
       let grandTotals = { 
@@ -967,12 +1063,37 @@
           <tr class="hover:bg-slate-800/40">
             <td class="py-2.5 px-4 font-bold text-slate-200">Rm ${r.room}</td>
             <td class="py-2.5 px-4 text-slate-300 font-sans">${r.name}</td>
-            <td class="py-2.5 px-3 text-right text-slate-300">${bCost > 0 ? '$' + bCost.toFixed(2) : '-'}</td>
-            <td class="py-2.5 px-3 text-right text-slate-300">${lCost > 0 ? '$' + lCost.toFixed(2) : '-'}</td>
-            <td class="py-2.5 px-3 text-right text-slate-300">${dCost > 0 ? '$' + dCost.toFixed(2) : '-'}</td>
-            <td class="py-2.5 px-3 text-right text-slate-300">${roomTrayCost > 0 ? '$' + roomTrayCost.toFixed(2) : '-'}</td>
-            <td class="py-2.5 px-3 text-right text-slate-300">${caregiverCost > 0 ? '$' + caregiverCost.toFixed(2) : '-'}</td>
-            <td class="py-2.5 px-3 text-right text-slate-300">${holidayCost > 0 ? '$' + holidayCost.toFixed(2) : '-'}</td>
+
+            <!-- Editable Breakfast -->
+            <td class="py-1 px-2 text-right">
+              <input type="number" step="0.01" min="0" value="${bCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Breakfast', this.value, ${bCost})" class="w-20 bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded px-2 py-1 text-right text-slate-300 text-xs font-mono outline-none">
+            </td>
+
+            <!-- Editable Lunch -->
+            <td class="py-1 px-2 text-right">
+              <input type="number" step="0.01" min="0" value="${lCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Lunch', this.value, ${lCost})" class="w-20 bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded px-2 py-1 text-right text-slate-300 text-xs font-mono outline-none">
+            </td>
+
+            <!-- Editable Dinner -->
+            <td class="py-1 px-2 text-right">
+              <input type="number" step="0.01" min="0" value="${dCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Dinner', this.value, ${dCost})" class="w-20 bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded px-2 py-1 text-right text-slate-300 text-xs font-mono outline-none">
+            </td>
+
+            <!-- Editable Room Tray -->
+            <td class="py-1 px-2 text-right">
+              <input type="number" step="0.01" min="0" value="${roomTrayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${roomTrayCost})" class="w-20 bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded px-2 py-1 text-right text-slate-300 text-xs font-mono outline-none">
+            </td>
+
+            <!-- Editable Caregiver -->
+            <td class="py-1 px-2 text-right">
+              <input type="number" step="0.01" min="0" value="${caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${caregiverCost})" class="w-20 bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded px-2 py-1 text-right text-slate-300 text-xs font-mono outline-none">
+            </td>
+
+            <!-- Editable Holiday -->
+            <td class="py-1 px-2 text-right">
+              <input type="number" step="0.01" min="0" value="${holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${holidayCost})" class="w-20 bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded px-2 py-1 text-right text-slate-300 text-xs font-mono outline-none">
+            </td>
+
             <td class="py-2.5 px-4 text-right font-semibold text-slate-300">${count}</td>
             <td class="py-2.5 px-5 text-right font-black text-emerald-400">$${total.toFixed(2)}</td>
           </tr>
@@ -991,6 +1112,81 @@
         <td class="py-3 px-4 text-right text-slate-200 font-mono">${grandTotals.count}</td>
         <td class="py-3 px-5 text-right text-emerald-400 font-black font-mono text-base">$${grandTotals.amount.toFixed(2)}</td>
       `;
+    }
+
+    async function handleManualCellEdit(residentId, categoryType, categoryValue, rawNewValue, previousValue) {
+      const newAmount = parseFloat(rawNewValue);
+      if (isNaN(newAmount) || newAmount < 0) {
+        showToast('Please enter a valid dollar amount', true);
+        renderSummarySheet();
+        return;
+      }
+
+      const diff = newAmount - previousValue;
+      if (diff === 0) return;
+
+      const resident = residents.find(r => String(r.id) === String(residentId));
+      if (!resident) return;
+
+      if (diff > 0) {
+        // Amount increased: add a balancing adjustment line item
+        const newCharge = {
+          id: crypto.randomUUID(),
+          resident_id: resident.id,
+          room: resident.room,
+          resident_name: resident.name,
+          date: summaryRange.end,
+          meal: categoryType === 'meal' ? categoryValue : 'Breakfast',
+          charge_type: categoryType === 'type' ? categoryValue : 'Room Charge',
+          amount: diff,
+          timestamp: new Date().toISOString()
+        };
+
+        charges.unshift(newCharge);
+        showToast(`Adjusted Rm ${resident.room} ${categoryValue} to $${newAmount.toFixed(2)}`);
+
+        if (db) {
+          await db.from('charges').insert([{
+            resident_id: resident.id,
+            room: resident.room,
+            resident_name: resident.name,
+            date: summaryRange.end,
+            meal: newCharge.meal,
+            charge_type: newCharge.charge_type,
+            amount: diff
+          }]);
+        }
+      } else {
+        // Amount decreased: reduce or delete matching charges in this range
+        let amountToReduce = Math.abs(diff);
+        const matching = charges.filter(c => 
+          String(c.resident_id) === String(residentId) &&
+          c.date >= summaryRange.start && c.date <= summaryRange.end &&
+          ((categoryType === 'meal' && c.meal === categoryValue) || (categoryType === 'type' && c.charge_type === categoryValue))
+        );
+
+        for (const item of matching) {
+          if (amountToReduce <= 0) break;
+          const itemAmt = Number(item.amount);
+
+          if (itemAmt <= amountToReduce) {
+            // Delete entire charge
+            charges = charges.filter(c => String(c.id) !== String(item.id));
+            amountToReduce -= itemAmt;
+            if (db) await db.from('charges').delete().eq('id', item.id);
+          } else {
+            // Reduce charge amount
+            item.amount = itemAmt - amountToReduce;
+            if (db) await db.from('charges').update({ amount: item.amount }).eq('id', item.id);
+            amountToReduce = 0;
+          }
+        }
+
+        showToast(`Reduced Rm ${resident.room} ${categoryValue} to $${newAmount.toFixed(2)}`);
+      }
+
+      renderSummarySheet();
+      renderResidentsGrid();
     }
 
     function exportToCSV() {
@@ -1022,7 +1218,50 @@
     }
 
     // ===================================================
-    // VIEW 3: AUDIT CALENDAR (CUSTOM RANGE OR MONTH)
+    // VIEW 3: GENERAL CHARGE HISTORY
+    // ===================================================
+    function renderHistoryTable() {
+      const tbody = document.getElementById('history-table-body');
+      const badge = document.getElementById('history-count-badge');
+      const query = (document.getElementById('history-search').value || '').toLowerCase().trim();
+
+      const filtered = charges.filter(c => 
+        String(c.room).toLowerCase().includes(query) ||
+        String(c.resident_name).toLowerCase().includes(query) ||
+        String(c.meal).toLowerCase().includes(query) ||
+        String(c.charge_type).toLowerCase().includes(query) ||
+        String(c.date).includes(query)
+      );
+
+      badge.textContent = `${filtered.length} Charges`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500 italic">No charges found matching your search.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-3 px-4 text-slate-300">
+            <span class="font-bold text-slate-100">${c.date}</span>
+            <span class="text-[11px] text-slate-500 ml-1.5">${c.timestamp ? new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+          </td>
+          <td class="py-3 px-3 font-bold text-emerald-400">Rm ${c.room}</td>
+          <td class="py-3 px-4 text-slate-200 font-sans">${c.resident_name}</td>
+          <td class="py-3 px-3 text-slate-300">${c.meal}</td>
+          <td class="py-3 px-3 text-slate-400">${c.charge_type}</td>
+          <td class="py-3 px-4 text-right font-black text-emerald-400">$${Number(c.amount).toFixed(2)}</td>
+          <td class="py-3 px-4 text-center">
+            <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-400 hover:text-rose-300 p-1.5 rounded-lg hover:bg-rose-950/80 transition-colors" title="Delete entry">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // ===================================================
+    // VIEW 4: AUDIT CALENDAR
     // ===================================================
     function setCalendarToCurrentMonth() {
       const now = new Date();
@@ -1048,13 +1287,11 @@
       const startDate = new Date(calendarRange.start + 'T00:00:00');
       const endDate = new Date(calendarRange.end + 'T00:00:00');
 
-      // Add leading empty slots matching start day of week
       const startDayOfWeek = startDate.getDay();
       for (let i = 0; i < startDayOfWeek; i++) {
         grid.innerHTML += `<div class="min-h-[75px] bg-slate-950/40 rounded-xl border border-slate-900"></div>`;
       }
 
-      // Loop through all dates in custom range
       let curr = new Date(startDate);
       while (curr <= endDate) {
         const dateISO = getFormattedDate(curr);
@@ -1117,8 +1354,14 @@
     async function deleteSingleCharge(chargeId) {
       charges = charges.filter(c => String(c.id) !== String(chargeId));
       showToast('Charge deleted');
-      selectCalendarDate(selectedDrilldownDate);
-      renderCalendar();
+
+      if (currentView === 'history') renderHistoryTable();
+      if (currentView === 'summary') renderSummarySheet();
+      if (currentView === 'daily') renderResidentsGrid();
+      if (currentView === 'calendar') {
+        if (selectedDrilldownDate) selectCalendarDate(selectedDrilldownDate);
+        renderCalendar();
+      }
 
       if (db) {
         await db.from('charges').delete().eq('id', chargeId);
@@ -1134,7 +1377,7 @@
     // ===================================================
     function switchView(view) {
       currentView = view;
-      ['daily', 'summary', 'calendar'].forEach(v => {
+      ['daily', 'summary', 'history', 'calendar'].forEach(v => {
         const el = document.getElementById(`view-${v}`);
         const btn = document.getElementById(`tab-${v}`);
         if (v === view) {
@@ -1151,6 +1394,7 @@
     function renderCurrentView() {
       if (currentView === 'daily') renderResidentsGrid();
       if (currentView === 'summary') renderSummarySheet();
+      if (currentView === 'history') renderHistoryTable();
       if (currentView === 'calendar') renderCalendar();
     }
 
@@ -1165,12 +1409,7 @@
     }
 
     window.onload = function () {
-      const datePicker = document.getElementById('preset-date');
-      if (datePicker) {
-        datePicker.value = todayISO;
-        datePicker.addEventListener('input', updateBatchPreset);
-        datePicker.addEventListener('change', updateBatchPreset);
-      }
+      updatePresetDateBadge();
       updatePresetBadge();
       loadData();
     };
