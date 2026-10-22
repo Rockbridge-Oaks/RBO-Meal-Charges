@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Rockbridge Oaks - Room Service Charges</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2.39.8/dist/umd/supabase.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @keyframes pulse-green {
@@ -31,8 +31,8 @@
           <h1 class="text-base sm:text-lg font-bold leading-none tracking-tight flex items-center gap-2">
             Rockbridge Oaks
             <span id="sync-status" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Live Cloud Sync
+              <span id="sync-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="sync-text">Connecting...</span>
             </span>
           </h1>
           <p class="text-xs text-slate-400 mt-0.5">Room Service Charge Tracker</p>
@@ -57,68 +57,45 @@
   <!-- MAIN CONTAINER -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 pb-20">
 
-    <!-- ================================================= -->
     <!-- VIEW 1: DAILY QUICK CHARGE DASHBOARD -->
-    <!-- ================================================= -->
     <div id="view-daily" class="space-y-6">
       
-      <!-- TOP CONTROL GRID: BATCH PRESETS + RESIDENT MANAGEMENT -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
         <!-- PRESET CONTROLLER -->
         <div class="lg:col-span-4 bg-slate-900 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xl relative overflow-hidden">
-          <div class="absolute -right-12 -top-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
           <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
             <div>
               <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Step 1</span>
               <h2 class="text-sm sm:text-base font-bold text-slate-200">Set Batch Preset</h2>
             </div>
-            <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md">Auto-applies on tap</span>
+            <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md">Auto-applies</span>
           </div>
 
           <div class="space-y-4 text-xs sm:text-sm">
-            <!-- 1. DATE SELECT -->
             <div>
               <label class="block text-slate-400 font-medium mb-1.5">Target Charge Date</label>
-              <div class="relative">
-                <input type="date" id="preset-date" onchange="updateBatchPreset()" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-xs sm:text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all">
-              </div>
+              <input type="date" id="preset-date" onchange="updateBatchPreset()" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-xs sm:text-sm focus:outline-none focus:border-emerald-500">
             </div>
 
-            <!-- 2. MEAL TYPE SELECT -->
             <div>
               <label class="block text-slate-400 font-medium mb-1.5">Meal Period</label>
               <div class="grid grid-cols-3 gap-2">
-                <button type="button" onclick="setMeal('Breakfast')" id="meal-Breakfast" class="meal-btn py-2 px-2 rounded-xl border border-emerald-500 bg-emerald-500/15 text-emerald-300 font-medium text-center transition-all">
-                  Breakfast
-                </button>
-                <button type="button" onclick="setMeal('Lunch')" id="meal-Lunch" class="meal-btn py-2 px-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 font-medium text-center transition-all">
-                  Lunch
-                </button>
-                <button type="button" onclick="setMeal('Dinner')" id="meal-Dinner" class="meal-btn py-2 px-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 font-medium text-center transition-all">
-                  Dinner
-                </button>
+                <button type="button" onclick="setMeal('Breakfast')" id="meal-Breakfast" class="meal-btn py-2 px-2 rounded-xl border border-emerald-500 bg-emerald-500/15 text-emerald-300 font-medium text-center transition-all">Breakfast</button>
+                <button type="button" onclick="setMeal('Lunch')" id="meal-Lunch" class="meal-btn py-2 px-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 font-medium text-center transition-all">Lunch</button>
+                <button type="button" onclick="setMeal('Dinner')" id="meal-Dinner" class="meal-btn py-2 px-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 font-medium text-center transition-all">Dinner</button>
               </div>
             </div>
 
-            <!-- 3. CHARGE TYPE SELECT -->
             <div>
               <label class="block text-slate-400 font-medium mb-1.5">Charge Category</label>
               <div class="grid grid-cols-3 gap-2">
-                <button type="button" onclick="setType('Room Charge')" id="type-Room Charge" class="type-btn py-2 px-1 rounded-xl border border-emerald-500 bg-emerald-500/15 text-emerald-300 font-medium text-center transition-all truncate text-[11px] sm:text-xs">
-                  Room
-                </button>
-                <button type="button" onclick="setType('Caregiver Charge')" id="type-Caregiver Charge" class="type-btn py-2 px-1 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 font-medium text-center transition-all truncate text-[11px] sm:text-xs">
-                  Caregiver
-                </button>
-                <button type="button" onclick="setType('Holiday Charge')" id="type-Holiday Charge" class="type-btn py-2 px-1 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 font-medium text-center transition-all truncate text-[11px] sm:text-xs">
-                  Holiday
-                </button>
+                <button type="button" onclick="setType('Room Charge')" id="type-Room Charge" class="type-btn py-2 px-1 rounded-xl border border-emerald-500 bg-emerald-500/15 text-emerald-300 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Room</button>
+                <button type="button" onclick="setType('Caregiver Charge')" id="type-Caregiver Charge" class="type-btn py-2 px-1 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Caregiver</button>
+                <button type="button" onclick="setType('Holiday Charge')" id="type-Holiday Charge" class="type-btn py-2 px-1 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Holiday</button>
               </div>
             </div>
 
-            <!-- PRESET SUMMARY PILL -->
             <div class="pt-2">
               <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
                 <div>
@@ -134,9 +111,8 @@
           </div>
         </div>
 
-        <!-- SEARCH + ROOM TOOLS -->
+        <!-- SEARCH + CONTROLS -->
         <div class="lg:col-span-8 flex flex-col justify-between space-y-4">
-          
           <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -154,14 +130,12 @@
               </div>
             </div>
 
-            <!-- SEARCH + BALANCE FILTER CONTROLS -->
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2">
               <div class="sm:col-span-7 relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
                 <input type="text" id="resident-search" oninput="renderResidentsGrid()" placeholder="Search room number or name..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-3.5 py-2.5 text-slate-100 placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-emerald-500">
               </div>
 
-              <!-- CARD BALANCE TIMEFRAME SELECTOR -->
               <div class="sm:col-span-5 flex items-center bg-slate-950 border border-slate-800 rounded-xl p-1 text-xs font-medium">
                 <button onclick="setBalanceRange('today')" id="range-today" class="flex-1 py-1.5 text-center rounded-lg text-slate-400 transition-all">Today</button>
                 <button onclick="setBalanceRange('week')" id="range-week" class="flex-1 py-1.5 text-center rounded-lg text-slate-400 transition-all">7 Days</button>
@@ -170,10 +144,9 @@
             </div>
           </div>
 
-          <!-- MINI RECENT ACTIVITY STRIP -->
           <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl px-4 py-2.5 flex items-center justify-between text-xs text-slate-400">
             <span class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span id="status-light" class="w-2 h-2 rounded-full bg-emerald-400"></span>
               <span id="mini-log-text">Ready to log charges.</span>
             </span>
             <span id="total-residents-badge" class="font-mono text-slate-300">0 Active Residents</span>
@@ -183,20 +156,16 @@
 
       <!-- RESIDENTS CARD GRID -->
       <div>
-        <div id="residents-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-          <!-- Dynamically Injected Cards -->
-        </div>
+        <div id="residents-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>
         <div id="no-residents-found" class="hidden text-center py-16 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
           <i class="fa-solid fa-users-slash text-slate-600 text-3xl mb-2"></i>
-          <p class="text-slate-400 font-medium">No residents found</p>
-          <p class="text-xs text-slate-500 mt-1">Use "+ Add New Resident" above to add your first room.</p>
+          <p class="text-slate-400 font-medium">No residents currently found</p>
+          <p class="text-xs text-slate-500 mt-1">Click "+ Add New Resident" above to create your first room card.</p>
         </div>
       </div>
     </div>
 
-    <!-- ================================================= -->
     <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET -->
-    <!-- ================================================= -->
     <div id="view-summary" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl">
         <div>
@@ -214,7 +183,6 @@
         </div>
       </div>
 
-      <!-- SPREADSHEET TABLE WRAPPER -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs sm:text-sm border-collapse">
@@ -232,22 +200,16 @@
                 <th class="py-3 px-5 text-right font-black text-emerald-400">Total Billed</th>
               </tr>
             </thead>
-            <tbody id="summary-table-body" class="divide-y divide-slate-800/60 font-mono">
-              <!-- Dynamically Populated -->
-            </tbody>
+            <tbody id="summary-table-body" class="divide-y divide-slate-800/60 font-mono"></tbody>
             <tfoot class="bg-slate-950/80 font-bold border-t-2 border-slate-700 text-slate-200 text-xs sm:text-sm">
-              <tr id="summary-table-footer">
-                <!-- Dynamically Populated Grand Totals -->
-              </tr>
+              <tr id="summary-table-footer"></tr>
             </tfoot>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ================================================= -->
     <!-- VIEW 3: AUDIT CALENDAR -->
-    <!-- ================================================= -->
     <div id="view-calendar" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl">
         <div>
@@ -268,17 +230,13 @@
         </div>
       </div>
 
-      <!-- CALENDAR GRID -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl">
         <div class="grid grid-cols-7 gap-1 sm:gap-2 mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">
           <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
         </div>
-        <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-2">
-          <!-- Calendar date blocks injected here -->
-        </div>
+        <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-2"></div>
       </div>
 
-      <!-- SELECTED DAY AUDIT LOG DRILLDOWN -->
       <div id="calendar-drilldown-panel" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <div>
@@ -305,18 +263,14 @@
                 <th class="py-2.5 px-3 text-center">Action</th>
               </tr>
             </thead>
-            <tbody id="drilldown-table-body" class="divide-y divide-slate-800/80">
-              <!-- Injected items -->
-            </tbody>
+            <tbody id="drilldown-table-body" class="divide-y divide-slate-800/80"></tbody>
           </table>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- ================================================= -->
   <!-- MODAL: ADD NEW RESIDENT -->
-  <!-- ================================================= -->
   <div id="new-resident-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -347,9 +301,7 @@
     </div>
   </div>
 
-  <!-- ================================================= -->
   <!-- MODAL: MANAGE & DELETE RESIDENTS -->
-  <!-- ================================================= -->
   <div id="manage-rooms-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -361,11 +313,9 @@
         </button>
       </div>
 
-      <p class="text-xs text-slate-400">Deleting a room removes the resident and all of their historical meal logs.</p>
+      <p class="text-xs text-slate-400">Deleting a room permanently removes the resident and their logs.</p>
 
-      <div id="manage-rooms-list" class="max-h-72 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-800/60">
-        <!-- Injected list of rooms with delete buttons -->
-      </div>
+      <div id="manage-rooms-list" class="max-h-72 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-800/60"></div>
 
       <div class="pt-2 flex justify-end">
         <button type="button" onclick="closeManageRoomsModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs transition-all">
@@ -377,20 +327,16 @@
 
   <!-- TOAST NOTIFICATION -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-slate-900 border border-emerald-500/50 text-emerald-300 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold">
-    <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
     <span id="toast-message">Action successful!</span>
   </div>
 
-  <!-- ================================================= -->
-  <!-- APPLICATION LOGIC & SUPABASE INTEGRATION -->
-  <!-- ================================================= -->
+  <!-- JAVASCRIPT ENGINE -->
   <script>
-    // --- SUPABASE CONFIGURATION ---
-    const SUPABASE_URL = 'https://aawnidcarnalotoqpnpr.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_ITT-D85-7TlsoIzKtXjuJw_P1zeNcej';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_PROJECT_URL = 'https://aawnidcarnalotoqpnpr.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_ITT-D85-7TlsoIzKtXjuJw_P1zeNcej';
 
-    // --- APPLICATION STATE ---
+    let db = null;
     let residents = [];
     let charges = [];
     let currentView = 'daily';
@@ -398,7 +344,6 @@
     let calendarDate = new Date();
     let selectedDrilldownDate = null;
 
-    // Batch Presets
     const todayISO = new Date().toISOString().split('T')[0];
     let batchPreset = {
       date: todayISO,
@@ -406,57 +351,39 @@
       type: 'Room Charge'
     };
 
-    // ===================================================
-    // SUPABASE DATA FETCH & REAL-TIME BROADCAST
-    // ===================================================
-    async function loadDataFromSupabase() {
-      try {
-        const [resResidents, resCharges] = await Promise.all([
-          supabase.from('residents').select('*').order('room', { ascending: true }),
-          supabase.from('charges').select('*').order('timestamp', { ascending: false })
-        ]);
-
-        if (resResidents.error) throw resResidents.error;
-        if (resCharges.error) throw resCharges.error;
-
-        residents = resResidents.data || [];
-        charges = resCharges.data || [];
-
-        renderCurrentView();
-        updateTotalResidentsBadge();
-      } catch (err) {
-        console.error('Supabase load error:', err);
-        showToast('Error syncing with database.', true);
+    // Safe Supabase initialization
+    try {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        db = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
       }
+    } catch (e) {
+      console.warn('Supabase initialization failed:', e);
     }
 
-    function subscribeToRealtime() {
-      supabase
-        .channel('schema-db-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'charges' }, () => {
-          refreshFromCloudQuietly();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'residents' }, () => {
-          refreshFromCloudQuietly();
-        })
-        .subscribe();
-    }
+    async function loadData() {
+      if (db) {
+        try {
+          const [resResidents, resCharges] = await Promise.all([
+            db.from('residents').select('*').order('room', { ascending: true }),
+            db.from('charges').select('*').order('timestamp', { ascending: false })
+          ]);
 
-    async function refreshFromCloudQuietly() {
-      const [resResidents, resCharges] = await Promise.all([
-        supabase.from('residents').select('*').order('room', { ascending: true }),
-        supabase.from('charges').select('*').order('timestamp', { ascending: false })
-      ]);
-      if (!resResidents.error && resResidents.data) residents = resResidents.data;
-      if (!resCharges.error && resCharges.data) charges = resCharges.data;
+          if (!resResidents.error && resResidents.data) residents = resResidents.data;
+          if (!resCharges.error && resCharges.data) charges = resCharges.data;
+
+          document.getElementById('sync-text').textContent = 'Live Cloud Sync';
+        } catch (err) {
+          console.error('Supabase query error:', err);
+          document.getElementById('sync-text').textContent = 'Local Standby';
+        }
+      } else {
+        document.getElementById('sync-text').textContent = 'Local Standby';
+      }
 
       renderCurrentView();
       updateTotalResidentsBadge();
     }
 
-    // ===================================================
-    // BATCH PRESET & STATE CONTROL
-    // ===================================================
     function setMeal(meal) {
       batchPreset.meal = meal;
       document.querySelectorAll('.meal-btn').forEach(btn => {
@@ -511,78 +438,74 @@
       renderResidentsGrid();
     }
 
-    // ===================================================
-    // CHARGE ACTIONS (PLUS & MINUS)
-    // ===================================================
     async function addQuickCharge(residentId) {
-      const resident = residents.find(r => r.id === residentId);
+      const resident = residents.find(r => String(r.id) === String(residentId));
       if (!resident) return;
 
       const newCharge = {
+        id: crypto.randomUUID(),
         resident_id: resident.id,
         room: resident.room,
         resident_name: resident.name,
         date: batchPreset.date,
         meal: batchPreset.meal,
         charge_type: batchPreset.type,
-        amount: 5.00
+        amount: 5.00,
+        timestamp: new Date().toISOString()
       };
 
-      // Optimistic animation feedback
       const cardEl = document.getElementById(`card-${resident.id}`);
       if (cardEl) {
         cardEl.classList.add('tap-pulse');
         setTimeout(() => cardEl.classList.remove('tap-pulse'), 350);
       }
 
-      showToast(`+$5.00 logged for Rm ${resident.room} (${resident.name.split(' ')[0]})`);
+      charges.unshift(newCharge);
+      renderResidentsGrid();
+      showToast(`+$5.00 logged for Rm ${resident.room}`);
 
-      const { data, error } = await supabase.from('charges').insert([newCharge]).select();
-      if (error) {
-        console.error('Charge failed:', error);
-        showToast('Error saving to database', true);
-        return;
-      }
-
-      if (data && data[0]) {
-        charges.unshift(data[0]);
-        renderResidentsGrid();
-        renderMiniActivityLog(data[0]);
+      if (db) {
+        const { error } = await db.from('charges').insert([{
+          resident_id: resident.id,
+          room: resident.room,
+          resident_name: resident.name,
+          date: batchPreset.date,
+          meal: batchPreset.meal,
+          charge_type: batchPreset.type,
+          amount: 5.00
+        }]);
+        if (error) console.error('Supabase write error:', error);
       }
     }
 
     async function undoLastCharge(residentId, e) {
       if (e) e.stopPropagation();
-      const resident = residents.find(r => r.id === residentId);
+      const resident = residents.find(r => String(r.id) === String(residentId));
       if (!resident) return;
 
-      const targetCharge = charges.find(c => c.resident_id === residentId && c.date === batchPreset.date);
-      if (!targetCharge) {
+      const targetIndex = charges.findIndex(c => String(c.resident_id) === String(residentId) && c.date === batchPreset.date);
+      if (targetIndex === -1) {
         alert(`No charges found for Rm ${resident.room} on ${batchPreset.date} to undo.`);
         return;
       }
 
+      const targetCharge = charges[targetIndex];
       if (confirm(`Remove latest $5.00 charge (${targetCharge.meal} - ${targetCharge.charge_type}) for Rm ${resident.room}?`)) {
-        const { error } = await supabase.from('charges').delete().eq('id', targetCharge.id);
-        if (error) {
-          showToast('Failed to delete charge', true);
-          return;
-        }
-
-        charges = charges.filter(c => c.id !== targetCharge.id);
-        showToast(`Reverted $5.00 for Rm ${resident.room}`);
+        charges.splice(targetIndex, 1);
         renderResidentsGrid();
+        showToast(`Reverted $5.00 for Rm ${resident.room}`);
+
+        if (db && targetCharge.id) {
+          await db.from('charges').delete().eq('id', targetCharge.id);
+        }
       }
     }
 
-    // ===================================================
-    // RENDER: RESIDENTS GRID
-    // ===================================================
     function calculateResidentBalance(residentId, range) {
       const now = new Date();
       return charges
         .filter(c => {
-          if (c.resident_id !== residentId) return false;
+          if (String(c.resident_id) !== String(residentId)) return false;
           const chargeDate = new Date(c.date + 'T00:00:00');
           if (range === 'today') {
             return c.date === todayISO;
@@ -604,8 +527,8 @@
       const emptyState = document.getElementById('no-residents-found');
 
       const filtered = residents.filter(r => 
-        r.room.toLowerCase().includes(searchVal) || 
-        r.name.toLowerCase().includes(searchVal)
+        String(r.room).toLowerCase().includes(searchVal) || 
+        String(r.name).toLowerCase().includes(searchVal)
       );
 
       if (filtered.length === 0) {
@@ -617,41 +540,34 @@
 
       grid.innerHTML = filtered.map(r => {
         const balance = calculateResidentBalance(r.id, balanceRange);
-        const todayCount = charges.filter(c => c.resident_id === r.id && c.date === batchPreset.date).length;
+        const todayCount = charges.filter(c => String(c.resident_id) === String(r.id) && c.date === batchPreset.date).length;
 
         return `
-          <div id="card-${r.id}" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col justify-between hover:border-slate-700 transition-all duration-200 shadow-lg relative group">
-            
-            <!-- CARD HEADER -->
+          <div id="card-${r.id}" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col justify-between hover:border-slate-700 transition-all shadow-lg">
             <div class="flex items-start justify-between gap-2 mb-3">
               <div>
                 <span class="inline-block bg-slate-950 border border-slate-800 font-mono text-emerald-400 text-xs px-2.5 py-0.5 rounded-lg font-bold">
                   Rm ${r.room}
                 </span>
-                <h3 class="text-sm sm:text-base font-bold text-slate-100 mt-1.5 leading-snug truncate max-w-[170px]" title="${r.name}">
+                <h3 class="text-sm sm:text-base font-bold text-slate-100 mt-1.5 leading-snug truncate max-w-[170px]">
                   ${r.name}
                 </h3>
               </div>
-
-              <!-- DYNAMIC BALANCE BADGE -->
               <div class="text-right">
                 <span class="text-xs text-slate-400 uppercase tracking-wider block text-[10px]">Total</span>
                 <span class="font-mono text-base font-black text-slate-100">$${balance.toFixed(2)}</span>
               </div>
             </div>
 
-            <!-- STATUS STRIP -->
             <div class="flex items-center justify-between text-[11px] text-slate-400 py-2 border-t border-slate-800/60 my-1 font-medium">
-              <span>Charges on ${batchPreset.date === todayISO ? 'Today' : batchPreset.date}:</span>
+              <span>Selected Date:</span>
               <span class="font-mono ${todayCount > 0 ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${todayCount} ($${(todayCount * 5).toFixed(2)})</span>
             </div>
 
-            <!-- ACTION BUTTONS: PLUS ($5) & UNDO -->
             <div class="grid grid-cols-5 gap-2 mt-2">
-              <button onclick="undoLastCharge('${r.id}', event)" title="Undo last charge for selected date" class="col-span-1 bg-slate-950 hover:bg-rose-950 hover:text-rose-400 text-slate-400 border border-slate-800 rounded-xl flex items-center justify-center py-2.5 active:scale-95 transition-all text-xs">
+              <button onclick="undoLastCharge('${r.id}', event)" class="col-span-1 bg-slate-950 hover:bg-rose-950 hover:text-rose-400 text-slate-400 border border-slate-800 rounded-xl flex items-center justify-center py-2.5 active:scale-95 transition-all text-xs">
                 <i class="fa-solid fa-rotate-left"></i>
               </button>
-
               <button onclick="addQuickCharge('${r.id}')" class="col-span-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-slate-950 font-black text-xs sm:text-sm rounded-xl py-2.5 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all">
                 <i class="fa-solid fa-plus text-sm"></i> Add $5.00
               </button>
@@ -661,21 +577,11 @@
       }).join('');
     }
 
-    function renderMiniActivityLog(latest) {
-      const log = document.getElementById('mini-log-text');
-      if (latest) {
-        log.innerHTML = `<span class="text-emerald-400 font-semibold">Rm ${latest.room}</span> (${latest.resident_name}) +$5.00 • ${latest.meal}`;
-      }
-    }
-
     function updateTotalResidentsBadge() {
       const badge = document.getElementById('total-residents-badge');
       if (badge) badge.textContent = `${residents.length} Active Residents`;
     }
 
-    // ===================================================
-    // RESIDENT MANAGEMENT (ADD & DELETE)
-    // ===================================================
     function openNewResidentModal() {
       document.getElementById('new-resident-modal').classList.remove('hidden');
       document.getElementById('new-room').focus();
@@ -691,22 +597,19 @@
       e.preventDefault();
       const room = document.getElementById('new-room').value.trim();
       const name = document.getElementById('new-name').value.trim();
-
       if (!room || !name) return;
 
-      const { data, error } = await supabase.from('residents').insert([{ room, name }]).select();
-      if (error) {
-        alert('Could not add resident (room might already exist).');
-        return;
-      }
+      const newRes = { id: crypto.randomUUID(), room, name };
+      residents.push(newRes);
+      residents.sort((a, b) => a.room.localeCompare(b.room, undefined, { numeric: true }));
 
-      if (data && data[0]) {
-        residents.push(data[0]);
-        residents.sort((a, b) => a.room.localeCompare(b.room, undefined, { numeric: true }));
-        closeNewResidentModal();
-        renderResidentsGrid();
-        updateTotalResidentsBadge();
-        showToast(`Room ${room} (${name}) created!`);
+      closeNewResidentModal();
+      renderResidentsGrid();
+      updateTotalResidentsBadge();
+      showToast(`Room ${room} (${name}) created!`);
+
+      if (db) {
+        await db.from('residents').insert([{ room, name }]);
       }
     }
 
@@ -726,7 +629,7 @@
             <span class="font-mono text-emerald-400 font-bold text-xs bg-slate-950 px-2 py-0.5 rounded border border-slate-800">Rm ${r.room}</span>
             <span class="text-slate-200 text-xs sm:text-sm font-medium ml-2">${r.name}</span>
           </div>
-          <button onclick="deleteResident('${r.id}', '${r.room}', '${r.name}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-950/80 p-2 rounded-lg text-xs transition-colors" title="Delete resident">
+          <button onclick="deleteResident('${r.id}', '${r.room}', '${r.name}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-950/80 p-2 rounded-lg text-xs transition-colors">
             <i class="fa-solid fa-trash-can"></i>
           </button>
         </div>
@@ -738,28 +641,21 @@
     }
 
     async function deleteResident(residentId, room, name) {
-      if (!confirm(`Are you sure you want to permanently delete Room ${room} (${name}) and all associated charge logs?`)) {
-        return;
-      }
+      if (!confirm(`Permanently delete Room ${room} (${name})?`)) return;
 
-      const { error } = await supabase.from('residents').delete().eq('id', residentId);
-      if (error) {
-        showToast('Error deleting resident', true);
-        return;
-      }
-
-      residents = residents.filter(r => r.id !== residentId);
-      charges = charges.filter(c => c.resident_id !== residentId);
+      residents = residents.filter(r => String(r.id) !== String(residentId));
+      charges = charges.filter(c => String(c.resident_id) !== String(residentId));
       
       openManageRoomsModal();
       renderResidentsGrid();
       updateTotalResidentsBadge();
       showToast(`Room ${room} deleted`);
+
+      if (db) {
+        await db.from('residents').delete().eq('id', residentId);
+      }
     }
 
-    // ===================================================
-    // VIEW 2: MONTHLY SUMMARY MATRIX SPREADSHEET
-    // ===================================================
     function renderSummarySheet() {
       const monthInput = document.getElementById('summary-month-select');
       const selectedMonth = monthInput.value || todayISO.slice(0, 7);
@@ -767,40 +663,27 @@
 
       const tbody = document.getElementById('summary-table-body');
       const tfoot = document.getElementById('summary-table-footer');
-
       const monthCharges = charges.filter(c => c.date.startsWith(selectedMonth));
 
-      let grandTotals = {
-        b: 0, l: 0, d: 0,
-        roomTray: 0, caregiver: 0, holiday: 0,
-        chargeCount: 0, amount: 0
-      };
+      let grandTotals = { b: 0, l: 0, d: 0, roomTray: 0, caregiver: 0, holiday: 0, count: 0, amount: 0 };
 
       tbody.innerHTML = residents.map(r => {
-        const rCharges = monthCharges.filter(c => c.resident_id === r.id);
-
+        const rCharges = monthCharges.filter(c => String(c.resident_id) === String(r.id));
         const b = rCharges.filter(c => c.meal === 'Breakfast').length;
         const l = rCharges.filter(c => c.meal === 'Lunch').length;
         const d = rCharges.filter(c => c.meal === 'Dinner').length;
-
         const roomTray = rCharges.filter(c => c.charge_type === 'Room Charge').length;
         const caregiver = rCharges.filter(c => c.charge_type === 'Caregiver Charge').length;
         const holiday = rCharges.filter(c => c.charge_type === 'Holiday Charge').length;
-
         const count = rCharges.length;
-        const totalCost = count * 5;
+        const total = count * 5;
 
-        grandTotals.b += b;
-        grandTotals.l += l;
-        grandTotals.d += d;
-        grandTotals.roomTray += roomTray;
-        grandTotals.caregiver += caregiver;
-        grandTotals.holiday += holiday;
-        grandTotals.chargeCount += count;
-        grandTotals.amount += totalCost;
+        grandTotals.b += b; grandTotals.l += l; grandTotals.d += d;
+        grandTotals.roomTray += roomTray; grandTotals.caregiver += caregiver; grandTotals.holiday += holiday;
+        grandTotals.count += count; grandTotals.amount += total;
 
         return `
-          <tr class="hover:bg-slate-800/40 transition-colors">
+          <tr class="hover:bg-slate-800/40">
             <td class="py-2.5 px-4 font-bold text-slate-200">Rm ${r.room}</td>
             <td class="py-2.5 px-4 text-slate-300 font-sans">${r.name}</td>
             <td class="py-2.5 px-3 text-right text-slate-400">${b || '-'}</td>
@@ -810,57 +693,42 @@
             <td class="py-2.5 px-3 text-right text-slate-400">${caregiver || '-'}</td>
             <td class="py-2.5 px-3 text-right text-slate-400">${holiday || '-'}</td>
             <td class="py-2.5 px-4 text-right font-semibold text-slate-200">${count}</td>
-            <td class="py-2.5 px-5 text-right font-black text-emerald-400">$${totalCost.toFixed(2)}</td>
+            <td class="py-2.5 px-5 text-right font-black text-emerald-400">$${total.toFixed(2)}</td>
           </tr>
         `;
       }).join('');
 
       tfoot.innerHTML = `
-        <td class="py-3 px-4 uppercase text-slate-400 tracking-wider">Totals</td>
-        <td class="py-3 px-4 font-sans text-slate-400">${residents.length} Residents</td>
-        <td class="py-3 px-3 text-right font-mono">${grandTotals.b}</td>
-        <td class="py-3 px-3 text-right font-mono">${grandTotals.l}</td>
-        <td class="py-3 px-3 text-right font-mono">${grandTotals.d}</td>
-        <td class="py-3 px-3 text-right font-mono">${grandTotals.roomTray}</td>
-        <td class="py-3 px-3 text-right font-mono">${grandTotals.caregiver}</td>
-        <td class="py-3 px-3 text-right font-mono">${grandTotals.holiday}</td>
-        <td class="py-3 px-4 text-right font-mono text-emerald-400">${grandTotals.chargeCount}</td>
-        <td class="py-3 px-5 text-right font-mono font-black text-emerald-400 text-base">$${grandTotals.amount.toFixed(2)}</td>
+        <td class="py-3 px-4 uppercase text-slate-400">Totals</td>
+        <td class="py-3 px-4 text-slate-400">${residents.length} Residents</td>
+        <td class="py-3 px-3 text-right">${grandTotals.b}</td>
+        <td class="py-3 px-3 text-right">${grandTotals.l}</td>
+        <td class="py-3 px-3 text-right">${grandTotals.d}</td>
+        <td class="py-3 px-3 text-right">${grandTotals.roomTray}</td>
+        <td class="py-3 px-3 text-right">${grandTotals.caregiver}</td>
+        <td class="py-3 px-3 text-right">${grandTotals.holiday}</td>
+        <td class="py-3 px-4 text-right text-emerald-400">${grandTotals.count}</td>
+        <td class="py-3 px-5 text-right text-emerald-400 font-black">$${grandTotals.amount.toFixed(2)}</td>
       `;
     }
 
     function exportToCSV() {
       const selectedMonth = document.getElementById('summary-month-select').value || todayISO.slice(0, 7);
       const monthCharges = charges.filter(c => c.date.startsWith(selectedMonth));
-
       let csv = ['Room,Resident Name,Breakfast,Lunch,Dinner,Room Charge,Caregiver Charge,Holiday Charge,Total Charges,Total Billed'];
 
       residents.forEach(r => {
-        const rCharges = monthCharges.filter(c => c.resident_id === r.id);
-        const b = rCharges.filter(c => c.meal === 'Breakfast').length;
-        const l = rCharges.filter(c => c.meal === 'Lunch').length;
-        const d = rCharges.filter(c => c.meal === 'Dinner').length;
-        const roomTray = rCharges.filter(c => c.charge_type === 'Room Charge').length;
-        const caregiver = rCharges.filter(c => c.charge_type === 'Caregiver Charge').length;
-        const holiday = rCharges.filter(c => c.charge_type === 'Holiday Charge').length;
-        const count = rCharges.length;
-        const total = (count * 5).toFixed(2);
-
-        csv.push(`"${r.room}","${r.name}",${b},${l},${d},${roomTray},${caregiver},${holiday},${count},${total}`);
+        const rCharges = monthCharges.filter(c => String(c.resident_id) === String(r.id));
+        csv.push(`"${r.room}","${r.name}",${rCharges.filter(c => c.meal === 'Breakfast').length},${rCharges.filter(c => c.meal === 'Lunch').length},${rCharges.filter(c => c.meal === 'Dinner').length},${rCharges.filter(c => c.charge_type === 'Room Charge').length},${rCharges.filter(c => c.charge_type === 'Caregiver Charge').length},${rCharges.filter(c => c.charge_type === 'Holiday Charge').length},${rCharges.length},${(rCharges.length * 5).toFixed(2)}`);
       });
 
       const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `Rockbridge_Oaks_Meal_Charges_${selectedMonth}.csv`;
+      a.href = window.URL.createObjectURL(blob);
+      a.download = `Meal_Charges_${selectedMonth}.csv`;
       a.click();
-      window.URL.revokeObjectURL(url);
     }
 
-    // ===================================================
-    // VIEW 3: AUDIT CALENDAR
-    // ===================================================
     function changeCalendarMonth(delta) {
       calendarDate.setMonth(calendarDate.getMonth() + delta);
       renderCalendar();
@@ -869,42 +737,29 @@
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
-      const monthLabel = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(calendarDate);
-      document.getElementById('calendar-month-label').textContent = monthLabel;
+      document.getElementById('calendar-month-label').textContent = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(calendarDate);
 
-      const firstDayIndex = new Date(year, month, 1).getDay();
+      const firstDay = new Date(year, month, 1).getDay();
       const totalDays = new Date(year, month + 1, 0).getDate();
       const grid = document.getElementById('calendar-days-grid');
       grid.innerHTML = '';
 
-      for (let i = 0; i < firstDayIndex; i++) {
-        grid.innerHTML += `<div class="min-h-[75px] sm:min-h-[95px] bg-slate-950/40 rounded-xl border border-slate-900"></div>`;
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div class="min-h-[75px] bg-slate-950/40 rounded-xl border border-slate-900"></div>`;
       }
 
       for (let day = 1; day <= totalDays; day++) {
-        const monthStr = String(month + 1).padStart(2, '0');
-        const dayStr = String(day).padStart(2, '0');
-        const dateISO = `${year}-${monthStr}-${dayStr}`;
-
+        const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayCharges = charges.filter(c => c.date === dateISO);
-        const dayTotal = dayCharges.length * 5;
         const isToday = dateISO === todayISO;
 
         grid.innerHTML += `
-          <div onclick="selectCalendarDate('${dateISO}')" class="min-h-[75px] sm:min-h-[95px] p-2 bg-slate-950 border ${isToday ? 'border-emerald-500 ring-1 ring-emerald-500/50' : 'border-slate-800'} rounded-xl cursor-pointer hover:border-slate-600 transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between text-xs font-mono font-bold">
-              <span class="${isToday ? 'text-emerald-400 font-black' : 'text-slate-400'}">${day}</span>
-              ${dayCharges.length > 0 ? `<span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.2 rounded">${dayCharges.length}</span>` : ''}
+          <div onclick="selectCalendarDate('${dateISO}')" class="min-h-[75px] p-2 bg-slate-950 border ${isToday ? 'border-emerald-500' : 'border-slate-800'} rounded-xl cursor-pointer hover:border-slate-600 transition-all flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="${isToday ? 'text-emerald-400' : 'text-slate-400'}">${day}</span>
+              ${dayCharges.length > 0 ? `<span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 rounded">${dayCharges.length}</span>` : ''}
             </div>
-
-            ${dayCharges.length > 0 ? `
-              <div class="mt-1">
-                <span class="block text-xs font-mono font-extrabold text-emerald-400">$${dayTotal.toFixed(2)}</span>
-                <span class="text-[9px] text-slate-500 uppercase tracking-tight block truncate">${dayCharges[0].meal}</span>
-              </div>
-            ` : `
-              <div class="text-[10px] text-slate-700 italic">No charges</div>
-            `}
+            ${dayCharges.length > 0 ? `<div class="font-bold text-xs text-emerald-400 font-mono">$${(dayCharges.length * 5).toFixed(2)}</div>` : `<div class="text-[10px] text-slate-700 italic">-</div>`}
           </div>
         `;
       }
@@ -913,18 +768,15 @@
     function selectCalendarDate(dateISO) {
       selectedDrilldownDate = dateISO;
       const panel = document.getElementById('calendar-drilldown-panel');
-      const title = document.getElementById('drilldown-date-title');
-      const stats = document.getElementById('drilldown-stats');
-      const tbody = document.getElementById('drilldown-table-body');
-
       panel.classList.remove('hidden');
-      title.textContent = dateISO;
+      document.getElementById('drilldown-date-title').textContent = dateISO;
 
       const dayCharges = charges.filter(c => c.date === dateISO);
-      stats.textContent = `${dayCharges.length} total charges logged ($${(dayCharges.length * 5).toFixed(2)})`;
+      document.getElementById('drilldown-stats').textContent = `${dayCharges.length} total charges ($${(dayCharges.length * 5).toFixed(2)})`;
 
+      const tbody = document.getElementById('drilldown-table-body');
       if (dayCharges.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-500 italic">No meal charges recorded on this date.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-500 italic">No charges recorded.</td></tr>`;
         return;
       }
 
@@ -937,7 +789,7 @@
           <td class="py-2 px-3 text-slate-400">${c.charge_type}</td>
           <td class="py-2 px-3 text-right font-black text-emerald-400">$5.00</td>
           <td class="py-2 px-3 text-center">
-            <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-rose-950 transition-colors">
+            <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-rose-950">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </td>
@@ -946,17 +798,13 @@
     }
 
     async function deleteSingleCharge(chargeId) {
-      if (confirm('Delete this charge from the system?')) {
-        const { error } = await supabase.from('charges').delete().eq('id', chargeId);
-        if (error) {
-          showToast('Failed to delete charge', true);
-          return;
-        }
+      charges = charges.filter(c => String(c.id) !== String(chargeId));
+      showToast('Charge deleted');
+      selectCalendarDate(selectedDrilldownDate);
+      renderCalendar();
 
-        charges = charges.filter(c => c.id !== chargeId);
-        showToast('Charge deleted');
-        selectCalendarDate(selectedDrilldownDate);
-        renderCalendar();
+      if (db) {
+        await db.from('charges').delete().eq('id', chargeId);
       }
     }
 
@@ -964,9 +812,6 @@
       document.getElementById('calendar-drilldown-panel').classList.add('hidden');
     }
 
-    // ===================================================
-    // NAVIGATION / TABS
-    // ===================================================
     function switchView(view) {
       currentView = view;
       ['daily', 'summary', 'calendar'].forEach(v => {
@@ -989,9 +834,6 @@
       if (currentView === 'calendar') renderCalendar();
     }
 
-    // ===================================================
-    // UTILITIES
-    // ===================================================
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast');
       const text = document.getElementById('toast-message');
@@ -1002,16 +844,11 @@
       }, 2400);
     }
 
-    // ===================================================
-    // INITIALIZATION ON LOAD
-    // ===================================================
     window.onload = function () {
       const datePicker = document.getElementById('preset-date');
       if (datePicker) datePicker.value = todayISO;
       updatePresetBadge();
-
-      loadDataFromSupabase();
-      subscribeToRealtime();
+      loadData();
     };
   </script>
 </body>
