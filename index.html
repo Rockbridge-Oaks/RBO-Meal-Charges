@@ -338,14 +338,14 @@
       </div>
     </div>
 
-    <!-- VIEW 3: GENERAL CHARGE HISTORY (WITH BOOKMARK FLAGS & AUTO-DETECT) -->
+    <!-- VIEW 3: GENERAL CHARGE HISTORY (BOOKMARK FLAGS + SCOPED ROOM DUPLICATES) -->
     <div id="view-history" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
         <div>
           <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
             <i class="fa-solid fa-clock-rotate-left text-brandAmber"></i> Complete Charge History
           </h2>
-          <p class="text-xs text-stone-500">Chronological feed of charges. Duplicates are auto-tagged; click the flag to mark tickets for investigation.</p>
+          <p class="text-xs text-stone-500">Chronological feed of charges. Duplicate personal room trays are auto-flagged; click the flag to mark tickets for review.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
@@ -381,14 +381,14 @@
       </div>
     </div>
 
-    <!-- VIEW 4: AUDIT CALENDAR (WITH DUPLICATE BADGES & DRILLDOWN SORT) -->
+    <!-- VIEW 4: AUDIT CALENDAR (WITH DRILLDOWN SORT + SCOPED ROOM DUPLICATES) -->
     <div id="view-calendar" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
         <div>
           <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
             <i class="fa-solid fa-calendar-check text-brandAmber"></i> Charge Audit Calendar
           </h2>
-          <p class="text-xs text-stone-500">Days with potential duplicate charges are badged with a warning icon.</p>
+          <p class="text-xs text-stone-500">Days with duplicate personal room charges are badged with a warning icon.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -683,21 +683,24 @@
     }
 
     // ===================================================
-    // DUPLICATE DETECTION LOGIC
+    // DUPLICATE DETECTION LOGIC (SCOPED TO ROOM CHARGE)
     // ===================================================
     function isDuplicateCharge(charge) {
       if (!charge) return false;
+      // Multiple guests/caregivers are expected; only flag duplicate room deliveries
+      if (charge.charge_type !== 'Room Charge') return false;
+
       const matches = charges.filter(c => 
         c.date === charge.date &&
         String(c.resident_id) === String(charge.resident_id) &&
         c.meal === charge.meal &&
-        c.charge_type === charge.charge_type
+        c.charge_type === 'Room Charge'
       );
       return matches.length > 1;
     }
 
     function getDayDuplicateCount(dateISO) {
-      const dayCharges = charges.filter(c => c.date === dateISO);
+      const dayCharges = charges.filter(c => c.date === dateISO && c.charge_type === 'Room Charge');
       let duplicateIds = new Set();
       
       for (let i = 0; i < dayCharges.length; i++) {
@@ -706,8 +709,7 @@
           const b = dayCharges[j];
           if (
             String(a.resident_id) === String(b.resident_id) &&
-            a.meal === b.meal &&
-            a.charge_type === b.charge_type
+            a.meal === b.meal
           ) {
             duplicateIds.add(a.id);
             duplicateIds.add(b.id);
@@ -1437,22 +1439,27 @@
               </td>
               <td class="py-2.5 px-4 text-stone-700 font-sans whitespace-nowrap">${r.name}</td>
 
+              <!-- Room Charges -->
               <td class="col-room py-1 px-3 text-right bg-brandGreen/[0.04] border-l border-cream-border ${colVisible.room ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.roomTotal.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${row.roomTotal})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs font-bold text-brandGreen">
               </td>
 
+              <!-- Guest Charges -->
               <td class="col-guest py-1 px-3 text-right ${colVisible.guest ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.guestCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Guest Charge', this.value, ${row.guestCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
               </td>
 
+              <!-- Caregiver Charges -->
               <td class="col-caregiver py-1 px-3 text-right ${colVisible.caregiver ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${row.caregiverCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
               </td>
 
+              <!-- Holiday Charges -->
               <td class="col-holiday py-1 px-3 text-right ${colVisible.holiday ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${row.holidayCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
               </td>
 
+              <!-- Total Billed -->
               <td class="py-2.5 px-5 text-right font-black text-brandAmber bg-amber-50/30 whitespace-nowrap border-l border-cream-border">$${row.total.toFixed(2)}</td>
             </tr>
           `;
@@ -1573,7 +1580,7 @@
     }
 
     // ===================================================
-    // VIEW 3: HISTORY (FLAGGING + DUPLICATE LABELS)
+    // VIEW 3: HISTORY (FLAGGING + SCOPED DUPLICATE LABELS)
     // ===================================================
     function renderHistoryTable() {
       const tbody = document.getElementById('history-table-body');
@@ -1619,7 +1626,7 @@
             <td class="py-3 px-3 font-bold text-brandAmber">Rm ${c.room}</td>
             <td class="py-3 px-4 text-stone-800 font-sans font-medium whitespace-nowrap">
               ${c.resident_name}
-              ${isDup ? `<span class="ml-1.5 text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded font-sans font-bold inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Duplicate</span>` : ''}
+              ${isDup ? `<span class="ml-1.5 text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded font-sans font-bold inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Duplicate Room Tray</span>` : ''}
               ${isFlagged ? `<span class="ml-1.5 text-[10px] bg-rose-100 text-rose-700 border border-rose-300 px-1.5 py-0.5 rounded font-sans font-bold">Flagged</span>` : ''}
             </td>
             <td class="py-3 px-3 text-stone-700">${c.meal}</td>
@@ -1641,7 +1648,7 @@
 
       charge.is_flagged = !charge.is_flagged;
       renderHistoryTable();
-      showToast(charge.is_flagged ? 'Ticket flagged for investigation' : 'Ticket flag cleared');
+      showToast(charge.is_flagged ? 'Ticket flagged for review' : 'Ticket flag cleared');
 
       if (db) {
         await db.from('charges').update({ is_flagged: charge.is_flagged }).eq('id', chargeId);
@@ -1649,7 +1656,7 @@
     }
 
     // ===================================================
-    // VIEW 4: CALENDAR (WITH DRILLDOWN SORT + DUPLICATE FLAGS)
+    // VIEW 4: CALENDAR (WITH DRILLDOWN SORT + SCOPED ROOM DUPLICATES)
     // ===================================================
     function setCalendarToCurrentMonth() {
       const now = new Date();
@@ -1701,7 +1708,7 @@
               
               <div class="flex items-center gap-1">
                 ${dupCount > 0 ? `
-                  <span title="${dupCount} potential duplicate charges" class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                  <span title="${dupCount} duplicate room tray charges" class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
                     !
                   </span>
                 ` : ''}
@@ -1733,7 +1740,7 @@
       const dayCost = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
       const dupCount = getDayDuplicateCount(selectedDrilldownDate);
 
-      document.getElementById('drilldown-stats').textContent = `${dayCharges.length} total charges ($${dayCost.toFixed(2)})${dupCount > 0 ? ` • ⚠️ ${dupCount} potential duplicates found` : ''}`;
+      document.getElementById('drilldown-stats').textContent = `${dayCharges.length} total charges ($${dayCost.toFixed(2)})${dupCount > 0 ? ` • ⚠️ ${dupCount} duplicate room tray charges` : ''}`;
 
       const tbody = document.getElementById('drilldown-table-body');
       if (dayCharges.length === 0) {
@@ -1741,7 +1748,6 @@
         return;
       }
 
-      // Sort drilldown charges
       const mealOrder = { 'Breakfast': 1, 'Lunch': 2, 'Dinner': 3 };
       let sortedCharges = [...dayCharges].sort((a, b) => {
         if (sortBy === 'room') {
@@ -1770,7 +1776,7 @@
             <td class="py-2.5 px-3 font-bold text-stone-900">Rm ${c.room}</td>
             <td class="py-2.5 px-3 font-sans text-stone-800 font-medium">
               ${c.resident_name}
-              ${isDup ? `<span class="ml-1 text-[9px] bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.2 rounded font-sans font-bold">⚠️ Duplicate</span>` : ''}
+              ${isDup ? `<span class="ml-1 text-[9px] bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.2 rounded font-sans font-bold">⚠️ Duplicate Tray</span>` : ''}
             </td>
             <td class="py-2.5 px-3 text-stone-600">${c.meal}</td>
             <td class="py-2.5 px-3 text-stone-500">${cleanType}</td>
