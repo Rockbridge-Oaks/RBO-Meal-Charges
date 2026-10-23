@@ -120,7 +120,6 @@
           </div>
 
           <div class="space-y-4 text-xs sm:text-sm">
-            <!-- TARGET CHARGE DATE (POPUP CALENDAR TRIGGER) -->
             <div>
               <label class="block text-stone-600 font-medium mb-1.5">Target Charge Date</label>
               <button type="button" onclick="openSingleDatePicker()" class="w-full bg-cream-dark border border-cream-border hover:border-brandGreen rounded-xl px-3.5 py-2.5 text-stone-800 text-xs sm:text-sm flex items-center justify-between transition-all">
@@ -132,7 +131,6 @@
               </button>
             </div>
 
-            <!-- MEAL PERIOD -->
             <div>
               <label class="block text-stone-600 font-medium mb-1.5">Meal Period</label>
               <div class="grid grid-cols-3 gap-2">
@@ -142,7 +140,6 @@
               </div>
             </div>
 
-            <!-- CHARGE CATEGORY: ROOM, GUEST, CAREGIVER, HOLIDAY -->
             <div>
               <label class="block text-stone-600 font-medium mb-1.5">Charge Category</label>
               <div class="grid grid-cols-4 gap-1.5">
@@ -153,7 +150,6 @@
               </div>
             </div>
 
-            <!-- CUSTOM HOLIDAY RATE INPUT -->
             <div id="holiday-custom-rate-container" class="hidden bg-amber-50/70 border border-brandAmber/40 p-3 rounded-xl transition-all space-y-1.5">
               <div class="flex items-center justify-between">
                 <label for="custom-holiday-rate" class="block text-stone-700 font-semibold text-xs flex items-center gap-1.5">
@@ -167,7 +163,6 @@
               </div>
             </div>
 
-            <!-- PRESET ACTIVE STATUS BADGE -->
             <div class="pt-2">
               <div class="bg-cream-dark border border-cream-border rounded-xl p-3 flex items-center justify-between">
                 <div>
@@ -203,13 +198,11 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2">
-              <!-- SEARCH -->
               <div class="sm:col-span-5 relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
                 <input type="text" id="resident-search" oninput="renderResidentsGrid()" placeholder="Search room or name..." class="w-full bg-cream-dark border border-cream-border rounded-xl pl-9 pr-3.5 py-2.5 text-stone-900 placeholder-stone-400 text-xs sm:text-sm focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
               </div>
 
-              <!-- SORT BY DROPDOWN -->
               <div class="sm:col-span-3">
                 <div class="relative">
                   <select id="cards-sort-by" onchange="renderResidentsGrid()" class="w-full bg-cream-dark border border-cream-border rounded-xl px-3 py-2.5 text-stone-800 text-xs sm:text-sm font-medium focus:outline-none focus:border-brandGreen appearance-none cursor-pointer">
@@ -222,7 +215,6 @@
                 </div>
               </div>
 
-              <!-- BALANCE FILTER RANGE -->
               <div class="sm:col-span-4 flex items-center bg-cream-dark border border-cream-border rounded-xl p-1 text-xs font-medium">
                 <button onclick="setBalanceRange('selectedDate')" id="range-selectedDate" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 transition-all truncate px-1">Selected Day</button>
                 <button onclick="setBalanceRange('week')" id="range-week" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 transition-all truncate px-1">7 Days</button>
@@ -253,7 +245,7 @@
     </div>
 
     <!-- ================================================= -->
-    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (COLLAPSIBLE MEALS & EXTRA FEES) -->
+    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (NATURAL SHRINKING + COLUMN TOGGLE) -->
     <!-- ================================================= -->
     <div id="view-summary" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
@@ -261,10 +253,59 @@
           <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
             <i class="fa-solid fa-file-invoice-dollar text-brandAmber"></i> Room Service Billing Matrix
           </h2>
-          <p class="text-xs text-stone-500">Click any dollar cell to edit. Use the collapse controls on the table headers to hide meal or fee details.</p>
+          <p class="text-xs text-stone-500">Toggle individual categories on or off to naturally shrink or widen the table.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <!-- INDIVIDUAL COLUMNS TOGGLE POPDOWN -->
+          <div class="relative">
+            <button type="button" onclick="toggleColumnMenu(event)" class="px-3.5 py-2 bg-cream-dark hover:bg-cream-border border border-cream-border text-stone-800 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
+              <i class="fa-solid fa-table-columns text-brandGreen"></i>
+              <span>Columns</span>
+              <i class="fa-solid fa-chevron-down text-[10px] text-stone-400"></i>
+            </button>
+
+            <!-- Floating Checkbox Dropdown -->
+            <div id="column-visibility-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white border border-cream-border rounded-xl shadow-xl p-3 z-50 space-y-2 text-xs">
+              <div class="flex items-center justify-between border-b border-cream-border pb-1.5 font-bold text-stone-800">
+                <span>Display Columns</span>
+                <button type="button" onclick="resetAllColumns(true)" class="text-[10px] text-brandGreen font-medium hover:underline">Show All</button>
+              </div>
+
+              <div class="space-y-1.5 text-stone-700">
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-cream-dark p-1 rounded">
+                  <input type="checkbox" id="chk-b" onchange="setColumnVisibility('b', this.checked)" class="accent-brandGreen rounded">
+                  <span>Breakfast</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-cream-dark p-1 rounded">
+                  <input type="checkbox" id="chk-l" onchange="setColumnVisibility('l', this.checked)" class="accent-brandGreen rounded">
+                  <span>Lunch</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-cream-dark p-1 rounded">
+                  <input type="checkbox" id="chk-d" onchange="setColumnVisibility('d', this.checked)" class="accent-brandGreen rounded">
+                  <span>Dinner</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-cream-dark p-1 rounded">
+                  <input type="checkbox" id="chk-guest" onchange="setColumnVisibility('guest', this.checked)" class="accent-brandGreen rounded">
+                  <span>Guest</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-cream-dark p-1 rounded">
+                  <input type="checkbox" id="chk-caregiver" onchange="setColumnVisibility('caregiver', this.checked)" class="accent-brandGreen rounded">
+                  <span>Caregiver</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-cream-dark p-1 rounded">
+                  <input type="checkbox" id="chk-holiday" onchange="setColumnVisibility('holiday', this.checked)" class="accent-brandGreen rounded">
+                  <span>Holiday</span>
+                </label>
+              </div>
+
+              <div class="pt-1.5 border-t border-cream-border flex justify-between gap-1 text-[11px]">
+                <button type="button" onclick="collapseMealsPreset()" class="text-stone-500 hover:text-brandAmber font-medium">Hide Meals</button>
+                <button type="button" onclick="collapseFeesPreset()" class="text-stone-500 hover:text-brandAmber font-medium">Hide Care/Hol</button>
+              </div>
+            </div>
+          </div>
+
           <!-- SORT SUMMARY SPREADSHEET -->
           <div class="relative">
             <select id="summary-sort-by" onchange="renderSummarySheet()" class="bg-cream-dark border border-cream-border rounded-xl pl-3 pr-8 py-2 text-stone-800 text-xs sm:text-sm font-medium focus:outline-none focus:border-brandGreen appearance-none cursor-pointer shadow-sm">
@@ -288,58 +329,42 @@
         </div>
       </div>
 
-      <!-- VISUALLY ENHANCED COLLAPSIBLE TABLE -->
-      <div class="bg-white border border-cream-border rounded-2xl overflow-hidden shadow-sm">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs sm:text-sm border-collapse">
+      <!-- AUTO-SHRINKING TABLE CARD: uses inline-block + w-max so width hugs visible columns tightly -->
+      <div class="overflow-x-auto pb-4">
+        <div class="inline-block bg-white border border-cream-border rounded-2xl overflow-hidden shadow-sm transition-all duration-200">
+          <table class="w-max text-left text-xs sm:text-sm border-collapse transition-all">
             <thead class="bg-cream-dark text-stone-700 uppercase tracking-wider text-[10px] font-semibold border-b border-cream-border select-none">
-              <!-- TOP TIER HEADER GROUPING WITH COLLAPSE TOGGLES -->
+              <!-- TOP TIER HEADER GROUPING -->
               <tr class="border-b border-cream-border/70 text-[9px] text-stone-500 tracking-widest bg-stone-100/60">
                 <th colspan="2" class="py-1.5 px-3">Resident Information</th>
-                
-                <!-- MEAL GROUP TOP HEADER -->
                 <th id="th-group-meals" colspan="4" class="py-1.5 px-2 text-center bg-brandGreen/10 text-brandGreen font-bold border-x border-cream-border">
-                  <div class="flex items-center justify-center gap-2">
-                    <span><i class="fa-solid fa-utensils mr-1"></i> Room Charge Breakdown</span>
-                    <button type="button" onclick="toggleCollapseMeals()" title="Collapse / Expand Breakfast, Lunch & Dinner" class="px-1.5 py-0.5 rounded bg-white/80 hover:bg-white text-brandGreen border border-brandGreen/30 text-[10px] shadow-2xs transition-all">
-                      <span id="btn-toggle-meals-text"><i class="fa-solid fa-chevron-left mr-0.5"></i> Hide Meals</span>
-                    </button>
-                  </div>
+                  <i class="fa-solid fa-utensils mr-1"></i> Room Charge Breakdown
                 </th>
-
-                <!-- OTHER CHARGE TYPES TOP HEADER -->
                 <th id="th-group-other" colspan="3" class="py-1.5 px-2 text-center border-r border-cream-border">
-                  <div class="flex items-center justify-center gap-2">
-                    <span>Other Charge Categories</span>
-                    <button type="button" onclick="toggleCollapseExtraFees()" title="Collapse / Expand Caregiver & Holiday" class="px-1.5 py-0.5 rounded bg-cream-dark hover:bg-cream-border text-stone-600 border border-cream-border text-[10px] shadow-2xs transition-all">
-                      <span id="btn-toggle-fees-text"><i class="fa-solid fa-chevron-left mr-0.5"></i> Hide Care/Hol</span>
-                    </button>
-                  </div>
+                  Other Charge Categories
                 </th>
-
                 <th class="py-1.5 px-4 text-right bg-amber-50/60 text-brandAmber font-bold">Billing Total</th>
               </tr>
 
               <!-- BOTTOM TIER DETAILED COLUMNS -->
               <tr>
-                <th class="py-2.5 px-3 font-bold">Room</th>
-                <th class="py-2.5 px-4 font-bold">Resident</th>
+                <th class="py-2.5 px-3 font-bold min-w-[70px]">Room</th>
+                <th class="py-2.5 px-4 font-bold min-w-[150px]">Resident</th>
                 
-                <!-- Collapsible Meal Breakdown Columns -->
-                <th class="col-meal-detail py-2.5 px-2 text-right bg-brandGreen/5 border-l border-cream-border">Breakfast ($)</th>
-                <th class="col-meal-detail py-2.5 px-2 text-right bg-brandGreen/5">Lunch ($)</th>
-                <th class="col-meal-detail py-2.5 px-2 text-right bg-brandGreen/5">Dinner ($)</th>
-                <th class="py-2.5 px-2.5 text-right bg-brandGreen/15 text-brandGreen font-extrabold border-r border-cream-border">
-                  <span class="inline-block bg-white/80 px-1.5 py-0.5 rounded border border-brandGreen/30 shadow-2xs">Room ($)</span>
+                <!-- Individual Category Columns -->
+                <th class="col-b py-2.5 px-2 text-right bg-brandGreen/5 border-l border-cream-border min-w-[85px]">Breakfast ($)</th>
+                <th class="col-l py-2.5 px-2 text-right bg-brandGreen/5 min-w-[85px]">Lunch ($)</th>
+                <th class="col-d py-2.5 px-2 text-right bg-brandGreen/5 min-w-[85px]">Dinner ($)</th>
+                
+                <th class="py-2.5 px-3 text-right bg-brandGreen/15 text-brandGreen font-extrabold border-r border-cream-border min-w-[95px]">
+                  <span class="inline-block bg-white/80 px-2 py-0.5 rounded border border-brandGreen/30 shadow-2xs">Room ($)</span>
                 </th>
 
-                <!-- Other Categories (Guest stays visible, Caregiver & Holiday collapsible) -->
-                <th class="py-2.5 px-2 text-right">Guest ($)</th>
-                <th class="col-extra-fee py-2.5 px-2 text-right">Caregiver ($)</th>
-                <th class="col-extra-fee py-2.5 px-2 text-right border-r border-cream-border">Holiday ($)</th>
+                <th class="col-guest py-2.5 px-2.5 text-right min-w-[85px]">Guest ($)</th>
+                <th class="col-caregiver py-2.5 px-2.5 text-right min-w-[85px]">Caregiver ($)</th>
+                <th class="col-holiday py-2.5 px-2.5 text-right border-r border-cream-border min-w-[85px]">Holiday ($)</th>
 
-                <!-- Final Total Billed (Count removed) -->
-                <th class="py-2.5 px-4 text-right font-black text-brandAmber bg-amber-50/30">Total Billed</th>
+                <th class="py-2.5 px-4 text-right font-black text-brandAmber bg-amber-50/30 min-w-[110px]">Total Billed</th>
               </tr>
             </thead>
             <!-- ROW BANDING: Alternating soft cream & crisp white -->
@@ -599,9 +624,15 @@
     let balanceRange = 'month';
     let selectedDrilldownDate = null;
 
-    // Collapsible Columns State
-    let isMealsCollapsed = false;
-    let isExtraFeesCollapsed = false;
+    // Granular Column Visibility State (All visible initially)
+    let colVisible = {
+      b: true,
+      l: true,
+      d: true,
+      guest: true,
+      caregiver: true,
+      holiday: true
+    };
 
     function getFormattedDate(d) {
       const yr = d.getFullYear();
@@ -673,6 +704,7 @@
         document.getElementById('sync-text').textContent = 'Local Standby';
       }
 
+      syncColumnCheckboxes();
       updateRangeDisplayBadges();
       updatePresetDateBadge();
       renderCurrentView();
@@ -1269,62 +1301,88 @@
     }
 
     // ===================================================
-    // COLLAPSE TOGGLES FOR MONTHLY SHEET
+    // GRANULAR COLUMN TOGGLING SYSTEM
     // ===================================================
-    function toggleCollapseMeals() {
-      isMealsCollapsed = !isMealsCollapsed;
+    function toggleColumnMenu(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('column-visibility-dropdown');
+      menu.classList.toggle('hidden');
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+      const menu = document.getElementById('column-visibility-dropdown');
+      if (menu && !menu.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    function setColumnVisibility(colKey, isChecked) {
+      colVisible[colKey] = isChecked;
       renderSummarySheet();
     }
 
-    function toggleCollapseExtraFees() {
-      isExtraFeesCollapsed = !isExtraFeesCollapsed;
+    function resetAllColumns(showAll) {
+      Object.keys(colVisible).forEach(k => colVisible[k] = showAll);
+      syncColumnCheckboxes();
       renderSummarySheet();
     }
 
+    function collapseMealsPreset() {
+      colVisible.b = false;
+      colVisible.l = false;
+      colVisible.d = false;
+      syncColumnCheckboxes();
+      renderSummarySheet();
+    }
+
+    function collapseFeesPreset() {
+      colVisible.caregiver = false;
+      colVisible.holiday = false;
+      syncColumnCheckboxes();
+      renderSummarySheet();
+    }
+
+    function syncColumnCheckboxes() {
+      const keys = ['b', 'l', 'd', 'guest', 'caregiver', 'holiday'];
+      keys.forEach(k => {
+        const chk = document.getElementById(`chk-${k}`);
+        if (chk) chk.checked = colVisible[k];
+      });
+    }
+
     // ===================================================
-    // VIEW 2: BILLING MATRIX SPREADSHEET (COLLAPSIBLE MEALS & EXTRA FEES)
+    // VIEW 2: BILLING MATRIX SPREADSHEET (NATURAL WIDTH HUGGING)
     // ===================================================
     function renderSummarySheet() {
       const tbody = document.getElementById('summary-table-body');
       const tfoot = document.getElementById('summary-table-footer');
       const sortBy = document.getElementById('summary-sort-by') ? document.getElementById('summary-sort-by').value : 'room';
 
-      // Update Top Tier Header Colspans and Toggle Button Labels
+      // Dynamically calculate visible meal and other subheaders
+      const mealsColspan = (colVisible.b ? 1 : 0) + (colVisible.l ? 1 : 0) + (colVisible.d ? 1 : 0) + 1; // +1 for Room ($)
+      const otherColspan = (colVisible.guest ? 1 : 0) + (colVisible.caregiver ? 1 : 0) + (colVisible.holiday ? 1 : 0);
+
       const thGroupMeals = document.getElementById('th-group-meals');
       const thGroupOther = document.getElementById('th-group-other');
-      const btnMealsText = document.getElementById('btn-toggle-meals-text');
-      const btnFeesText = document.getElementById('btn-toggle-fees-text');
 
-      if (thGroupMeals && btnMealsText) {
-        if (isMealsCollapsed) {
-          thGroupMeals.setAttribute('colspan', '1');
-          btnMealsText.innerHTML = '<i class="fa-solid fa-chevron-right mr-0.5"></i> Show Meals';
+      if (thGroupMeals) thGroupMeals.setAttribute('colspan', String(mealsColspan));
+      if (thGroupOther) {
+        if (otherColspan > 0) {
+          thGroupOther.classList.remove('hidden');
+          thGroupOther.setAttribute('colspan', String(otherColspan));
         } else {
-          thGroupMeals.setAttribute('colspan', '4');
-          btnMealsText.innerHTML = '<i class="fa-solid fa-chevron-left mr-0.5"></i> Hide Meals';
+          thGroupOther.classList.add('hidden');
         }
       }
 
-      if (thGroupOther && btnFeesText) {
-        if (isExtraFeesCollapsed) {
-          thGroupOther.setAttribute('colspan', '1');
-          btnFeesText.innerHTML = '<i class="fa-solid fa-chevron-right mr-0.5"></i> Show Care/Hol';
-        } else {
-          thGroupOther.setAttribute('colspan', '3');
-          btnFeesText.innerHTML = '<i class="fa-solid fa-chevron-left mr-0.5"></i> Hide Care/Hol';
-        }
-      }
-
-      // Toggle Detailed Column Headers
-      document.querySelectorAll('.col-meal-detail').forEach(el => {
-        if (isMealsCollapsed) el.classList.add('hidden');
-        else el.classList.remove('hidden');
-      });
-
-      document.querySelectorAll('.col-extra-fee').forEach(el => {
-        if (isExtraFeesCollapsed) el.classList.add('hidden');
-        else el.classList.remove('hidden');
-      });
+      // Update Column Headers
+      document.querySelectorAll('.col-b').forEach(el => colVisible.b ? el.classList.remove('hidden') : el.classList.add('hidden'));
+      document.querySelectorAll('.col-l').forEach(el => colVisible.l ? el.classList.remove('hidden') : el.classList.add('hidden'));
+      document.querySelectorAll('.col-d').forEach(el => colVisible.d ? el.classList.remove('hidden') : el.classList.add('hidden'));
+      document.querySelectorAll('.col-guest').forEach(el => colVisible.guest ? el.classList.remove('hidden') : el.classList.add('hidden'));
+      document.querySelectorAll('.col-caregiver').forEach(el => colVisible.caregiver ? el.classList.remove('hidden') : el.classList.add('hidden'));
+      document.querySelectorAll('.col-holiday').forEach(el => colVisible.holiday ? el.classList.remove('hidden') : el.classList.add('hidden'));
 
       const rangeCharges = charges.filter(c => c.date >= summaryRange.start && c.date <= summaryRange.end);
 
@@ -1384,46 +1442,49 @@
 
         return `
           <tr class="transition-colors">
-            <td class="py-2.5 px-3 font-bold text-stone-900">
+            <td class="py-2.5 px-3 font-bold text-stone-900 whitespace-nowrap">
               Rm ${r.room}
               ${r.is_archived ? `<span class="ml-1 text-[9px] bg-stone-200 text-stone-600 px-1 py-0.2 rounded font-sans font-semibold">Archived</span>` : ''}
             </td>
-            <td class="py-2.5 px-4 text-stone-700 font-sans">${r.name}</td>
+            <td class="py-2.5 px-4 text-stone-700 font-sans whitespace-nowrap">${r.name}</td>
 
-            <!-- Collapsible Meals Columns -->
-            <td class="col-meal-detail py-1 px-1.5 text-right bg-brandGreen/[0.02] border-l border-cream-border ${isMealsCollapsed ? 'hidden' : ''}">
+            <!-- Breakfast -->
+            <td class="col-b py-1 px-1.5 text-right bg-brandGreen/[0.02] border-l border-cream-border ${colVisible.b ? '' : 'hidden'}">
               <input type="number" step="0.01" min="0" value="${row.bCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Breakfast', this.value, ${row.bCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
             </td>
 
-            <td class="col-meal-detail py-1 px-1.5 text-right bg-brandGreen/[0.02] ${isMealsCollapsed ? 'hidden' : ''}">
+            <!-- Lunch -->
+            <td class="col-l py-1 px-1.5 text-right bg-brandGreen/[0.02] ${colVisible.l ? '' : 'hidden'}">
               <input type="number" step="0.01" min="0" value="${row.lCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Lunch', this.value, ${row.lCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
             </td>
 
-            <td class="col-meal-detail py-1 px-1.5 text-right bg-brandGreen/[0.02] ${isMealsCollapsed ? 'hidden' : ''}">
+            <!-- Dinner -->
+            <td class="col-d py-1 px-1.5 text-right bg-brandGreen/[0.02] ${colVisible.d ? '' : 'hidden'}">
               <input type="number" step="0.01" min="0" value="${row.dCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Dinner', this.value, ${row.dCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
             </td>
 
-            <!-- Room Charge Total Input -->
-            <td class="py-1 px-2 text-right bg-brandGreen/[0.06] border-r border-cream-border">
+            <!-- Room Charge Total Input (Anchor) -->
+            <td class="py-1 px-2.5 text-right bg-brandGreen/[0.06] border-r border-cream-border">
               <input type="number" step="0.01" min="0" value="${row.roomTotal.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${row.roomTotal})" class="w-16 sm:w-20 bg-brandGreen/10 border border-brandGreen/40 font-bold text-brandGreen focus:border-brandGreen focus:bg-white rounded px-1.5 py-1 text-right text-xs font-mono outline-none shadow-2xs">
             </td>
 
-            <!-- Guest Charge (Always visible) -->
-            <td class="py-1 px-1.5 text-right">
+            <!-- Guest -->
+            <td class="col-guest py-1 px-1.5 text-right ${colVisible.guest ? '' : 'hidden'}">
               <input type="number" step="0.01" min="0" value="${row.guestCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Guest Charge', this.value, ${row.guestCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
             </td>
 
-            <!-- Collapsible Caregiver & Holiday Columns -->
-            <td class="col-extra-fee py-1 px-1.5 text-right ${isExtraFeesCollapsed ? 'hidden' : ''}">
+            <!-- Caregiver -->
+            <td class="col-caregiver py-1 px-1.5 text-right ${colVisible.caregiver ? '' : 'hidden'}">
               <input type="number" step="0.01" min="0" value="${row.caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${row.caregiverCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
             </td>
 
-            <td class="col-extra-fee py-1 px-1.5 text-right border-r border-cream-border ${isExtraFeesCollapsed ? 'hidden' : ''}">
+            <!-- Holiday -->
+            <td class="col-holiday py-1 px-1.5 text-right border-r border-cream-border ${colVisible.holiday ? '' : 'hidden'}">
               <input type="number" step="0.01" min="0" value="${row.holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${row.holidayCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
             </td>
 
             <!-- Total Billed -->
-            <td class="py-2.5 px-4 text-right font-black text-brandAmber bg-amber-50/30">$${row.total.toFixed(2)}</td>
+            <td class="py-2.5 px-4 text-right font-black text-brandAmber bg-amber-50/30 whitespace-nowrap">$${row.total.toFixed(2)}</td>
           </tr>
         `;
       }).join('');
@@ -1432,16 +1493,15 @@
         <td class="py-3 px-3 uppercase text-stone-600 tracking-wider">Totals</td>
         <td class="py-3 px-4 text-stone-600 font-sans">${computedRows.length} Residents</td>
         
-        <td class="col-meal-detail py-3 px-2 text-right text-stone-800 font-mono border-l border-cream-border ${isMealsCollapsed ? 'hidden' : ''}">$${grandTotals.bDollars.toFixed(2)}</td>
-        <td class="col-meal-detail py-3 px-2 text-right text-stone-800 font-mono ${isMealsCollapsed ? 'hidden' : ''}">$${grandTotals.lDollars.toFixed(2)}</td>
-        <td class="col-meal-detail py-3 px-2 text-right text-stone-800 font-mono ${isMealsCollapsed ? 'hidden' : ''}">$${grandTotals.dDollars.toFixed(2)}</td>
+        <td class="col-b py-3 px-2 text-right text-stone-800 font-mono border-l border-cream-border ${colVisible.b ? '' : 'hidden'}">$${grandTotals.bDollars.toFixed(2)}</td>
+        <td class="col-l py-3 px-2 text-right text-stone-800 font-mono ${colVisible.l ? '' : 'hidden'}">$${grandTotals.lDollars.toFixed(2)}</td>
+        <td class="col-d py-3 px-2 text-right text-stone-800 font-mono ${colVisible.d ? '' : 'hidden'}">$${grandTotals.dDollars.toFixed(2)}</td>
         
-        <td class="py-3 px-2 text-right text-brandGreen font-extrabold font-mono border-r border-cream-border bg-brandGreen/10">$${grandTotals.roomDollars.toFixed(2)}</td>
+        <td class="py-3 px-2.5 text-right text-brandGreen font-extrabold font-mono border-r border-cream-border bg-brandGreen/10">$${grandTotals.roomDollars.toFixed(2)}</td>
         
-        <td class="py-3 px-2 text-right text-stone-800 font-mono">$${grandTotals.guestDollars.toFixed(2)}</td>
-        
-        <td class="col-extra-fee py-3 px-2 text-right text-stone-800 font-mono ${isExtraFeesCollapsed ? 'hidden' : ''}">$${grandTotals.caregiverDollars.toFixed(2)}</td>
-        <td class="col-extra-fee py-3 px-2 text-right text-stone-800 font-mono border-r border-cream-border ${isExtraFeesCollapsed ? 'hidden' : ''}">$${grandTotals.holidayDollars.toFixed(2)}</td>
+        <td class="col-guest py-3 px-2 text-right text-stone-800 font-mono ${colVisible.guest ? '' : 'hidden'}">$${grandTotals.guestDollars.toFixed(2)}</td>
+        <td class="col-caregiver py-3 px-2 text-right text-stone-800 font-mono ${colVisible.caregiver ? '' : 'hidden'}">$${grandTotals.caregiverDollars.toFixed(2)}</td>
+        <td class="col-holiday py-3 px-2 text-right text-stone-800 font-mono border-r border-cream-border ${colVisible.holiday ? '' : 'hidden'}">$${grandTotals.holidayDollars.toFixed(2)}</td>
         
         <td class="py-3 px-4 text-right text-brandAmber font-black font-mono text-base bg-amber-50/40">$${grandTotals.amount.toFixed(2)}</td>
       `;
