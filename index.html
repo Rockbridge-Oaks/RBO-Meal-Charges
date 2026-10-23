@@ -103,6 +103,7 @@
     <div id="view-daily">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
+        <!-- LEFT COLUMN: STEP 1 PRESET CONTROLLER -->
         <div class="lg:col-span-4 bg-white border border-cream-border rounded-2xl p-4 sm:p-5 shadow-sm sticky lg:top-20">
           <div class="flex items-center justify-between mb-4 border-b border-cream-border pb-3">
             <div>
@@ -173,6 +174,7 @@
           </div>
         </div>
 
+        <!-- RIGHT WORK AREA -->
         <div class="lg:col-span-8 space-y-4">
           <div class="bg-white border border-cream-border rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
@@ -336,22 +338,21 @@
       </div>
     </div>
 
-    <!-- VIEW 3: GENERAL CHARGE HISTORY (WITH AUDIT FILTER BAR) -->
+    <!-- VIEW 3: GENERAL CHARGE HISTORY (STREAMLINED REVIEW + RESOLVE) -->
     <div id="view-history" class="hidden space-y-4">
-      <!-- CONTROL BAR: TABS, SORT, SEARCH, RANGE -->
       <div class="bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
               <i class="fa-solid fa-clock-rotate-left text-brandAmber"></i> Complete Charge History
             </h2>
-            <p class="text-xs text-stone-500">Filter tickets needing review or sort chronologically and by room number.</p>
+            <p class="text-xs text-stone-500">Audit logs and duplicate tracking. Click "Resolve" to mark expected duplicates as approved.</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <!-- REVIEW COUNTER CHIP -->
-            <div id="history-review-chip" class="hidden px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs font-bold items-center gap-1.5">
-              <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+            <!-- PENDING REVIEW COUNTER CHIP -->
+            <div id="history-review-chip" class="hidden px-2.5 py-1.5 rounded-xl text-xs font-bold items-center gap-1.5 transition-all">
+              <i id="history-review-icon" class="fa-solid fa-triangle-exclamation"></i>
               <span id="history-review-count">0 to Review</span>
             </div>
 
@@ -367,16 +368,14 @@
         <!-- FILTER AND SORT TOOLBAR -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center pt-1 border-t border-cream-border">
           
-          <!-- AUDIT STATUS FILTER (ALL / REVIEW / FLAGGED / DUPLICATES) -->
-          <div class="md:col-span-5 flex items-center bg-cream-dark border border-cream-border rounded-xl p-1 text-xs font-semibold">
-            <button onclick="setHistoryFilter('all')" id="hfilter-all" class="flex-1 py-1.5 text-center rounded-lg bg-white text-stone-900 shadow-sm transition-all truncate px-1">All</button>
-            <button onclick="setHistoryFilter('review')" id="hfilter-review" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-1">⚠️ Review</button>
-            <button onclick="setHistoryFilter('flagged')" id="hfilter-flagged" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-1">🚩 Flagged</button>
-            <button onclick="setHistoryFilter('duplicates')" id="hfilter-duplicates" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-1">⚠️ Dups</button>
+          <!-- SIMPLE 2-STATE AUDIT FILTER: ALL VS REVIEW -->
+          <div class="md:col-span-4 flex items-center bg-cream-dark border border-cream-border rounded-xl p-1 text-xs font-semibold">
+            <button onclick="setHistoryFilter('all')" id="hfilter-all" class="flex-1 py-1.5 text-center rounded-lg bg-white text-stone-900 shadow-sm transition-all truncate px-2">All Charges</button>
+            <button onclick="setHistoryFilter('review')" id="hfilter-review" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-2">⚠️ Review Queue</button>
           </div>
 
           <!-- SEARCH -->
-          <div class="md:col-span-4 relative">
+          <div class="md:col-span-5 relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
             <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, resident, or meal..." class="w-full bg-cream-dark border border-cream-border rounded-xl pl-9 pr-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
           </div>
@@ -411,7 +410,8 @@
                 <th class="py-3 px-3">Meal</th>
                 <th class="py-3 px-3">Category</th>
                 <th class="py-3 px-4 text-right">Amount</th>
-                <th class="py-3 px-4 text-center">Action</th>
+                <th class="py-3 px-4 text-center">Audit Status</th>
+                <th class="py-3 px-3 text-center">Action</th>
               </tr>
             </thead>
             <tbody id="history-table-body" class="divide-y divide-cream-border font-mono [&>tr:nth-child(even)]:bg-[#F8F5EE] [&>tr:nth-child(odd)]:bg-white hover:[&>tr]:bg-amber-50/40"></tbody>
@@ -427,7 +427,7 @@
           <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
             <i class="fa-solid fa-calendar-check text-brandAmber"></i> Charge Audit Calendar
           </h2>
-          <p class="text-xs text-stone-500">Days with duplicate personal room charges are badged with a warning icon.</p>
+          <p class="text-xs text-stone-500">Days with unresolved duplicate room charges are badged with a warning icon.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -493,6 +493,7 @@
                 <th class="py-2.5 px-3">Meal</th>
                 <th class="py-2.5 px-3">Charge Category</th>
                 <th class="py-2.5 px-3 text-right">Amount</th>
+                <th class="py-2.5 px-3 text-center">Status</th>
                 <th class="py-2.5 px-3 text-center">Action</th>
               </tr>
             </thead>
@@ -634,7 +635,7 @@
     let selectedDrilldownDate = null;
 
     let hideZeroBalances = false;
-    let historyFilter = 'all'; // 'all', 'review', 'flagged', 'duplicates'
+    let historyFilter = 'all'; // 'all' or 'review'
 
     let colVisible = {
       room: true,
@@ -721,7 +722,7 @@
     }
 
     // ===================================================
-    // DUPLICATE DETECTION LOGIC (SCOPED TO ROOM CHARGE)
+    // DUPLICATE & AUDIT DETECTION LOGIC
     // ===================================================
     function isDuplicateCharge(charge) {
       if (!charge) return false;
@@ -736,9 +737,14 @@
       return matches.length > 1;
     }
 
+    function isChargeIssue(charge) {
+      if (!charge) return false;
+      return isDuplicateCharge(charge) || !!charge.is_flagged;
+    }
+
     function getDayDuplicateCount(dateISO) {
       const dayCharges = charges.filter(c => c.date === dateISO && c.charge_type === 'Room Charge');
-      let duplicateIds = new Set();
+      let unresolvedIds = new Set();
       
       for (let i = 0; i < dayCharges.length; i++) {
         for (let j = i + 1; j < dayCharges.length; j++) {
@@ -748,12 +754,12 @@
             String(a.resident_id) === String(b.resident_id) &&
             a.meal === b.meal
           ) {
-            duplicateIds.add(a.id);
-            duplicateIds.add(b.id);
+            if (!a.is_resolved) unresolvedIds.add(a.id);
+            if (!b.is_resolved) unresolvedIds.add(b.id);
           }
         }
       }
-      return duplicateIds.size;
+      return unresolvedIds.size;
     }
 
     // ===================================================
@@ -875,7 +881,9 @@
         meal: batchPreset.meal,
         charge_type: batchPreset.type,
         amount: chargeAmount,
-        is_flagged: false
+        is_flagged: false,
+        is_resolved: false,
+        resolution_note: null
       };
 
       const cardEl = document.getElementById(`card-${resident.id}`);
@@ -1505,7 +1513,7 @@
         <td class="col-room py-3 px-3 text-right text-brandGreen font-extrabold font-mono border-l border-cream-border bg-brandGreen/10 ${colVisible.room ? '' : 'hidden'}">$${grandTotals.roomDollars.toFixed(2)}</td>
         <td class="col-guest py-3 px-3 text-right text-stone-800 font-mono ${colVisible.guest ? '' : 'hidden'}">$${grandTotals.guestDollars.toFixed(2)}</td>
         <td class="col-caregiver py-3 px-3 text-right text-stone-800 font-mono ${colVisible.caregiver ? '' : 'hidden'}">$${grandTotals.caregiverDollars.toFixed(2)}</td>
-        <td class="col-holiday py-3 px-3 text-right text-stone-800 font-mono ${colVisible.holiday ? '' : 'hidden'}">$${grandTotals.holidayDollars.toFixed(2)}</td>
+        <td class="col-holiday py-3 px-3 text-right text-stone-800 font-mono border-r border-cream-border ${colVisible.holiday ? '' : 'hidden'}">$${grandTotals.holidayDollars.toFixed(2)}</td>
         
         <td class="py-3 px-5 text-right text-brandAmber font-black font-mono text-base bg-amber-50/40 border-l border-cream-border">$${grandTotals.amount.toFixed(2)}</td>
       `;
@@ -1537,7 +1545,9 @@
           meal: 'Breakfast',
           charge_type: categoryValue,
           amount: diff,
-          is_flagged: false
+          is_flagged: false,
+          is_resolved: false,
+          resolution_note: null
         };
 
         charges.unshift(newCharge);
@@ -1612,20 +1622,20 @@
     }
 
     // ===================================================
-    // VIEW 3: HISTORY (AUDIT FILTER + SORT)
+    // VIEW 3: HISTORY (STREAMLINED REVIEW QUEUE & RESOLUTION)
     // ===================================================
     function setHistoryFilter(filterType) {
       historyFilter = filterType;
-      ['all', 'review', 'flagged', 'duplicates'].forEach(f => {
-        const btn = document.getElementById(`hfilter-${f}`);
-        if (btn) {
-          if (f === filterType) {
-            btn.className = 'flex-1 py-1.5 text-center rounded-lg bg-white text-stone-900 shadow-sm transition-all truncate px-1';
-          } else {
-            btn.className = 'flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-1';
-          }
-        }
-      });
+      const btnAll = document.getElementById('hfilter-all');
+      const btnReview = document.getElementById('hfilter-review');
+
+      if (filterType === 'all') {
+        btnAll.className = 'flex-1 py-1.5 text-center rounded-lg bg-white text-stone-900 shadow-sm transition-all truncate px-2 font-bold';
+        btnReview.className = 'flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-2 font-medium';
+      } else {
+        btnReview.className = 'flex-1 py-1.5 text-center rounded-lg bg-white text-brandAmber shadow-sm transition-all truncate px-2 font-bold';
+        btnAll.className = 'flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-2 font-medium';
+      }
       renderHistoryTable();
     }
 
@@ -1634,61 +1644,62 @@
       const badge = document.getElementById('history-count-badge');
       const reviewChip = document.getElementById('history-review-chip');
       const reviewCountText = document.getElementById('history-review-count');
+      const reviewIcon = document.getElementById('history-review-icon');
       const query = (document.getElementById('history-search').value || '').toLowerCase().trim();
       const sortBy = document.getElementById('history-sort-by') ? document.getElementById('history-sort-by').value : 'dateDesc';
 
       const inRangeCharges = charges.filter(c => c.date >= historyRange.start && c.date <= historyRange.end);
 
-      // Count items that need review (duplicates or manually flagged)
-      const reviewList = inRangeCharges.filter(c => isDuplicateCharge(c) || !!c.is_flagged);
-      if (reviewChip && reviewCountText) {
-        if (reviewList.length > 0) {
-          reviewChip.classList.remove('hidden');
-          reviewChip.classList.add('flex');
-          reviewCountText.textContent = `${reviewList.length} to Review`;
+      // Unresolved issues in the date range (drives the top counter)
+      const unresolvedIssues = inRangeCharges.filter(c => isChargeIssue(c) && !c.is_resolved);
+      const totalIssues = inRangeCharges.filter(c => isChargeIssue(c));
+
+      if (reviewChip && reviewCountText && reviewIcon) {
+        if (unresolvedIssues.length > 0) {
+          reviewChip.className = 'flex px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs font-bold items-center gap-1.5';
+          reviewIcon.className = 'fa-solid fa-triangle-exclamation text-amber-500';
+          reviewCountText.textContent = `${unresolvedIssues.length} to Review`;
+        } else if (totalIssues.length > 0) {
+          // If all issues have been marked resolved
+          reviewChip.className = 'flex px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold items-center gap-1.5';
+          reviewIcon.className = 'fa-solid fa-circle-check text-emerald-600';
+          reviewCountText.textContent = `All Resolved (${totalIssues.length})`;
         } else {
-          reviewChip.classList.add('hidden');
-          reviewChip.classList.remove('flex');
+          reviewChip.className = 'hidden';
         }
       }
 
-      // Apply audit filter tab
+      // Filter charges: 'review' tab keeps showing all duplicates/flags (both resolved and unresolved)
       let filtered = inRangeCharges.filter(c => {
-        const isDup = isDuplicateCharge(c);
-        const isFlagged = !!c.is_flagged;
-
-        if (historyFilter === 'review') return isDup || isFlagged;
-        if (historyFilter === 'flagged') return isFlagged;
-        if (historyFilter === 'duplicates') return isDup;
+        if (historyFilter === 'review') return isChargeIssue(c);
         return true;
       });
 
-      // Apply text search
+      // Search query
       filtered = filtered.filter(c => {
         const writtenDate = formatWrittenDate(c.date).toLowerCase();
+        const note = (c.resolution_note || '').toLowerCase();
         return (
           String(c.room).toLowerCase().includes(query) ||
           String(c.resident_name).toLowerCase().includes(query) ||
           String(c.meal).toLowerCase().includes(query) ||
           String(c.charge_type).toLowerCase().includes(query) ||
           String(c.date).includes(query) ||
-          writtenDate.includes(query)
+          writtenDate.includes(query) ||
+          note.includes(query)
         );
       });
 
-      // Apply sorting
+      // Sort
       filtered.sort((a, b) => {
-        if (sortBy === 'dateDesc') {
-          return b.date.localeCompare(a.date);
-        } else if (sortBy === 'dateAsc') {
-          return a.date.localeCompare(b.date);
-        } else if (sortBy === 'room') {
+        if (sortBy === 'dateDesc') return b.date.localeCompare(a.date);
+        if (sortBy === 'dateAsc') return a.date.localeCompare(b.date);
+        if (sortBy === 'room') {
           const roomComp = a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
           if (roomComp !== 0) return roomComp;
           return a.resident_name.localeCompare(b.resident_name);
-        } else if (sortBy === 'name') {
-          return a.resident_name.localeCompare(b.resident_name);
         }
+        if (sortBy === 'name') return a.resident_name.localeCompare(b.resident_name);
         return 0;
       });
 
@@ -1697,8 +1708,8 @@
       if (filtered.length === 0) {
         const emptyMsg = historyFilter === 'all' 
           ? 'No charges found in selected date range.' 
-          : 'No flagged tickets or duplicate room trays found in this date range.';
-        tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-stone-400 italic">${emptyMsg}</td></tr>`;
+          : 'No duplicate charges or flagged tickets found in this date range.';
+        tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-stone-400 italic">${emptyMsg}</td></tr>`;
         return;
       }
 
@@ -1706,27 +1717,58 @@
         const cleanType = c.charge_type === 'Room Charge' ? 'Room' : c.charge_type;
         const isDup = isDuplicateCharge(c);
         const isFlagged = !!c.is_flagged;
+        const isResolved = !!c.is_resolved;
+        const hasIssue = isDup || isFlagged;
+
+        let rowHighlight = '';
+        if (hasIssue) {
+          rowHighlight = isResolved ? 'bg-emerald-50/40' : (isDup ? 'bg-amber-50/70' : 'bg-rose-50/50');
+        }
 
         return `
-          <tr class="transition-colors ${isDup ? 'bg-amber-50/70' : ''} ${isFlagged ? 'bg-rose-50/50' : ''}">
+          <tr class="transition-colors ${rowHighlight}">
+            <!-- MANUAL FLAG BUTTON -->
             <td class="py-3 px-3 text-center">
-              <button onclick="toggleManualFlag('${c.id}')" title="${isFlagged ? 'Unflag this ticket' : 'Flag this ticket for review'}" class="p-1 rounded hover:bg-stone-200 transition-colors">
+              <button onclick="toggleManualFlag('${c.id}')" title="${isFlagged ? 'Unflag ticket' : 'Flag ticket for review'}" class="p-1 rounded hover:bg-stone-200 transition-colors">
                 <i class="fa-solid fa-flag text-xs ${isFlagged ? 'text-rose-500 scale-110' : 'text-stone-300 hover:text-stone-500'}"></i>
               </button>
             </td>
+
             <td class="py-3 px-4 font-sans font-medium text-stone-900 whitespace-nowrap">
               ${formatWrittenDate(c.date)}
             </td>
             <td class="py-3 px-3 font-bold text-brandAmber">Rm ${c.room}</td>
+            
+            <!-- RESIDENT NAME + AUDIT BADGES -->
             <td class="py-3 px-4 text-stone-800 font-sans font-medium whitespace-nowrap">
-              ${c.resident_name}
+              <span>${c.resident_name}</span>
               ${isDup ? `<span class="ml-1.5 text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded font-sans font-bold inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Duplicate Room Tray</span>` : ''}
               ${isFlagged ? `<span class="ml-1.5 text-[10px] bg-rose-100 text-rose-700 border border-rose-300 px-1.5 py-0.5 rounded font-sans font-bold">Flagged</span>` : ''}
+              ${c.resolution_note ? `<span class="block text-[11px] text-emerald-800 font-sans italic font-normal mt-0.5">Note: "${c.resolution_note}"</span>` : ''}
             </td>
+
             <td class="py-3 px-3 text-stone-700">${c.meal}</td>
             <td class="py-3 px-3 text-stone-600">${cleanType}</td>
             <td class="py-3 px-4 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
-            <td class="py-3 px-4 text-center">
+
+            <!-- RESOLVED / ACKNOWLEDGED STATUS COLUMN -->
+            <td class="py-3 px-4 text-center whitespace-nowrap">
+              ${hasIssue ? (
+                isResolved ? `
+                  <button onclick="toggleResolved('${c.id}')" title="Click to reopen / unresolve" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200 transition-colors">
+                    <i class="fa-solid fa-check"></i> Resolved
+                  </button>
+                ` : `
+                  <button onclick="toggleResolved('${c.id}')" title="Mark this duplicate or flag as investigated and approved" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-sans font-bold bg-cream-dark hover:bg-emerald-50 text-stone-600 hover:text-emerald-700 border border-cream-border hover:border-emerald-300 transition-all shadow-2xs">
+                    <i class="fa-regular fa-circle-check"></i> Resolve
+                  </button>
+                `
+              ) : `
+                <span class="text-stone-300 text-xs font-sans">-</span>
+              `}
+            </td>
+
+            <td class="py-3 px-3 text-center">
               <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition-colors" title="Delete entry">
                 <i class="fa-solid fa-trash-can"></i>
               </button>
@@ -1746,6 +1788,40 @@
 
       if (db) {
         await db.from('charges').update({ is_flagged: charge.is_flagged }).eq('id', chargeId);
+      }
+    }
+
+    async function toggleResolved(chargeId) {
+      const charge = charges.find(c => String(c.id) === String(chargeId));
+      if (!charge) return;
+
+      if (!charge.is_resolved) {
+        // Prompt for an optional explanation note
+        const note = prompt('Optional explanation / approval note (or leave blank and click OK):', charge.resolution_note || '');
+        if (note === null) return; // Cancelled
+        charge.is_resolved = true;
+        charge.resolution_note = note.trim() || null;
+        showToast('Ticket marked as resolved');
+      } else {
+        if (confirm('Reopen this ticket and mark it as unresolved?')) {
+          charge.is_resolved = false;
+          showToast('Ticket reopened');
+        } else {
+          return;
+        }
+      }
+
+      renderHistoryTable();
+      if (currentView === 'calendar') {
+        renderCalendar();
+        if (selectedDrilldownDate) renderDrilldownTable();
+      }
+
+      if (db) {
+        await db.from('charges').update({ 
+          is_resolved: charge.is_resolved,
+          resolution_note: charge.resolution_note 
+        }).eq('id', chargeId);
       }
     }
 
@@ -1789,11 +1865,11 @@
 
         const dayCharges = charges.filter(c => c.date === dateISO);
         const dayTotal = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
-        const dupCount = getDayDuplicateCount(dateISO);
+        const unresolvedDups = getDayDuplicateCount(dateISO);
         const isToday = dateISO === todayISO;
 
         grid.innerHTML += `
-          <div onclick="selectCalendarDate('${dateISO}')" class="min-h-[75px] p-2 bg-white border ${isToday ? 'border-brandAmber ring-1 ring-brandAmber/30' : (dupCount > 0 ? 'border-amber-400 bg-amber-50/20' : 'border-cream-border')} rounded-xl cursor-pointer hover:border-brandGreen transition-all flex flex-col justify-between shadow-xs relative">
+          <div onclick="selectCalendarDate('${dateISO}')" class="min-h-[75px] p-2 bg-white border ${isToday ? 'border-brandAmber ring-1 ring-brandAmber/30' : (unresolvedDups > 0 ? 'border-amber-400 bg-amber-50/20' : 'border-cream-border')} rounded-xl cursor-pointer hover:border-brandGreen transition-all flex flex-col justify-between shadow-xs relative">
             
             <div class="flex items-center justify-between text-xs font-bold">
               <span class="${isToday ? 'text-brandAmber font-black' : 'text-stone-700'}">
@@ -1801,8 +1877,8 @@
               </span>
               
               <div class="flex items-center gap-1">
-                ${dupCount > 0 ? `
-                  <span title="${dupCount} duplicate room tray charges" class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                ${unresolvedDups > 0 ? `
+                  <span title="${unresolvedDups} unresolved duplicate room tray charges" class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
                     !
                   </span>
                 ` : ''}
@@ -1832,13 +1908,13 @@
       const sortBy = document.getElementById('drilldown-sort-by') ? document.getElementById('drilldown-sort-by').value : 'room';
       const dayCharges = charges.filter(c => c.date === selectedDrilldownDate);
       const dayCost = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
-      const dupCount = getDayDuplicateCount(selectedDrilldownDate);
+      const unresolvedDups = getDayDuplicateCount(selectedDrilldownDate);
 
-      document.getElementById('drilldown-stats').textContent = `${dayCharges.length} total charges ($${dayCost.toFixed(2)})${dupCount > 0 ? ` • ⚠️ ${dupCount} duplicate room tray charges` : ''}`;
+      document.getElementById('drilldown-stats').textContent = `${dayCharges.length} total charges ($${dayCost.toFixed(2)})${unresolvedDups > 0 ? ` • ⚠️ ${unresolvedDups} unresolved duplicate charges` : ''}`;
 
       const tbody = document.getElementById('drilldown-table-body');
       if (dayCharges.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-stone-400 italic">No charges recorded on this date.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-stone-400 italic">No charges recorded on this date.</td></tr>`;
         return;
       }
 
@@ -1864,17 +1940,27 @@
       tbody.innerHTML = sortedCharges.map(c => {
         const cleanType = c.charge_type === 'Room Charge' ? 'Room' : c.charge_type;
         const isDup = isDuplicateCharge(c);
+        const isResolved = !!c.is_resolved;
 
         return `
-          <tr class="hover:bg-cream-dark/50 font-mono text-xs ${isDup ? 'bg-amber-50/70 border-l-2 border-amber-400' : ''}">
+          <tr class="hover:bg-cream-dark/50 font-mono text-xs ${isDup ? (isResolved ? 'bg-emerald-50/30' : 'bg-amber-50/70 border-l-2 border-amber-400') : ''}">
             <td class="py-2.5 px-3 font-bold text-stone-900">Rm ${c.room}</td>
             <td class="py-2.5 px-3 font-sans text-stone-800 font-medium">
               ${c.resident_name}
               ${isDup ? `<span class="ml-1 text-[9px] bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.2 rounded font-sans font-bold">⚠️ Duplicate Tray</span>` : ''}
+              ${c.resolution_note ? `<span class="block text-[10px] text-emerald-800 italic font-normal">"${c.resolution_note}"</span>` : ''}
             </td>
             <td class="py-2.5 px-3 text-stone-600">${c.meal}</td>
             <td class="py-2.5 px-3 text-stone-500">${cleanType}</td>
             <td class="py-2.5 px-3 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
+            
+            <td class="py-2.5 px-3 text-center">
+              ${isDup ? (
+                isResolved ? `<span class="text-[10px] text-emerald-700 font-sans font-bold bg-emerald-100 border border-emerald-300 px-1.5 py-0.5 rounded">✓ Resolved</span>` 
+                           : `<span class="text-[10px] text-amber-700 font-sans font-bold bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded">Needs Review</span>`
+              ) : `<span class="text-stone-300">-</span>`}
+            </td>
+
             <td class="py-2.5 px-3 text-center">
               <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50" title="Delete entry">
                 <i class="fa-solid fa-trash-can"></i>
