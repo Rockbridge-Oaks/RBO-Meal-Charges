@@ -240,17 +240,24 @@
       </div>
     </div>
 
-    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET -->
+    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (WITH HIDE $0 TOGGLE) -->
     <div id="view-summary" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
         <div>
           <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
             <i class="fa-solid fa-file-invoice-dollar text-brandAmber"></i> Room Service Billing Matrix
           </h2>
-          <p class="text-xs text-stone-500">Toggle individual categories on or off to naturally shrink or widen the table.</p>
+          <p class="text-xs text-stone-500">Toggle individual categories or hide $0 balances to shrink the spreadsheet.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <!-- HIDE $0 BALANCES TOGGLE -->
+          <button type="button" id="btn-toggle-zero" onclick="toggleHideZeroBalances()" class="px-3.5 py-2 bg-cream-dark hover:bg-cream-border border border-cream-border text-stone-700 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm transition-all">
+            <i id="icon-toggle-zero" class="fa-regular fa-eye-slash text-stone-500"></i>
+            <span id="label-toggle-zero">Hide $0 Balances</span>
+          </button>
+
+          <!-- COLUMNS POPOVER -->
           <div class="relative">
             <button type="button" onclick="toggleColumnMenu(event)" class="px-3.5 py-2 bg-cream-dark hover:bg-cream-border border border-cream-border text-stone-800 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
               <i class="fa-solid fa-table-columns text-brandGreen"></i>
@@ -298,6 +305,7 @@
             </div>
           </div>
 
+          <!-- SORT -->
           <div class="relative">
             <select id="summary-sort-by" onchange="renderSummarySheet()" class="bg-cream-dark border border-cream-border rounded-xl pl-3 pr-8 py-2 text-stone-800 text-xs sm:text-sm font-medium focus:outline-none focus:border-brandGreen appearance-none cursor-pointer shadow-sm">
               <option value="room">Sort: Room #</option>
@@ -573,7 +581,7 @@
 
       <div class="text-xs text-stone-500 bg-cream-dark p-2.5 rounded-xl border border-cream-border flex items-start gap-2">
         <i class="fa-solid fa-circle-info text-brandGreen mt-0.5"></i>
-        <span><strong>Archived residents</strong> are hidden from daily Quick Charge cards when they move out, but all their billing and historical logs stay preserved permanently.</span>
+        <span><strong>Archived residents</strong> are hidden from daily Quick Charge cards when they move out, but all their billing and historical logs stay preserved permanently. You can assign the same room number to incoming residents at any time.</span>
       </div>
 
       <div id="manage-rooms-list" class="max-h-72 overflow-y-auto space-y-2 pr-1 divide-y divide-cream-border"></div>
@@ -603,6 +611,9 @@
     let currentView = 'daily';
     let balanceRange = 'month';
     let selectedDrilldownDate = null;
+
+    // Filter $0 Balances on Monthly Sheet
+    let hideZeroBalances = false;
 
     let colVisible = {
       b: true,
@@ -1326,6 +1337,29 @@
       });
     }
 
+    // Toggle $0 Balances Filter
+    function toggleHideZeroBalances() {
+      hideZeroBalances = !hideZeroBalances;
+      const btn = document.getElementById('btn-toggle-zero');
+      const icon = document.getElementById('icon-toggle-zero');
+      const label = document.getElementById('label-toggle-zero');
+
+      if (hideZeroBalances) {
+        btn.className = 'px-3.5 py-2 bg-brandGreen text-white border border-brandGreen-border rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm transition-all';
+        icon.className = 'fa-solid fa-filter text-white';
+        label.textContent = 'Active Charges Only';
+      } else {
+        btn.className = 'px-3.5 py-2 bg-cream-dark hover:bg-cream-border border border-cream-border text-stone-700 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm transition-all';
+        icon.className = 'fa-regular fa-eye-slash text-stone-500';
+        label.textContent = 'Hide $0 Balances';
+      }
+
+      renderSummarySheet();
+    }
+
+    // ===================================================
+    // VIEW 2: BILLING MATRIX SPREADSHEET (HIDES $0 IF TOGGLED)
+    // ===================================================
     function renderSummarySheet() {
       const tbody = document.getElementById('summary-table-body');
       const tfoot = document.getElementById('summary-table-footer');
@@ -1361,7 +1395,7 @@
         return hasCharges || !r.is_archived;
       });
 
-      const computedRows = targetResidents.map(r => {
+      let computedRows = targetResidents.map(r => {
         const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
         const bCost = rCharges.filter(c => c.meal === 'Breakfast').reduce((acc, c) => acc + Number(c.amount), 0);
         const lCost = rCharges.filter(c => c.meal === 'Lunch').reduce((acc, c) => acc + Number(c.amount), 0);
@@ -1382,6 +1416,11 @@
         };
       });
 
+      // Filter out $0.00 balances if toggled on
+      if (hideZeroBalances) {
+        computedRows = computedRows.filter(row => row.total > 0);
+      }
+
       computedRows.sort((a, b) => {
         if (sortBy === 'room') {
           const roomCompare = a.resident.room.localeCompare(b.resident.room, undefined, { numeric: true, sensitivity: 'base' });
@@ -1401,57 +1440,67 @@
         amount: 0 
       };
 
-      tbody.innerHTML = computedRows.map(row => {
-        const r = row.resident;
-        grandTotals.bDollars += row.bCost; 
-        grandTotals.lDollars += row.lCost; 
-        grandTotals.dDollars += row.dCost;
-        grandTotals.roomDollars += row.roomTotal; 
-        grandTotals.guestDollars += row.guestCost;
-        grandTotals.caregiverDollars += row.caregiverCost; 
-        grandTotals.holidayDollars += row.holidayCost;
-        grandTotals.amount += row.total;
-
-        return `
-          <tr class="transition-colors">
-            <td class="py-2.5 px-3 font-bold text-stone-900 whitespace-nowrap">
-              Rm ${r.room}
-              ${r.is_archived ? `<span class="ml-1 text-[9px] bg-stone-200 text-stone-600 px-1 py-0.2 rounded font-sans font-semibold">Archived</span>` : ''}
+      if (computedRows.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" class="py-12 text-center text-stone-400 font-sans italic">
+              No residents with active charges in this date range. Click "Active Charges Only" above to reveal all residents.
             </td>
-            <td class="py-2.5 px-4 text-stone-700 font-sans whitespace-nowrap">${r.name}</td>
-
-            <td class="col-b py-1 px-1.5 text-right bg-brandGreen/[0.02] border-l border-cream-border ${colVisible.b ? '' : 'hidden'}">
-              <input type="number" step="0.01" min="0" value="${row.bCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Breakfast', this.value, ${row.bCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
-            </td>
-
-            <td class="col-l py-1 px-1.5 text-right bg-brandGreen/[0.02] ${colVisible.l ? '' : 'hidden'}">
-              <input type="number" step="0.01" min="0" value="${row.lCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Lunch', this.value, ${row.lCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
-            </td>
-
-            <td class="col-d py-1 px-1.5 text-right bg-brandGreen/[0.02] ${colVisible.d ? '' : 'hidden'}">
-              <input type="number" step="0.01" min="0" value="${row.dCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Dinner', this.value, ${row.dCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
-            </td>
-
-            <td class="py-1 px-2.5 text-right bg-brandGreen/[0.06] border-r border-cream-border">
-              <input type="number" step="0.01" min="0" value="${row.roomTotal.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${row.roomTotal})" class="w-16 sm:w-20 bg-brandGreen/10 border border-brandGreen/40 font-bold text-brandGreen focus:border-brandGreen focus:bg-white rounded px-1.5 py-1 text-right text-xs font-mono outline-none shadow-2xs">
-            </td>
-
-            <td class="col-guest py-1 px-1.5 text-right ${colVisible.guest ? '' : 'hidden'}">
-              <input type="number" step="0.01" min="0" value="${row.guestCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Guest Charge', this.value, ${row.guestCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
-            </td>
-
-            <td class="col-caregiver py-1 px-1.5 text-right ${colVisible.caregiver ? '' : 'hidden'}">
-              <input type="number" step="0.01" min="0" value="${row.caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${row.caregiverCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
-            </td>
-
-            <td class="col-holiday py-1 px-1.5 text-right border-r border-cream-border ${colVisible.holiday ? '' : 'hidden'}">
-              <input type="number" step="0.01" min="0" value="${row.holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${row.holidayCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
-            </td>
-
-            <td class="py-2.5 px-4 text-right font-black text-brandAmber bg-amber-50/30 whitespace-nowrap">$${row.total.toFixed(2)}</td>
           </tr>
         `;
-      }).join('');
+      } else {
+        tbody.innerHTML = computedRows.map(row => {
+          const r = row.resident;
+          grandTotals.bDollars += row.bCost; 
+          grandTotals.lDollars += row.lCost; 
+          grandTotals.dDollars += row.dCost;
+          grandTotals.roomDollars += row.roomTotal; 
+          grandTotals.guestDollars += row.guestCost;
+          grandTotals.caregiverDollars += row.caregiverCost; 
+          grandTotals.holidayDollars += row.holidayCost;
+          grandTotals.amount += row.total;
+
+          return `
+            <tr class="transition-colors">
+              <td class="py-2.5 px-3 font-bold text-stone-900 whitespace-nowrap">
+                Rm ${r.room}
+                ${r.is_archived ? `<span class="ml-1 text-[9px] bg-stone-200 text-stone-600 px-1 py-0.2 rounded font-sans font-semibold">Archived</span>` : ''}
+              </td>
+              <td class="py-2.5 px-4 text-stone-700 font-sans whitespace-nowrap">${r.name}</td>
+
+              <td class="col-b py-1 px-1.5 text-right bg-brandGreen/[0.02] border-l border-cream-border ${colVisible.b ? '' : 'hidden'}">
+                <input type="number" step="0.01" min="0" value="${row.bCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Breakfast', this.value, ${row.bCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
+              </td>
+
+              <td class="col-l py-1 px-1.5 text-right bg-brandGreen/[0.02] ${colVisible.l ? '' : 'hidden'}">
+                <input type="number" step="0.01" min="0" value="${row.lCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Lunch', this.value, ${row.lCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
+              </td>
+
+              <td class="col-d py-1 px-1.5 text-right bg-brandGreen/[0.02] ${colVisible.d ? '' : 'hidden'}">
+                <input type="number" step="0.01" min="0" value="${row.dCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Dinner', this.value, ${row.dCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
+              </td>
+
+              <td class="py-1 px-2.5 text-right bg-brandGreen/[0.06] border-r border-cream-border">
+                <input type="number" step="0.01" min="0" value="${row.roomTotal.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${row.roomTotal})" class="w-16 sm:w-20 bg-brandGreen/10 border border-brandGreen/40 font-bold text-brandGreen focus:border-brandGreen focus:bg-white rounded px-1.5 py-1 text-right text-xs font-mono outline-none shadow-2xs">
+              </td>
+
+              <td class="col-guest py-1 px-1.5 text-right ${colVisible.guest ? '' : 'hidden'}">
+                <input type="number" step="0.01" min="0" value="${row.guestCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Guest Charge', this.value, ${row.guestCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
+              </td>
+
+              <td class="col-caregiver py-1 px-1.5 text-right ${colVisible.caregiver ? '' : 'hidden'}">
+                <input type="number" step="0.01" min="0" value="${row.caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${row.caregiverCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
+              </td>
+
+              <td class="col-holiday py-1 px-1.5 text-right border-r border-cream-border ${colVisible.holiday ? '' : 'hidden'}">
+                <input type="number" step="0.01" min="0" value="${row.holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${row.holidayCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
+              </td>
+
+              <td class="py-2.5 px-4 text-right font-black text-brandAmber bg-amber-50/30 whitespace-nowrap">$${row.total.toFixed(2)}</td>
+            </tr>
+          `;
+        }).join('');
+      }
 
       tfoot.innerHTML = `
         <td class="py-3 px-3 uppercase text-stone-600 tracking-wider">Totals</td>
@@ -1548,8 +1597,16 @@
       let csv = [`"Billing Range: ${formatWrittenDate(summaryRange.start)} to ${formatWrittenDate(summaryRange.end)}"`];
       csv.push('Room,Resident Name,Status,Breakfast ($),Lunch ($),Dinner ($),Room Total ($),Guest ($),Caregiver ($),Holiday ($),Total Billed ($)');
 
-      residents.forEach(r => {
+      let exportResidents = residents.filter(r => {
+        const hasCharges = rangeCharges.some(c => String(c.resident_id) === String(r.id));
+        return hasCharges || !r.is_archived;
+      });
+
+      exportResidents.forEach(r => {
         const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
+        const totalNum = rCharges.reduce((acc, c) => acc + Number(c.amount), 0);
+
+        if (hideZeroBalances && totalNum <= 0) return;
         if (rCharges.length === 0 && r.is_archived) return;
 
         const bCost = rCharges.filter(c => c.meal === 'Breakfast').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
@@ -1560,7 +1617,7 @@
         const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const holidayCost = rCharges.filter(c => c.charge_type === 'Holiday Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
 
-        const total = rCharges.reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+        const total = totalNum.toFixed(2);
         const status = r.is_archived ? 'Archived' : 'Active';
 
         csv.push(`"${r.room}","${r.name}","${status}",${bCost},${lCost},${dCost},${roomTotal},${guestCost},${caregiverCost},${holidayCost},${total}`);
