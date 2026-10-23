@@ -120,6 +120,7 @@
           </div>
 
           <div class="space-y-4 text-xs sm:text-sm">
+            <!-- TARGET CHARGE DATE (POPUP CALENDAR TRIGGER) -->
             <div>
               <label class="block text-stone-600 font-medium mb-1.5">Target Charge Date</label>
               <button type="button" onclick="openSingleDatePicker()" class="w-full bg-cream-dark border border-cream-border hover:border-brandGreen rounded-xl px-3.5 py-2.5 text-stone-800 text-xs sm:text-sm flex items-center justify-between transition-all">
@@ -131,6 +132,7 @@
               </button>
             </div>
 
+            <!-- MEAL PERIOD -->
             <div>
               <label class="block text-stone-600 font-medium mb-1.5">Meal Period</label>
               <div class="grid grid-cols-3 gap-2">
@@ -140,15 +142,32 @@
               </div>
             </div>
 
+            <!-- CHARGE CATEGORY: ROOM, GUEST, CAREGIVER, HOLIDAY -->
             <div>
               <label class="block text-stone-600 font-medium mb-1.5">Charge Category</label>
-              <div class="grid grid-cols-3 gap-2">
+              <div class="grid grid-cols-4 gap-1.5">
                 <button type="button" onclick="setType('Room Charge')" id="type-Room Charge" class="type-btn py-2 px-1 rounded-xl border border-brandGreen bg-brandGreen/10 text-brandGreen font-bold text-center transition-all truncate text-[11px] sm:text-xs">Room</button>
+                <button type="button" onclick="setType('Guest Charge')" id="type-Guest Charge" class="type-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Guest</button>
                 <button type="button" onclick="setType('Caregiver Charge')" id="type-Caregiver Charge" class="type-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Caregiver</button>
                 <button type="button" onclick="setType('Holiday Charge')" id="type-Holiday Charge" class="type-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Holiday</button>
               </div>
             </div>
 
+            <!-- CUSTOM HOLIDAY RATE INPUT (ONLY REVEALED ON HOLIDAY) -->
+            <div id="holiday-custom-rate-container" class="hidden bg-amber-50/70 border border-brandAmber/40 p-3 rounded-xl transition-all space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label for="custom-holiday-rate" class="block text-stone-700 font-semibold text-xs flex items-center gap-1.5">
+                  <i class="fa-solid fa-wand-magic-sparkles text-brandAmber"></i> Custom Holiday Rate ($)
+                </label>
+                <span class="text-[10px] text-brandAmber font-bold">Applies to all taps</span>
+              </div>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 font-mono text-sm font-bold">$</span>
+                <input type="number" step="0.50" min="0.00" id="custom-holiday-rate" value="10.00" oninput="updateCustomHolidayRate(this.value)" class="w-full bg-white border border-brandAmber/50 rounded-lg pl-7 pr-3 py-1.5 text-stone-900 font-mono font-bold text-sm focus:outline-none focus:ring-1 focus:ring-brandAmber">
+              </div>
+            </div>
+
+            <!-- PRESET ACTIVE STATUS BADGE -->
             <div class="pt-2">
               <div class="bg-cream-dark border border-cream-border rounded-xl p-3 flex items-center justify-between">
                 <div>
@@ -156,7 +175,7 @@
                   <p id="preset-badge" class="font-medium text-brandGreen text-xs sm:text-sm">Breakfast • Room Charge</p>
                 </div>
                 <div class="text-right">
-                  <span class="text-base font-extrabold text-brandAmber">+$5.00</span>
+                  <span id="active-rate-display" class="text-base font-extrabold text-brandAmber">+$5.00</span>
                   <span class="block text-[10px] text-stone-500">per tap</span>
                 </div>
               </div>
@@ -170,7 +189,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <span class="text-[11px] font-semibold uppercase tracking-wider text-brandAmber">Step 2</span>
-                <h2 class="text-base font-bold text-stone-900">Tap Card to Record $5 Line Item</h2>
+                <h2 id="step2-heading" class="text-base font-bold text-stone-900">Tap Card to Record Line Item</h2>
               </div>
               
               <div class="flex items-center gap-2">
@@ -234,7 +253,7 @@
     </div>
 
     <!-- ================================================= -->
-    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (EDITABLE + SORT) -->
+    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (EDITABLE + GUEST COLUMN) -->
     <!-- ================================================= -->
     <div id="view-summary" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
@@ -275,16 +294,17 @@
           <table class="w-full text-left text-xs sm:text-sm border-collapse">
             <thead class="bg-cream-dark text-stone-600 uppercase text-[10px] font-semibold border-b border-cream-border tracking-wider">
               <tr>
-                <th class="py-3 px-4">Room</th>
+                <th class="py-3 px-3">Room</th>
                 <th class="py-3 px-4">Resident</th>
-                <th class="py-3 px-3 text-right">Breakfast ($)</th>
-                <th class="py-3 px-3 text-right">Lunch ($)</th>
-                <th class="py-3 px-3 text-right">Dinner ($)</th>
-                <th class="py-3 px-3 text-right">Room Tray ($)</th>
-                <th class="py-3 px-3 text-right">Caregiver ($)</th>
-                <th class="py-3 px-3 text-right">Holiday ($)</th>
-                <th class="py-3 px-4 text-right">Total Charges</th>
-                <th class="py-3 px-5 text-right font-black text-brandAmber">Total Billed</th>
+                <th class="py-3 px-2 text-right">Breakfast ($)</th>
+                <th class="py-3 px-2 text-right">Lunch ($)</th>
+                <th class="py-3 px-2 text-right">Dinner ($)</th>
+                <th class="py-3 px-2 text-right">Room Tray ($)</th>
+                <th class="py-3 px-2 text-right">Guest ($)</th>
+                <th class="py-3 px-2 text-right">Caregiver ($)</th>
+                <th class="py-3 px-2 text-right">Holiday ($)</th>
+                <th class="py-3 px-3 text-right">Total Charges</th>
+                <th class="py-3 px-4 text-right font-black text-brandAmber">Total Billed</th>
               </tr>
             </thead>
             <tbody id="summary-table-body" class="divide-y divide-cream-border font-mono"></tbody>
@@ -297,7 +317,7 @@
     </div>
 
     <!-- ================================================= -->
-    <!-- VIEW 3: GENERAL CHARGE HISTORY (WITH DATE PICKER) -->
+    <!-- VIEW 3: GENERAL CHARGE HISTORY -->
     <!-- ================================================= -->
     <div id="view-history" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
@@ -309,14 +329,13 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
-          <!-- HISTORY DATE RANGE PICKER -->
           <button onclick="openRangePicker('history')" class="px-3.5 py-2 bg-cream-dark border border-cream-border hover:border-brandGreen text-stone-800 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
             <i class="fa-solid fa-calendar-days text-brandAmber"></i>
             <span id="history-range-display">Select Range</span>
             <i class="fa-solid fa-chevron-down text-[10px] text-stone-400"></i>
           </button>
 
-          <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, name, or meal..." class="bg-cream-dark border border-cream-border rounded-xl px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
+          <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, name, or category..." class="bg-cream-dark border border-cream-border rounded-xl px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
           <span id="history-count-badge" class="font-mono text-xs text-stone-600 bg-cream-dark px-2.5 py-2 rounded-xl border border-cream-border font-semibold">0 Charges</span>
         </div>
       </div>
@@ -502,7 +521,7 @@
     </div>
   </div>
 
-  <!-- MODAL: MANAGE, ARCHIVE & DELETE RESIDENTS -->
+  <!-- MODAL: MANAGE & ARCHIVE ROOMS -->
   <div id="manage-rooms-modal" class="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-white border border-cream-border rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-cream-border pb-3">
@@ -576,15 +595,19 @@
     let calendarRange = { start: firstDayThisMonth, end: lastDayThisMonth };
 
     let pickerMode = 'range';
-    let pickerTarget = 'summary'; // 'summary', 'history', 'calendar', or 'preset'
+    let pickerTarget = 'summary';
     let pickerCurrentMonth = new Date(todayObj.getFullYear(), todayObj.getMonth(), 1);
     let pickerSelection = { start: null, end: null };
 
+    // Batch Presets
     let batchPreset = {
       date: todayISO,
       meal: 'Breakfast',
-      type: 'Room Charge'
+      type: 'Room Charge',
+      amount: 5.00
     };
+
+    let customHolidayRate = 10.00;
 
     try {
       if (window.supabase && typeof window.supabase.createClient === 'function') {
@@ -620,6 +643,9 @@
       updateTotalResidentsBadge();
     }
 
+    // ===================================================
+    // BATCH PRESET CONTROLS & DYNAMIC HOLIDAY AMOUNT
+    // ===================================================
     function setMeal(meal) {
       batchPreset.meal = meal;
       document.querySelectorAll('.meal-btn').forEach(btn => {
@@ -636,16 +662,42 @@
 
     function setType(type) {
       batchPreset.type = type;
+
+      // Handle Category Button Styling
       document.querySelectorAll('.type-btn').forEach(btn => {
         btn.classList.remove('border-brandGreen', 'bg-brandGreen/10', 'text-brandGreen', 'font-bold');
         btn.classList.add('border-cream-border', 'bg-cream-dark', 'text-stone-600');
       });
       const activeBtn = document.getElementById(`type-${type}`);
       if (activeBtn) {
-        activeBtn.classList.remove('border-stone-800', 'bg-stone-950', 'text-stone-400');
+        activeBtn.classList.remove('border-cream-border', 'bg-cream-dark', 'text-stone-600');
         activeBtn.classList.add('border-brandGreen', 'bg-brandGreen/10', 'text-brandGreen', 'font-bold');
       }
+
+      // Show/Hide custom holiday rate container
+      const holidayRateBox = document.getElementById('holiday-custom-rate-container');
+      if (type === 'Holiday Charge') {
+        holidayRateBox.classList.remove('hidden');
+        batchPreset.amount = customHolidayRate;
+      } else {
+        holidayRateBox.classList.add('hidden');
+        batchPreset.amount = 5.00;
+      }
+
       updatePresetBadge();
+      renderResidentsGrid();
+    }
+
+    function updateCustomHolidayRate(val) {
+      const parsed = parseFloat(val);
+      if (!isNaN(parsed) && parsed >= 0) {
+        customHolidayRate = parsed;
+        if (batchPreset.type === 'Holiday Charge') {
+          batchPreset.amount = parsed;
+          updatePresetBadge();
+          renderResidentsGrid();
+        }
+      }
     }
 
     function resetToToday() {
@@ -665,8 +717,19 @@
 
     function updatePresetBadge() {
       const badge = document.getElementById('preset-badge');
+      const rateDisplay = document.getElementById('active-rate-display');
+      const step2Heading = document.getElementById('step2-heading');
+
+      const amountFormatted = `$${Number(batchPreset.amount).toFixed(2)}`;
+
       if (badge) {
-        badge.textContent = `${batchPreset.meal} • ${batchPreset.type} (${formatWrittenDate(batchPreset.date)})`;
+        badge.textContent = `${batchPreset.meal} • ${batchPreset.type.replace(' Charge', '')} (${formatWrittenDate(batchPreset.date)})`;
+      }
+      if (rateDisplay) {
+        rateDisplay.textContent = `+${amountFormatted}`;
+      }
+      if (step2Heading) {
+        step2Heading.textContent = `Tap Card to Record ${amountFormatted} Line Item`;
       }
     }
 
@@ -685,9 +748,14 @@
       renderResidentsGrid();
     }
 
+    // ===================================================
+    // CHARGE ACTIONS (LOGS ACTIVE BATCH AMOUNT)
+    // ===================================================
     async function addQuickCharge(residentId) {
       const resident = residents.find(r => String(r.id) === String(residentId));
       if (!resident) return;
+
+      const chargeAmount = Number(batchPreset.amount) || 5.00;
 
       const newCharge = {
         id: crypto.randomUUID(),
@@ -697,7 +765,7 @@
         date: batchPreset.date,
         meal: batchPreset.meal,
         charge_type: batchPreset.type,
-        amount: 5.00
+        amount: chargeAmount
       };
 
       const cardEl = document.getElementById(`card-${resident.id}`);
@@ -708,7 +776,7 @@
 
       charges.unshift(newCharge);
       renderResidentsGrid();
-      showToast(`+$5.00 recorded for Rm ${resident.room}`);
+      showToast(`+$${chargeAmount.toFixed(2)} recorded for Rm ${resident.room}`);
 
       if (db) {
         const { error } = await db.from('charges').insert([{
@@ -718,7 +786,7 @@
           date: batchPreset.date,
           meal: batchPreset.meal,
           charge_type: batchPreset.type,
-          amount: 5.00
+          amount: chargeAmount
         }]);
         if (error) console.error('Supabase write error:', error);
       }
@@ -736,10 +804,12 @@
       }
 
       const targetCharge = charges[targetIndex];
-      if (confirm(`Remove latest $5.00 charge (${targetCharge.meal} - ${targetCharge.charge_type}) for Rm ${resident.room} on ${formatWrittenDate(batchPreset.date)}?`)) {
+      const chargeCost = Number(targetCharge.amount).toFixed(2);
+
+      if (confirm(`Remove latest $${chargeCost} charge (${targetCharge.meal} - ${targetCharge.charge_type}) for Rm ${resident.room} on ${formatWrittenDate(batchPreset.date)}?`)) {
         charges.splice(targetIndex, 1);
         renderResidentsGrid();
-        showToast(`Reverted $5.00 for Rm ${resident.room}`);
+        showToast(`Reverted $${chargeCost} for Rm ${resident.room}`);
 
         if (db && targetCharge.id) {
           await db.from('charges').delete().eq('id', targetCharge.id);
@@ -768,7 +838,7 @@
     }
 
     // ===================================================
-    // RENDER: RESIDENTS GRID (EXCLUDES ARCHIVED + SORTS)
+    // RENDER: RESIDENTS GRID (DYNAMIC BUTTON AMOUNT)
     // ===================================================
     function renderResidentsGrid() {
       const grid = document.getElementById('residents-grid');
@@ -776,27 +846,24 @@
       const sortBy = document.getElementById('cards-sort-by') ? document.getElementById('cards-sort-by').value : 'room';
       const emptyState = document.getElementById('no-residents-found');
 
-      // 1. Only show residents that are NOT archived on the Quick Charge screen
       let activeResidents = residents.filter(r => !r.is_archived);
 
-      // 2. Filter by Search
       let filtered = activeResidents.filter(r => 
         String(r.room).toLowerCase().includes(searchVal) || 
         String(r.name).toLowerCase().includes(searchVal)
       );
 
-      // 3. Sort Residents dynamically
       filtered.sort((a, b) => {
         if (sortBy === 'room') {
           return a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
         } else if (sortBy === 'amount') {
           const balA = calculateResidentBalance(a.id, balanceRange);
           const balB = calculateResidentBalance(b.id, balanceRange);
-          return balB - balA; // Highest billed first
+          return balB - balA;
         } else if (sortBy === 'frequency') {
           const countA = charges.filter(c => String(c.resident_id) === String(a.id)).length;
           const countB = charges.filter(c => String(c.resident_id) === String(b.id)).length;
-          return countB - countA; // Most charges first
+          return countB - countA;
         } else if (sortBy === 'name') {
           return a.name.localeCompare(b.name);
         }
@@ -811,6 +878,7 @@
       emptyState.classList.add('hidden');
 
       const writtenPresetDate = formatWrittenDate(batchPreset.date);
+      const activeBtnAmount = Number(batchPreset.amount).toFixed(2);
 
       grid.innerHTML = filtered.map(r => {
         const balance = calculateResidentBalance(r.id, balanceRange);
@@ -850,8 +918,8 @@
               <button onclick="undoLastCharge('${r.id}', event)" title="Undo last charge on this date" class="col-span-1 bg-cream-dark hover:bg-rose-50 hover:text-rose-600 text-stone-500 border border-cream-border rounded-xl flex items-center justify-center py-2.5 active:scale-95 transition-all text-xs">
                 <i class="fa-solid fa-rotate-left"></i>
               </button>
-              <button onclick="addQuickCharge('${r.id}')" class="col-span-4 bg-brandAmber hover:bg-brandAmber-hover active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl py-2.5 flex items-center justify-center gap-2 shadow-sm transition-all">
-                <i class="fa-solid fa-plus text-sm"></i> Add $5.00
+              <button onclick="addQuickCharge('${r.id}')" class="col-span-4 bg-brandAmber hover:bg-brandAmber-hover active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl py-2.5 flex items-center justify-center gap-1.5 shadow-sm transition-all">
+                <i class="fa-solid fa-plus text-xs"></i> Add $${activeBtnAmount}
               </button>
             </div>
           </div>
@@ -1165,7 +1233,7 @@
     }
 
     // ===================================================
-    // VIEW 2: BILLING MATRIX SPREADSHEET (INLINE EDITING + SORTING)
+    // VIEW 2: BILLING MATRIX SPREADSHEET (INCLUDING GUEST COLUMN)
     // ===================================================
     function renderSummarySheet() {
       const tbody = document.getElementById('summary-table-body');
@@ -1174,33 +1242,33 @@
 
       const rangeCharges = charges.filter(c => c.date >= summaryRange.start && c.date <= summaryRange.end);
 
-      // In the Monthly Sheet, include ALL residents who have charges in this range OR are active
       let targetResidents = residents.filter(r => {
         const hasCharges = rangeCharges.some(c => String(c.resident_id) === String(r.id));
         return hasCharges || !r.is_archived;
       });
 
-      // Compute row totals for sorting
       const computedRows = targetResidents.map(r => {
         const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
         const bCost = rCharges.filter(c => c.meal === 'Breakfast').reduce((acc, c) => acc + Number(c.amount), 0);
         const lCost = rCharges.filter(c => c.meal === 'Lunch').reduce((acc, c) => acc + Number(c.amount), 0);
         const dCost = rCharges.filter(c => c.meal === 'Dinner').reduce((acc, c) => acc + Number(c.amount), 0);
+        
         const roomTrayCost = rCharges.filter(c => c.charge_type === 'Room Charge').reduce((acc, c) => acc + Number(c.amount), 0);
+        const guestCost = rCharges.filter(c => c.charge_type === 'Guest Charge').reduce((acc, c) => acc + Number(c.amount), 0);
         const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0);
         const holidayCost = rCharges.filter(c => c.charge_type === 'Holiday Charge').reduce((acc, c) => acc + Number(c.amount), 0);
+        
         const count = rCharges.length;
         const total = rCharges.reduce((acc, c) => acc + Number(c.amount), 0);
 
         return {
           resident: r,
           bCost, lCost, dCost,
-          roomTrayCost, caregiverCost, holidayCost,
+          roomTrayCost, guestCost, caregiverCost, holidayCost,
           count, total
         };
       });
 
-      // Sort rows
       computedRows.sort((a, b) => {
         if (sortBy === 'room') {
           return a.resident.room.localeCompare(b.resident.room, undefined, { numeric: true, sensitivity: 'base' });
@@ -1216,7 +1284,7 @@
 
       let grandTotals = { 
         bDollars: 0, lDollars: 0, dDollars: 0, 
-        roomTrayDollars: 0, caregiverDollars: 0, holidayDollars: 0, 
+        roomTrayDollars: 0, guestDollars: 0, caregiverDollars: 0, holidayDollars: 0, 
         count: 0, amount: 0 
       };
 
@@ -1226,6 +1294,7 @@
         grandTotals.lDollars += row.lCost; 
         grandTotals.dDollars += row.dCost;
         grandTotals.roomTrayDollars += row.roomTrayCost; 
+        grandTotals.guestDollars += row.guestCost;
         grandTotals.caregiverDollars += row.caregiverCost; 
         grandTotals.holidayDollars += row.holidayCost;
         grandTotals.count += row.count; 
@@ -1233,53 +1302,59 @@
 
         return `
           <tr class="hover:bg-cream-dark/50">
-            <td class="py-2.5 px-4 font-bold text-stone-900">
+            <td class="py-2.5 px-3 font-bold text-stone-900">
               Rm ${r.room}
               ${r.is_archived ? `<span class="ml-1 text-[9px] bg-stone-200 text-stone-600 px-1 py-0.2 rounded font-sans font-semibold">Archived</span>` : ''}
             </td>
             <td class="py-2.5 px-4 text-stone-700 font-sans">${r.name}</td>
 
-            <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${row.bCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Breakfast', this.value, ${row.bCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+            <td class="py-1 px-1.5 text-right">
+              <input type="number" step="0.01" min="0" value="${row.bCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Breakfast', this.value, ${row.bCost})" class="w-16 sm:w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
-            <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${row.lCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Lunch', this.value, ${row.lCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+            <td class="py-1 px-1.5 text-right">
+              <input type="number" step="0.01" min="0" value="${row.lCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Lunch', this.value, ${row.lCost})" class="w-16 sm:w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
-            <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${row.dCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Dinner', this.value, ${row.dCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+            <td class="py-1 px-1.5 text-right">
+              <input type="number" step="0.01" min="0" value="${row.dCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'meal', 'Dinner', this.value, ${row.dCost})" class="w-16 sm:w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
-            <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${row.roomTrayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${row.roomTrayCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+            <td class="py-1 px-1.5 text-right">
+              <input type="number" step="0.01" min="0" value="${row.roomTrayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${row.roomTrayCost})" class="w-16 sm:w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
-            <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${row.caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${row.caregiverCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+            <!-- Editable Guest Charge -->
+            <td class="py-1 px-1.5 text-right">
+              <input type="number" step="0.01" min="0" value="${row.guestCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Guest Charge', this.value, ${row.guestCost})" class="w-16 sm:w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
-            <td class="py-1 px-2 text-right">
-              <input type="number" step="0.01" min="0" value="${row.holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${row.holidayCost})" class="w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-2 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+            <td class="py-1 px-1.5 text-right">
+              <input type="number" step="0.01" min="0" value="${row.caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${row.caregiverCost})" class="w-16 sm:w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none">
             </td>
 
-            <td class="py-2.5 px-4 text-right font-semibold text-stone-600">${row.count}</td>
-            <td class="py-2.5 px-5 text-right font-black text-brandAmber">$${row.total.toFixed(2)}</td>
+            <td class="py-1 px-1.5 text-right">
+              <input type="number" step="0.01" min="0" value="${row.holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${row.holidayCost})" class="w-16 sm:w-20 bg-cream-dark border border-cream-border focus:border-brandGreen focus:bg-white rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none">
+            </td>
+
+            <td class="py-2.5 px-3 text-right font-semibold text-stone-600">${row.count}</td>
+            <td class="py-2.5 px-4 text-right font-black text-brandAmber">$${row.total.toFixed(2)}</td>
           </tr>
         `;
       }).join('');
 
       tfoot.innerHTML = `
-        <td class="py-3 px-4 uppercase text-stone-600 tracking-wider">Totals</td>
+        <td class="py-3 px-3 uppercase text-stone-600 tracking-wider">Totals</td>
         <td class="py-3 px-4 text-stone-600 font-sans">${computedRows.length} Residents</td>
-        <td class="py-3 px-3 text-right text-stone-800 font-mono">$${grandTotals.bDollars.toFixed(2)}</td>
-        <td class="py-3 px-3 text-right text-stone-800 font-mono">$${grandTotals.lDollars.toFixed(2)}</td>
-        <td class="py-3 px-3 text-right text-stone-800 font-mono">$${grandTotals.dDollars.toFixed(2)}</td>
-        <td class="py-3 px-3 text-right text-stone-800 font-mono">$${grandTotals.roomTrayDollars.toFixed(2)}</td>
-        <td class="py-3 px-3 text-right text-stone-800 font-mono">$${grandTotals.caregiverDollars.toFixed(2)}</td>
-        <td class="py-3 px-3 text-right text-stone-800 font-mono">$${grandTotals.holidayDollars.toFixed(2)}</td>
-        <td class="py-3 px-4 text-right text-stone-800 font-mono">${grandTotals.count}</td>
-        <td class="py-3 px-5 text-right text-brandAmber font-black font-mono text-base">$${grandTotals.amount.toFixed(2)}</td>
+        <td class="py-3 px-2 text-right text-stone-800 font-mono">$${grandTotals.bDollars.toFixed(2)}</td>
+        <td class="py-3 px-2 text-right text-stone-800 font-mono">$${grandTotals.lDollars.toFixed(2)}</td>
+        <td class="py-3 px-2 text-right text-stone-800 font-mono">$${grandTotals.dDollars.toFixed(2)}</td>
+        <td class="py-3 px-2 text-right text-stone-800 font-mono">$${grandTotals.roomTrayDollars.toFixed(2)}</td>
+        <td class="py-3 px-2 text-right text-stone-800 font-mono">$${grandTotals.guestDollars.toFixed(2)}</td>
+        <td class="py-3 px-2 text-right text-stone-800 font-mono">$${grandTotals.caregiverDollars.toFixed(2)}</td>
+        <td class="py-3 px-2 text-right text-stone-800 font-mono">$${grandTotals.holidayDollars.toFixed(2)}</td>
+        <td class="py-3 px-3 text-right text-stone-800 font-mono">${grandTotals.count}</td>
+        <td class="py-3 px-4 text-right text-brandAmber font-black font-mono text-base">$${grandTotals.amount.toFixed(2)}</td>
       `;
     }
 
@@ -1356,7 +1431,7 @@
     function exportToCSV() {
       const rangeCharges = charges.filter(c => c.date >= summaryRange.start && c.date <= summaryRange.end);
       let csv = [`"Billing Range: ${formatWrittenDate(summaryRange.start)} to ${formatWrittenDate(summaryRange.end)}"`];
-      csv.push('Room,Resident Name,Status,Breakfast ($),Lunch ($),Dinner ($),Room Charge ($),Caregiver Charge ($),Holiday Charge ($),Total Charges,Total Billed ($)');
+      csv.push('Room,Resident Name,Status,Breakfast ($),Lunch ($),Dinner ($),Room Charge ($),Guest Charge ($),Caregiver Charge ($),Holiday Charge ($),Total Charges,Total Billed ($)');
 
       residents.forEach(r => {
         const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
@@ -1366,6 +1441,7 @@
         const lCost = rCharges.filter(c => c.meal === 'Lunch').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const dCost = rCharges.filter(c => c.meal === 'Dinner').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const roomTrayCost = rCharges.filter(c => c.charge_type === 'Room Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+        const guestCost = rCharges.filter(c => c.charge_type === 'Guest Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const holidayCost = rCharges.filter(c => c.charge_type === 'Holiday Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
 
@@ -1373,7 +1449,7 @@
         const total = rCharges.reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
         const status = r.is_archived ? 'Archived' : 'Active';
 
-        csv.push(`"${r.room}","${r.name}","${status}",${bCost},${lCost},${dCost},${roomTrayCost},${caregiverCost},${holidayCost},${count},${total}`);
+        csv.push(`"${r.room}","${r.name}","${status}",${bCost},${lCost},${dCost},${roomTrayCost},${guestCost},${caregiverCost},${holidayCost},${count},${total}`);
       });
 
       const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
@@ -1384,14 +1460,13 @@
     }
 
     // ===================================================
-    // VIEW 3: GENERAL CHARGE HISTORY (FILTERED BY DATE RANGE)
+    // VIEW 3: GENERAL CHARGE HISTORY
     // ===================================================
     function renderHistoryTable() {
       const tbody = document.getElementById('history-table-body');
       const badge = document.getElementById('history-count-badge');
       const query = (document.getElementById('history-search').value || '').toLowerCase().trim();
 
-      // Filter charges strictly between historyRange.start and historyRange.end
       const inRangeCharges = charges.filter(c => c.date >= historyRange.start && c.date <= historyRange.end);
 
       const filtered = inRangeCharges.filter(c => {
