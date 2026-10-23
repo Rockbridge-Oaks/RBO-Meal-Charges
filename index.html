@@ -60,7 +60,7 @@
 </head>
 <body class="bg-cream text-stone-900 font-sans min-h-screen flex flex-col antialiased selection:bg-brandAmber selection:text-white">
 
-  <!-- TOP HEADER / NAV -->
+  <!-- TOP HEADER / NAV (WITH PERSISTENT LAST AUDIT PRINT BADGE) -->
   <header class="bg-white/95 backdrop-blur border-b border-cream-border sticky top-0 z-40 px-4 py-3 sm:px-6 shadow-sm">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
@@ -79,20 +79,37 @@
         </div>
       </div>
 
-      <nav class="flex items-center gap-1 bg-cream-dark p-1 rounded-xl border border-cream-border text-xs sm:text-sm font-medium">
-        <button id="tab-daily" onclick="switchView('daily')" class="px-3.5 py-1.5 rounded-lg bg-brandGreen text-white font-semibold shadow-sm transition-all">
-          <i class="fa-solid fa-bolt mr-1"></i> Quick Charge
-        </button>
-        <button id="tab-summary" onclick="switchView('summary')" class="px-3.5 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 transition-all">
-          <i class="fa-solid fa-table mr-1"></i> Monthly Sheet
-        </button>
-        <button id="tab-history" onclick="switchView('history')" class="px-3.5 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 transition-all">
-          <i class="fa-solid fa-clock-rotate-left mr-1"></i> History
-        </button>
-        <button id="tab-calendar" onclick="switchView('calendar')" class="px-3.5 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 transition-all">
-          <i class="fa-solid fa-calendar-days mr-1"></i> Calendar
-        </button>
-      </nav>
+      <!-- CENTER / RIGHT: AUDIT DATE BADGE + VIEW NAVIGATION -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        
+        <!-- PERSISTENT LAST AUDIT PRINT DISPLAY -->
+        <div class="flex items-center bg-cream-dark border border-cream-border rounded-xl px-2.5 py-1 text-xs font-sans shadow-2xs">
+          <button onclick="openSingleDatePicker('audit')" title="Click to change date of last audit print" class="flex items-center gap-1.5 text-stone-700 hover:text-brandAmber transition-colors pr-2 border-r border-cream-borderDark/60">
+            <i class="fa-regular fa-file-lines text-brandAmber"></i>
+            <span class="text-[11px] text-stone-500 font-medium">Last Audit Print:</span>
+            <span id="nav-last-audit-display" class="font-bold text-stone-800">Not set</span>
+          </button>
+          <button onclick="setAuditPrintToToday()" title="Set last audit print to Today" class="pl-2 text-stone-400 hover:text-brandGreen text-[11px] font-medium flex items-center gap-1 transition-colors">
+            <i class="fa-solid fa-clock-rotate-left text-[10px]"></i> Today
+          </button>
+        </div>
+
+        <!-- VIEW TABS -->
+        <nav class="flex items-center gap-1 bg-cream-dark p-1 rounded-xl border border-cream-border text-xs sm:text-sm font-medium">
+          <button id="tab-daily" onclick="switchView('daily')" class="px-3.5 py-1.5 rounded-lg bg-brandGreen text-white font-semibold shadow-sm transition-all">
+            <i class="fa-solid fa-bolt mr-1"></i> Quick Charge
+          </button>
+          <button id="tab-summary" onclick="switchView('summary')" class="px-3.5 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 transition-all">
+            <i class="fa-solid fa-table mr-1"></i> Monthly Sheet
+          </button>
+          <button id="tab-history" onclick="switchView('history')" class="px-3.5 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 transition-all">
+            <i class="fa-solid fa-clock-rotate-left mr-1"></i> History
+          </button>
+          <button id="tab-calendar" onclick="switchView('calendar')" class="px-3.5 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 transition-all">
+            <i class="fa-solid fa-calendar-days mr-1"></i> Calendar
+          </button>
+        </nav>
+      </div>
     </div>
   </header>
 
@@ -118,7 +135,7 @@
           <div class="space-y-4 text-xs sm:text-sm">
             <div>
               <label class="block text-stone-600 font-medium mb-1.5">Target Charge Date</label>
-              <button type="button" onclick="openSingleDatePicker()" class="w-full bg-cream-dark border border-cream-border hover:border-brandGreen rounded-xl px-3.5 py-2.5 text-stone-800 text-xs sm:text-sm flex items-center justify-between transition-all">
+              <button type="button" onclick="openSingleDatePicker('preset')" class="w-full bg-cream-dark border border-cream-border hover:border-brandGreen rounded-xl px-3.5 py-2.5 text-stone-800 text-xs sm:text-sm flex items-center justify-between transition-all">
                 <span class="flex items-center gap-2">
                   <i class="fa-regular fa-calendar text-brandAmber"></i>
                   <span id="preset-date-display" class="font-medium">Today</span>
@@ -338,7 +355,7 @@
       </div>
     </div>
 
-    <!-- VIEW 3: GENERAL CHARGE HISTORY (STREAMLINED REVIEW + RESOLVE) -->
+    <!-- VIEW 3: GENERAL CHARGE HISTORY -->
     <div id="view-history" class="hidden space-y-4">
       <div class="bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -350,13 +367,11 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <!-- PENDING REVIEW COUNTER CHIP -->
             <div id="history-review-chip" class="hidden px-2.5 py-1.5 rounded-xl text-xs font-bold items-center gap-1.5 transition-all">
               <i id="history-review-icon" class="fa-solid fa-triangle-exclamation"></i>
               <span id="history-review-count">0 to Review</span>
             </div>
 
-            <!-- DATE RANGE -->
             <button onclick="openRangePicker('history')" class="px-3.5 py-2 bg-cream-dark border border-cream-border hover:border-brandGreen text-stone-800 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
               <i class="fa-solid fa-calendar-days text-brandAmber"></i>
               <span id="history-range-display">Select Range</span>
@@ -365,22 +380,17 @@
           </div>
         </div>
 
-        <!-- FILTER AND SORT TOOLBAR -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center pt-1 border-t border-cream-border">
-          
-          <!-- SIMPLE 2-STATE AUDIT FILTER: ALL VS REVIEW -->
           <div class="md:col-span-4 flex items-center bg-cream-dark border border-cream-border rounded-xl p-1 text-xs font-semibold">
-            <button onclick="setHistoryFilter('all')" id="hfilter-all" class="flex-1 py-1.5 text-center rounded-lg bg-white text-stone-900 shadow-sm transition-all truncate px-2">All Charges</button>
-            <button onclick="setHistoryFilter('review')" id="hfilter-review" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-2">⚠️ Review Queue</button>
+            <button onclick="setHistoryFilter('all')" id="hfilter-all" class="flex-1 py-1.5 text-center rounded-lg bg-white text-stone-900 shadow-sm transition-all truncate px-2 font-bold">All Charges</button>
+            <button onclick="setHistoryFilter('review')" id="hfilter-review" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-2 font-medium">⚠️ Review Queue</button>
           </div>
 
-          <!-- SEARCH -->
           <div class="md:col-span-5 relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
             <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, resident, or meal..." class="w-full bg-cream-dark border border-cream-border rounded-xl pl-9 pr-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
           </div>
 
-          <!-- SORT -->
           <div class="md:col-span-3 flex items-center gap-2">
             <div class="relative w-full">
               <select id="history-sort-by" onchange="renderHistoryTable()" class="w-full bg-cream-dark border border-cream-border rounded-xl pl-3 pr-7 py-2 text-stone-800 text-xs font-medium focus:outline-none focus:border-brandGreen appearance-none cursor-pointer">
@@ -393,11 +403,9 @@
             </div>
             <span id="history-count-badge" class="font-mono text-xs text-stone-600 bg-cream-dark px-2.5 py-2 rounded-xl border border-cream-border font-semibold whitespace-nowrap">0</span>
           </div>
-
         </div>
       </div>
 
-      <!-- TABLE FEED -->
       <div class="bg-white border border-cream-border rounded-2xl overflow-hidden shadow-sm">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs sm:text-sm">
@@ -603,7 +611,7 @@
 
       <div class="text-xs text-stone-500 bg-cream-dark p-2.5 rounded-xl border border-cream-border flex items-start gap-2">
         <i class="fa-solid fa-circle-info text-brandGreen mt-0.5"></i>
-        <span><strong>Archived residents</strong> are hidden from daily Quick Charge cards when they move out, but all their billing and historical logs stay preserved permanently.</span>
+        <span><strong>Archived residents</strong> are hidden from daily Quick Charge cards when they move out, but all their billing and historical logs stay preserved permanently. You can assign the same room number to incoming residents at any time.</span>
       </div>
 
       <div id="manage-rooms-list" class="max-h-72 overflow-y-auto space-y-2 pr-1 divide-y divide-cream-border"></div>
@@ -635,7 +643,10 @@
     let selectedDrilldownDate = null;
 
     let hideZeroBalances = false;
-    let historyFilter = 'all'; // 'all' or 'review'
+    let historyFilter = 'all';
+
+    // Global persistent setting for date of last audit print
+    let lastAuditDate = localStorage.getItem('rbo_last_audit_date') || null;
 
     let colVisible = {
       room: true,
@@ -673,7 +684,7 @@
     let calendarRange = { start: firstDayThisMonth, end: lastDayThisMonth };
 
     let pickerMode = 'range';
-    let pickerTarget = 'summary';
+    let pickerTarget = 'summary'; // 'summary', 'history', 'calendar', 'preset', 'audit'
     let pickerCurrentMonth = new Date(todayObj.getFullYear(), todayObj.getMonth(), 1);
     let pickerSelection = { start: null, end: null };
 
@@ -697,13 +708,18 @@
     async function loadData() {
       if (db) {
         try {
-          const [resResidents, resCharges] = await Promise.all([
+          const [resResidents, resCharges, resSettings] = await Promise.all([
             db.from('residents').select('*').order('room', { ascending: true }),
-            db.from('charges').select('*').order('date', { ascending: false })
+            db.from('charges').select('*').order('date', { ascending: false }),
+            db.from('app_settings').select('last_audit_date').eq('id', 'facility_config').maybeSingle()
           ]);
 
           if (!resResidents.error && resResidents.data) residents = resResidents.data;
           if (!resCharges.error && resCharges.data) charges = resCharges.data;
+          if (!resSettings.error && resSettings.data && resSettings.data.last_audit_date) {
+            lastAuditDate = resSettings.data.last_audit_date;
+            localStorage.setItem('rbo_last_audit_date', lastAuditDate);
+          }
 
           document.getElementById('sync-text').textContent = 'Live Cloud Sync';
         } catch (err) {
@@ -714,11 +730,44 @@
         document.getElementById('sync-text').textContent = 'Local Standby';
       }
 
+      updateNavAuditDateDisplay();
       syncColumnCheckboxes();
       updateRangeDisplayBadges();
       updatePresetDateBadge();
       renderCurrentView();
       updateTotalResidentsBadge();
+    }
+
+    // ===================================================
+    // PERSISTENT AUDIT PRINT DATE FUNCTIONS
+    // ===================================================
+    function updateNavAuditDateDisplay() {
+      const display = document.getElementById('nav-last-audit-display');
+      if (!display) return;
+      if (lastAuditDate) {
+        display.textContent = formatWrittenDate(lastAuditDate);
+      } else {
+        display.textContent = 'Not set';
+      }
+    }
+
+    async function setAuditPrintDate(isoDate) {
+      lastAuditDate = isoDate;
+      localStorage.setItem('rbo_last_audit_date', isoDate);
+      updateNavAuditDateDisplay();
+      showToast(`Last audit print recorded: ${formatWrittenDate(isoDate)}`);
+
+      if (db) {
+        await db.from('app_settings').upsert({
+          id: 'facility_config',
+          last_audit_date: isoDate,
+          updated_at: new Date().toISOString()
+        });
+      }
+    }
+
+    function setAuditPrintToToday() {
+      setAuditPrintDate(todayISO);
     }
 
     // ===================================================
@@ -1185,17 +1234,19 @@
       updatePickerStatus();
     }
 
-    function openSingleDatePicker() {
+    function openSingleDatePicker(target = 'preset') {
       pickerMode = 'single';
-      pickerTarget = 'preset';
-      pickerSelection = { start: batchPreset.date, end: batchPreset.date };
+      pickerTarget = target;
 
-      const parsed = new Date(batchPreset.date + 'T00:00:00');
+      const activeDate = target === 'audit' ? (lastAuditDate || todayISO) : batchPreset.date;
+      pickerSelection = { start: activeDate, end: activeDate };
+
+      const parsed = new Date(activeDate + 'T00:00:00');
       pickerCurrentMonth = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
 
       document.getElementById('range-shortcuts').classList.add('hidden');
-      document.getElementById('range-picker-title').textContent = 'Select Target Date';
-      document.getElementById('range-picker-instructions').textContent = 'Tap any date to apply as the active batch date.';
+      document.getElementById('range-picker-title').textContent = target === 'audit' ? 'Set Date of Last Audit Print' : 'Select Target Date';
+      document.getElementById('range-picker-instructions').textContent = 'Tap any date to apply.';
       document.getElementById('range-picker-modal').classList.remove('hidden');
 
       renderPickerCalendar();
@@ -1318,7 +1369,9 @@
     function confirmRangeSelection() {
       if (!pickerSelection.start) return;
 
-      if (pickerTarget === 'preset') {
+      if (pickerTarget === 'audit') {
+        setAuditPrintDate(pickerSelection.start);
+      } else if (pickerTarget === 'preset') {
         batchPreset.date = pickerSelection.start;
         updatePresetDateBadge();
         updatePresetBadge();
@@ -1650,7 +1703,6 @@
 
       const inRangeCharges = charges.filter(c => c.date >= historyRange.start && c.date <= historyRange.end);
 
-      // Unresolved issues in the date range (drives the top counter)
       const unresolvedIssues = inRangeCharges.filter(c => isChargeIssue(c) && !c.is_resolved);
       const totalIssues = inRangeCharges.filter(c => isChargeIssue(c));
 
@@ -1660,7 +1712,6 @@
           reviewIcon.className = 'fa-solid fa-triangle-exclamation text-amber-500';
           reviewCountText.textContent = `${unresolvedIssues.length} to Review`;
         } else if (totalIssues.length > 0) {
-          // If all issues have been marked resolved
           reviewChip.className = 'flex px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold items-center gap-1.5';
           reviewIcon.className = 'fa-solid fa-circle-check text-emerald-600';
           reviewCountText.textContent = `All Resolved (${totalIssues.length})`;
@@ -1669,13 +1720,11 @@
         }
       }
 
-      // Filter charges: 'review' tab keeps showing all duplicates/flags (both resolved and unresolved)
       let filtered = inRangeCharges.filter(c => {
         if (historyFilter === 'review') return isChargeIssue(c);
         return true;
       });
 
-      // Search query
       filtered = filtered.filter(c => {
         const writtenDate = formatWrittenDate(c.date).toLowerCase();
         const note = (c.resolution_note || '').toLowerCase();
@@ -1690,7 +1739,6 @@
         );
       });
 
-      // Sort
       filtered.sort((a, b) => {
         if (sortBy === 'dateDesc') return b.date.localeCompare(a.date);
         if (sortBy === 'dateAsc') return a.date.localeCompare(b.date);
@@ -1727,7 +1775,6 @@
 
         return `
           <tr class="transition-colors ${rowHighlight}">
-            <!-- MANUAL FLAG BUTTON -->
             <td class="py-3 px-3 text-center">
               <button onclick="toggleManualFlag('${c.id}')" title="${isFlagged ? 'Unflag ticket' : 'Flag ticket for review'}" class="p-1 rounded hover:bg-stone-200 transition-colors">
                 <i class="fa-solid fa-flag text-xs ${isFlagged ? 'text-rose-500 scale-110' : 'text-stone-300 hover:text-stone-500'}"></i>
@@ -1739,7 +1786,6 @@
             </td>
             <td class="py-3 px-3 font-bold text-brandAmber">Rm ${c.room}</td>
             
-            <!-- RESIDENT NAME + AUDIT BADGES -->
             <td class="py-3 px-4 text-stone-800 font-sans font-medium whitespace-nowrap">
               <span>${c.resident_name}</span>
               ${isDup ? `<span class="ml-1.5 text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded font-sans font-bold inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Duplicate Room Tray</span>` : ''}
@@ -1751,7 +1797,6 @@
             <td class="py-3 px-3 text-stone-600">${cleanType}</td>
             <td class="py-3 px-4 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
 
-            <!-- RESOLVED / ACKNOWLEDGED STATUS COLUMN -->
             <td class="py-3 px-4 text-center whitespace-nowrap">
               ${hasIssue ? (
                 isResolved ? `
@@ -1796,9 +1841,8 @@
       if (!charge) return;
 
       if (!charge.is_resolved) {
-        // Prompt for an optional explanation note
         const note = prompt('Optional explanation / approval note (or leave blank and click OK):', charge.resolution_note || '');
-        if (note === null) return; // Cancelled
+        if (note === null) return;
         charge.is_resolved = true;
         charge.resolution_note = note.trim() || null;
         showToast('Ticket marked as resolved');
@@ -1878,7 +1922,7 @@
               
               <div class="flex items-center gap-1">
                 ${unresolvedDups > 0 ? `
-                  <span title="${unresolvedDups} unresolved duplicate room tray charges" class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                  <span title="${unresolvedDups} duplicate room tray charges" class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
                     !
                   </span>
                 ` : ''}
@@ -2026,6 +2070,7 @@
     }
 
     window.onload = function () {
+      updateNavAuditDateDisplay();
       updatePresetDateBadge();
       updatePresetBadge();
       loadData();
