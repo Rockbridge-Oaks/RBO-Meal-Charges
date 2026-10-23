@@ -240,7 +240,7 @@
       </div>
     </div>
 
-    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (CLEAN 4-CATEGORY BILLING MATRIX) -->
+    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET -->
     <div id="view-summary" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
         <div>
@@ -251,13 +251,11 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <!-- HIDE $0 BALANCES TOGGLE -->
           <button type="button" id="btn-toggle-zero" onclick="toggleHideZeroBalances()" class="px-3.5 py-2 bg-cream-dark hover:bg-cream-border border border-cream-border text-stone-700 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm transition-all">
             <i id="icon-toggle-zero" class="fa-regular fa-eye-slash text-stone-500"></i>
             <span id="label-toggle-zero">Hide $0 Balances</span>
           </button>
 
-          <!-- CATEGORY COLUMNS POPOVER -->
           <div class="relative">
             <button type="button" onclick="toggleColumnMenu(event)" class="px-3.5 py-2 bg-cream-dark hover:bg-cream-border border border-cream-border text-stone-800 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
               <i class="fa-solid fa-table-columns text-brandGreen"></i>
@@ -292,7 +290,6 @@
             </div>
           </div>
 
-          <!-- SORT -->
           <div class="relative">
             <select id="summary-sort-by" onchange="renderSummarySheet()" class="bg-cream-dark border border-cream-border rounded-xl pl-3 pr-8 py-2 text-stone-800 text-xs sm:text-sm font-medium focus:outline-none focus:border-brandGreen appearance-none cursor-pointer shadow-sm">
               <option value="room">Sort: Room #</option>
@@ -341,14 +338,14 @@
       </div>
     </div>
 
-    <!-- VIEW 3: GENERAL CHARGE HISTORY -->
+    <!-- VIEW 3: GENERAL CHARGE HISTORY (WITH BOOKMARK FLAGS & AUTO-DETECT) -->
     <div id="view-history" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
         <div>
           <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
             <i class="fa-solid fa-clock-rotate-left text-brandAmber"></i> Complete Charge History
           </h2>
-          <p class="text-xs text-stone-500">Chronological feed of charges. Deleting an item immediately updates totals across all views.</p>
+          <p class="text-xs text-stone-500">Chronological feed of charges. Duplicates are auto-tagged; click the flag to mark tickets for investigation.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
@@ -358,7 +355,7 @@
             <i class="fa-solid fa-chevron-down text-[10px] text-stone-400"></i>
           </button>
 
-          <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, name, or category..." class="bg-cream-dark border border-cream-border rounded-xl px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
+          <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, name, or meal..." class="bg-cream-dark border border-cream-border rounded-xl px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
           <span id="history-count-badge" class="font-mono text-xs text-stone-600 bg-cream-dark px-2.5 py-2 rounded-xl border border-cream-border font-semibold">0 Charges</span>
         </div>
       </div>
@@ -368,11 +365,12 @@
           <table class="w-full text-left text-xs sm:text-sm">
             <thead class="bg-cream-dark text-stone-600 uppercase text-[10px] font-semibold border-b border-cream-border">
               <tr>
+                <th class="py-3 px-3 text-center w-10">Flag</th>
                 <th class="py-3 px-4">Date</th>
                 <th class="py-3 px-3">Room</th>
                 <th class="py-3 px-4">Resident</th>
                 <th class="py-3 px-3">Meal</th>
-                <th class="py-3 px-3">Charge Category</th>
+                <th class="py-3 px-3">Category</th>
                 <th class="py-3 px-4 text-right">Amount</th>
                 <th class="py-3 px-4 text-center">Action</th>
               </tr>
@@ -383,14 +381,14 @@
       </div>
     </div>
 
-    <!-- VIEW 4: AUDIT CALENDAR -->
+    <!-- VIEW 4: AUDIT CALENDAR (WITH DUPLICATE BADGES & DRILLDOWN SORT) -->
     <div id="view-calendar" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
         <div>
           <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
             <i class="fa-solid fa-calendar-check text-brandAmber"></i> Charge Audit Calendar
           </h2>
-          <p class="text-xs text-stone-500">Select any day block to inspect entries or delete mistakes.</p>
+          <p class="text-xs text-stone-500">Days with potential duplicate charges are badged with a warning icon.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -421,17 +419,32 @@
         <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-2"></div>
       </div>
 
+      <!-- CALENDAR DRILLDOWN PANEL WITH SORT CONTROLS -->
       <div id="calendar-drilldown-panel" class="hidden bg-white border border-cream-border rounded-2xl p-5 shadow-sm space-y-4">
-        <div class="flex items-center justify-between border-b border-cream-border pb-3">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-cream-border pb-3">
           <div>
             <h3 class="font-bold text-stone-900 text-sm sm:text-base flex items-center gap-2">
               <i class="fa-solid fa-list-check text-brandGreen"></i> Charges Logged on <span id="drilldown-date-title" class="text-brandAmber font-serif"></span>
             </h3>
             <p id="drilldown-stats" class="text-xs text-stone-500 mt-0.5"></p>
           </div>
-          <button onclick="closeDrilldown()" class="text-stone-600 hover:text-stone-900 text-xs px-2.5 py-1 rounded bg-cream-dark border border-cream-border font-medium">
-            <i class="fa-solid fa-xmark mr-1"></i> Close
-          </button>
+          
+          <div class="flex items-center gap-2">
+            <!-- DRILLDOWN SORT -->
+            <div class="relative">
+              <select id="drilldown-sort-by" onchange="renderDrilldownTable()" class="bg-cream-dark border border-cream-border rounded-xl pl-3 pr-7 py-1.5 text-stone-800 text-xs font-medium focus:outline-none focus:border-brandGreen appearance-none cursor-pointer">
+                <option value="room">Sort: Room #</option>
+                <option value="meal">Sort: Meal Period (Bkt $\rightarrow$ Din)</option>
+                <option value="name">Sort: Resident (A-Z)</option>
+                <option value="amount">Sort: Amount ($)</option>
+              </select>
+              <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] text-stone-400 pointer-events-none"></i>
+            </div>
+
+            <button onclick="closeDrilldown()" class="text-stone-600 hover:text-stone-900 text-xs px-2.5 py-1.5 rounded-xl bg-cream-dark border border-cream-border font-medium">
+              <i class="fa-solid fa-xmark mr-1"></i> Close
+            </button>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -441,7 +454,7 @@
                 <th class="py-2.5 px-3">Room</th>
                 <th class="py-2.5 px-3">Resident</th>
                 <th class="py-2.5 px-3">Meal</th>
-                <th class="py-2.5 px-3">Charge Type</th>
+                <th class="py-2.5 px-3">Charge Category</th>
                 <th class="py-2.5 px-3 text-right">Amount</th>
                 <th class="py-2.5 px-3 text-center">Action</th>
               </tr>
@@ -552,7 +565,7 @@
 
       <div class="text-xs text-stone-500 bg-cream-dark p-2.5 rounded-xl border border-cream-border flex items-start gap-2">
         <i class="fa-solid fa-circle-info text-brandGreen mt-0.5"></i>
-        <span><strong>Archived residents</strong> are hidden from daily Quick Charge cards when they move out, but all their billing and historical logs stay preserved permanently. You can assign the same room number to incoming residents at any time.</span>
+        <span><strong>Archived residents</strong> are hidden from daily Quick Charge cards when they move out, but all their billing and historical logs stay preserved permanently.</span>
       </div>
 
       <div id="manage-rooms-list" class="max-h-72 overflow-y-auto space-y-2 pr-1 divide-y divide-cream-border"></div>
@@ -585,7 +598,6 @@
 
     let hideZeroBalances = false;
 
-    // Streamlined Category Toggles for Monthly Sheet
     let colVisible = {
       room: true,
       guest: true,
@@ -670,6 +682,44 @@
       updateTotalResidentsBadge();
     }
 
+    // ===================================================
+    // DUPLICATE DETECTION LOGIC
+    // ===================================================
+    function isDuplicateCharge(charge) {
+      if (!charge) return false;
+      const matches = charges.filter(c => 
+        c.date === charge.date &&
+        String(c.resident_id) === String(charge.resident_id) &&
+        c.meal === charge.meal &&
+        c.charge_type === charge.charge_type
+      );
+      return matches.length > 1;
+    }
+
+    function getDayDuplicateCount(dateISO) {
+      const dayCharges = charges.filter(c => c.date === dateISO);
+      let duplicateIds = new Set();
+      
+      for (let i = 0; i < dayCharges.length; i++) {
+        for (let j = i + 1; j < dayCharges.length; j++) {
+          const a = dayCharges[i];
+          const b = dayCharges[j];
+          if (
+            String(a.resident_id) === String(b.resident_id) &&
+            a.meal === b.meal &&
+            a.charge_type === b.charge_type
+          ) {
+            duplicateIds.add(a.id);
+            duplicateIds.add(b.id);
+          }
+        }
+      }
+      return duplicateIds.size;
+    }
+
+    // ===================================================
+    // PRESET CONTROLS
+    // ===================================================
     function setMeal(meal) {
       batchPreset.meal = meal;
       document.querySelectorAll('.meal-btn').forEach(btn => {
@@ -785,7 +835,8 @@
         date: batchPreset.date,
         meal: batchPreset.meal,
         charge_type: batchPreset.type,
-        amount: chargeAmount
+        amount: chargeAmount,
+        is_flagged: false
       };
 
       const cardEl = document.getElementById(`card-${resident.id}`);
@@ -799,15 +850,7 @@
       showToast(`+$${chargeAmount.toFixed(2)} recorded for ${resident.name} (Rm ${resident.room})`);
 
       if (db) {
-        const { error } = await db.from('charges').insert([{
-          resident_id: resident.id,
-          room: resident.room,
-          resident_name: resident.name,
-          date: batchPreset.date,
-          meal: batchPreset.meal,
-          charge_type: batchPreset.type,
-          amount: chargeAmount
-        }]);
+        const { error } = await db.from('charges').insert([newCharge]);
         if (error) console.error('Supabase write error:', error);
       }
     }
@@ -1311,14 +1354,13 @@
     }
 
     // ===================================================
-    // VIEW 2: BILLING MATRIX SPREADSHEET (CLEAN 4-CATEGORY ROWS)
+    // VIEW 2: BILLING MATRIX SPREADSHEET
     // ===================================================
     function renderSummarySheet() {
       const tbody = document.getElementById('summary-table-body');
       const tfoot = document.getElementById('summary-table-footer');
       const sortBy = document.getElementById('summary-sort-by') ? document.getElementById('summary-sort-by').value : 'room';
 
-      // Update Column Header Visibility
       document.querySelectorAll('.col-room').forEach(el => colVisible.room ? el.classList.remove('hidden') : el.classList.add('hidden'));
       document.querySelectorAll('.col-guest').forEach(el => colVisible.guest ? el.classList.remove('hidden') : el.classList.add('hidden'));
       document.querySelectorAll('.col-caregiver').forEach(el => colVisible.caregiver ? el.classList.remove('hidden') : el.classList.add('hidden'));
@@ -1334,7 +1376,6 @@
       let computedRows = targetResidents.map(r => {
         const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
         
-        // Accurate category separation without meal collisions
         const roomTotal = rCharges.filter(c => c.charge_type === 'Room Charge').reduce((acc, c) => acc + Number(c.amount), 0);
         const guestCost = rCharges.filter(c => c.charge_type === 'Guest Charge').reduce((acc, c) => acc + Number(c.amount), 0);
         const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0);
@@ -1349,7 +1390,6 @@
         };
       });
 
-      // Filter out $0.00 balances if toggled on
       if (hideZeroBalances) {
         computedRows = computedRows.filter(row => row.total > 0);
       }
@@ -1397,27 +1437,22 @@
               </td>
               <td class="py-2.5 px-4 text-stone-700 font-sans whitespace-nowrap">${r.name}</td>
 
-              <!-- Room Charges -->
               <td class="col-room py-1 px-3 text-right bg-brandGreen/[0.04] border-l border-cream-border ${colVisible.room ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.roomTotal.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${row.roomTotal})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs font-bold text-brandGreen">
               </td>
 
-              <!-- Guest Charges -->
               <td class="col-guest py-1 px-3 text-right ${colVisible.guest ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.guestCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Guest Charge', this.value, ${row.guestCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
               </td>
 
-              <!-- Caregiver Charges -->
               <td class="col-caregiver py-1 px-3 text-right ${colVisible.caregiver ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${row.caregiverCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
               </td>
 
-              <!-- Holiday Charges -->
               <td class="col-holiday py-1 px-3 text-right ${colVisible.holiday ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${row.holidayCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
               </td>
 
-              <!-- Total Billed -->
               <td class="py-2.5 px-5 text-right font-black text-brandAmber bg-amber-50/30 whitespace-nowrap border-l border-cream-border">$${row.total.toFixed(2)}</td>
             </tr>
           `;
@@ -1431,7 +1466,7 @@
         <td class="col-room py-3 px-3 text-right text-brandGreen font-extrabold font-mono border-l border-cream-border bg-brandGreen/10 ${colVisible.room ? '' : 'hidden'}">$${grandTotals.roomDollars.toFixed(2)}</td>
         <td class="col-guest py-3 px-3 text-right text-stone-800 font-mono ${colVisible.guest ? '' : 'hidden'}">$${grandTotals.guestDollars.toFixed(2)}</td>
         <td class="col-caregiver py-3 px-3 text-right text-stone-800 font-mono ${colVisible.caregiver ? '' : 'hidden'}">$${grandTotals.caregiverDollars.toFixed(2)}</td>
-        <td class="col-holiday py-3 px-3 text-right text-stone-800 font-mono ${colVisible.holiday ? '' : 'hidden'}">$${grandTotals.holidayDollars.toFixed(2)}</td>
+        <td class="col-holiday py-3 px-3 text-right text-stone-800 font-mono border-r border-cream-border ${colVisible.holiday ? '' : 'hidden'}">$${grandTotals.holidayDollars.toFixed(2)}</td>
         
         <td class="py-3 px-5 text-right text-brandAmber font-black font-mono text-base bg-amber-50/40 border-l border-cream-border">$${grandTotals.amount.toFixed(2)}</td>
       `;
@@ -1462,22 +1497,15 @@
           date: summaryRange.end,
           meal: 'Breakfast',
           charge_type: categoryValue,
-          amount: diff
+          amount: diff,
+          is_flagged: false
         };
 
         charges.unshift(newCharge);
         showToast(`Adjusted ${resident.name} ${displayCategory} to $${newAmount.toFixed(2)}`);
 
         if (db) {
-          await db.from('charges').insert([{
-            resident_id: resident.id,
-            room: resident.room,
-            resident_name: resident.name,
-            date: summaryRange.end,
-            meal: newCharge.meal,
-            charge_type: newCharge.charge_type,
-            amount: diff
-          }]);
+          await db.from('charges').insert([newCharge]);
         }
       } else {
         let amountToReduce = Math.abs(diff);
@@ -1544,6 +1572,9 @@
       a.click();
     }
 
+    // ===================================================
+    // VIEW 3: HISTORY (FLAGGING + DUPLICATE LABELS)
+    // ===================================================
     function renderHistoryTable() {
       const tbody = document.getElementById('history-table-body');
       const badge = document.getElementById('history-count-badge');
@@ -1566,17 +1597,31 @@
       badge.textContent = `${filtered.length} Charges`;
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-stone-400 italic">No charges found in selected date range.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-stone-400 italic">No charges found in selected date range.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = filtered.map(c => {
         const cleanType = c.charge_type === 'Room Charge' ? 'Room' : c.charge_type;
+        const isDup = isDuplicateCharge(c);
+        const isFlagged = !!c.is_flagged;
+
         return `
-          <tr class="transition-colors">
-            <td class="py-3 px-4 font-sans font-medium text-stone-900">${formatWrittenDate(c.date)}</td>
+          <tr class="transition-colors ${isDup ? 'bg-amber-50/70' : ''} ${isFlagged ? 'bg-rose-50/50' : ''}">
+            <td class="py-3 px-3 text-center">
+              <button onclick="toggleManualFlag('${c.id}')" title="${isFlagged ? 'Unflag this ticket' : 'Flag this ticket for review'}" class="p-1 rounded hover:bg-stone-200 transition-colors">
+                <i class="fa-solid fa-flag text-xs ${isFlagged ? 'text-rose-500 scale-110' : 'text-stone-300 hover:text-stone-500'}"></i>
+              </button>
+            </td>
+            <td class="py-3 px-4 font-sans font-medium text-stone-900 whitespace-nowrap">
+              ${formatWrittenDate(c.date)}
+            </td>
             <td class="py-3 px-3 font-bold text-brandAmber">Rm ${c.room}</td>
-            <td class="py-3 px-4 text-stone-800 font-sans font-medium">${c.resident_name}</td>
+            <td class="py-3 px-4 text-stone-800 font-sans font-medium whitespace-nowrap">
+              ${c.resident_name}
+              ${isDup ? `<span class="ml-1.5 text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded font-sans font-bold inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Duplicate</span>` : ''}
+              ${isFlagged ? `<span class="ml-1.5 text-[10px] bg-rose-100 text-rose-700 border border-rose-300 px-1.5 py-0.5 rounded font-sans font-bold">Flagged</span>` : ''}
+            </td>
             <td class="py-3 px-3 text-stone-700">${c.meal}</td>
             <td class="py-3 px-3 text-stone-600">${cleanType}</td>
             <td class="py-3 px-4 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
@@ -1590,6 +1635,22 @@
       }).join('');
     }
 
+    async function toggleManualFlag(chargeId) {
+      const charge = charges.find(c => String(c.id) === String(chargeId));
+      if (!charge) return;
+
+      charge.is_flagged = !charge.is_flagged;
+      renderHistoryTable();
+      showToast(charge.is_flagged ? 'Ticket flagged for investigation' : 'Ticket flag cleared');
+
+      if (db) {
+        await db.from('charges').update({ is_flagged: charge.is_flagged }).eq('id', chargeId);
+      }
+    }
+
+    // ===================================================
+    // VIEW 4: CALENDAR (WITH DRILLDOWN SORT + DUPLICATE FLAGS)
+    // ===================================================
     function setCalendarToCurrentMonth() {
       const now = new Date();
       calendarRange.start = getFormattedDate(new Date(now.getFullYear(), now.getMonth(), 1));
@@ -1627,16 +1688,27 @@
 
         const dayCharges = charges.filter(c => c.date === dateISO);
         const dayTotal = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
+        const dupCount = getDayDuplicateCount(dateISO);
         const isToday = dateISO === todayISO;
 
         grid.innerHTML += `
-          <div onclick="selectCalendarDate('${dateISO}')" class="min-h-[75px] p-2 bg-white border ${isToday ? 'border-brandAmber ring-1 ring-brandAmber/30' : 'border-cream-border'} rounded-xl cursor-pointer hover:border-brandGreen transition-all flex flex-col justify-between shadow-xs">
+          <div onclick="selectCalendarDate('${dateISO}')" class="min-h-[75px] p-2 bg-white border ${isToday ? 'border-brandAmber ring-1 ring-brandAmber/30' : (dupCount > 0 ? 'border-amber-400 bg-amber-50/20' : 'border-cream-border')} rounded-xl cursor-pointer hover:border-brandGreen transition-all flex flex-col justify-between shadow-xs relative">
+            
             <div class="flex items-center justify-between text-xs font-bold">
               <span class="${isToday ? 'text-brandAmber font-black' : 'text-stone-700'}">
                 ${dayNum === 1 || dateISO === calendarRange.start ? `<span class="text-[9px] uppercase tracking-tighter text-stone-400 mr-0.5">${monthShort}</span>` : ''}${dayNum}
               </span>
-              ${dayCharges.length > 0 ? `<span class="text-[10px] bg-cream-dark text-stone-700 px-1.5 rounded font-mono font-semibold">${dayCharges.length}</span>` : ''}
+              
+              <div class="flex items-center gap-1">
+                ${dupCount > 0 ? `
+                  <span title="${dupCount} potential duplicate charges" class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                    !
+                  </span>
+                ` : ''}
+                ${dayCharges.length > 0 ? `<span class="text-[10px] bg-cream-dark text-stone-700 px-1.5 rounded font-mono font-semibold">${dayCharges.length}</span>` : ''}
+              </div>
             </div>
+
             ${dayCharges.length > 0 ? `<div class="font-bold text-xs text-brandAmber font-mono">$${dayTotal.toFixed(2)}</div>` : `<div class="text-[10px] text-stone-300 italic">-</div>`}
           </div>
         `;
@@ -1651,9 +1723,17 @@
       panel.classList.remove('hidden');
       document.getElementById('drilldown-date-title').textContent = formatWrittenDate(dateISO);
 
-      const dayCharges = charges.filter(c => c.date === dateISO);
+      renderDrilldownTable();
+    }
+
+    function renderDrilldownTable() {
+      if (!selectedDrilldownDate) return;
+      const sortBy = document.getElementById('drilldown-sort-by') ? document.getElementById('drilldown-sort-by').value : 'room';
+      const dayCharges = charges.filter(c => c.date === selectedDrilldownDate);
       const dayCost = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
-      document.getElementById('drilldown-stats').textContent = `${dayCharges.length} total charges ($${dayCost.toFixed(2)})`;
+      const dupCount = getDayDuplicateCount(selectedDrilldownDate);
+
+      document.getElementById('drilldown-stats').textContent = `${dayCharges.length} total charges ($${dayCost.toFixed(2)})${dupCount > 0 ? ` • ⚠️ ${dupCount} potential duplicates found` : ''}`;
 
       const tbody = document.getElementById('drilldown-table-body');
       if (dayCharges.length === 0) {
@@ -1661,17 +1741,42 @@
         return;
       }
 
-      tbody.innerHTML = dayCharges.map(c => {
+      // Sort drilldown charges
+      const mealOrder = { 'Breakfast': 1, 'Lunch': 2, 'Dinner': 3 };
+      let sortedCharges = [...dayCharges].sort((a, b) => {
+        if (sortBy === 'room') {
+          const roomCompare = a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
+          if (roomCompare !== 0) return roomCompare;
+          return a.resident_name.localeCompare(b.resident_name);
+        } else if (sortBy === 'meal') {
+          const mealA = mealOrder[a.meal] || 99;
+          const mealB = mealOrder[b.meal] || 99;
+          if (mealA !== mealB) return mealA - mealB;
+          return a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
+        } else if (sortBy === 'name') {
+          return a.resident_name.localeCompare(b.resident_name);
+        } else if (sortBy === 'amount') {
+          return Number(b.amount) - Number(a.amount);
+        }
+        return 0;
+      });
+
+      tbody.innerHTML = sortedCharges.map(c => {
         const cleanType = c.charge_type === 'Room Charge' ? 'Room' : c.charge_type;
+        const isDup = isDuplicateCharge(c);
+
         return `
-          <tr class="hover:bg-cream-dark/50 font-mono text-xs">
+          <tr class="hover:bg-cream-dark/50 font-mono text-xs ${isDup ? 'bg-amber-50/70 border-l-2 border-amber-400' : ''}">
             <td class="py-2.5 px-3 font-bold text-stone-900">Rm ${c.room}</td>
-            <td class="py-2.5 px-3 font-sans text-stone-800 font-medium">${c.resident_name}</td>
+            <td class="py-2.5 px-3 font-sans text-stone-800 font-medium">
+              ${c.resident_name}
+              ${isDup ? `<span class="ml-1 text-[9px] bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.2 rounded font-sans font-bold">⚠️ Duplicate</span>` : ''}
+            </td>
             <td class="py-2.5 px-3 text-stone-600">${c.meal}</td>
             <td class="py-2.5 px-3 text-stone-500">${cleanType}</td>
             <td class="py-2.5 px-3 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
             <td class="py-2.5 px-3 text-center">
-              <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50">
+              <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50" title="Delete entry">
                 <i class="fa-solid fa-trash-can"></i>
               </button>
             </td>
@@ -1688,7 +1793,7 @@
       if (currentView === 'summary') renderSummarySheet();
       if (currentView === 'daily') renderResidentsGrid();
       if (currentView === 'calendar') {
-        if (selectedDrilldownDate) selectCalendarDate(selectedDrilldownDate);
+        if (selectedDrilldownDate) renderDrilldownTable();
         renderCalendar();
       }
 
