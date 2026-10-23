@@ -103,7 +103,6 @@
     <div id="view-daily">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- LEFT COLUMN: STEP 1 PRESET CONTROLLER -->
         <div class="lg:col-span-4 bg-white border border-cream-border rounded-2xl p-4 sm:p-5 shadow-sm sticky lg:top-20">
           <div class="flex items-center justify-between mb-4 border-b border-cream-border pb-3">
             <div>
@@ -174,7 +173,6 @@
           </div>
         </div>
 
-        <!-- RIGHT WORK AREA -->
         <div class="lg:col-span-8 space-y-4">
           <div class="bg-white border border-cream-border rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
@@ -338,28 +336,69 @@
       </div>
     </div>
 
-    <!-- VIEW 3: GENERAL CHARGE HISTORY (BOOKMARK FLAGS + SCOPED ROOM DUPLICATES) -->
-    <div id="view-history" class="hidden space-y-5">
-      <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
-        <div>
-          <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
-            <i class="fa-solid fa-clock-rotate-left text-brandAmber"></i> Complete Charge History
-          </h2>
-          <p class="text-xs text-stone-500">Chronological feed of charges. Duplicate personal room trays are auto-flagged; click the flag to mark tickets for review.</p>
+    <!-- VIEW 3: GENERAL CHARGE HISTORY (WITH AUDIT FILTER BAR) -->
+    <div id="view-history" class="hidden space-y-4">
+      <!-- CONTROL BAR: TABS, SORT, SEARCH, RANGE -->
+      <div class="bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-brandAmber"></i> Complete Charge History
+            </h2>
+            <p class="text-xs text-stone-500">Filter tickets needing review or sort chronologically and by room number.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- REVIEW COUNTER CHIP -->
+            <div id="history-review-chip" class="hidden px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs font-bold items-center gap-1.5">
+              <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+              <span id="history-review-count">0 to Review</span>
+            </div>
+
+            <!-- DATE RANGE -->
+            <button onclick="openRangePicker('history')" class="px-3.5 py-2 bg-cream-dark border border-cream-border hover:border-brandGreen text-stone-800 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
+              <i class="fa-solid fa-calendar-days text-brandAmber"></i>
+              <span id="history-range-display">Select Range</span>
+              <i class="fa-solid fa-chevron-down text-[10px] text-stone-400"></i>
+            </button>
+          </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5">
-          <button onclick="openRangePicker('history')" class="px-3.5 py-2 bg-cream-dark border border-cream-border hover:border-brandGreen text-stone-800 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
-            <i class="fa-solid fa-calendar-days text-brandAmber"></i>
-            <span id="history-range-display">Select Range</span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-stone-400"></i>
-          </button>
+        <!-- FILTER AND SORT TOOLBAR -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center pt-1 border-t border-cream-border">
+          
+          <!-- AUDIT STATUS FILTER (ALL / REVIEW / FLAGGED / DUPLICATES) -->
+          <div class="md:col-span-5 flex items-center bg-cream-dark border border-cream-border rounded-xl p-1 text-xs font-semibold">
+            <button onclick="setHistoryFilter('all')" id="hfilter-all" class="flex-1 py-1.5 text-center rounded-lg bg-white text-stone-900 shadow-sm transition-all truncate px-1">All</button>
+            <button onclick="setHistoryFilter('review')" id="hfilter-review" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-1">⚠️ Review</button>
+            <button onclick="setHistoryFilter('flagged')" id="hfilter-flagged" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-1">🚩 Flagged</button>
+            <button onclick="setHistoryFilter('duplicates')" id="hfilter-duplicates" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-1">⚠️ Dups</button>
+          </div>
 
-          <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, name, or meal..." class="bg-cream-dark border border-cream-border rounded-xl px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
-          <span id="history-count-badge" class="font-mono text-xs text-stone-600 bg-cream-dark px-2.5 py-2 rounded-xl border border-cream-border font-semibold">0 Charges</span>
+          <!-- SEARCH -->
+          <div class="md:col-span-4 relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
+            <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, resident, or meal..." class="w-full bg-cream-dark border border-cream-border rounded-xl pl-9 pr-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
+          </div>
+
+          <!-- SORT -->
+          <div class="md:col-span-3 flex items-center gap-2">
+            <div class="relative w-full">
+              <select id="history-sort-by" onchange="renderHistoryTable()" class="w-full bg-cream-dark border border-cream-border rounded-xl pl-3 pr-7 py-2 text-stone-800 text-xs font-medium focus:outline-none focus:border-brandGreen appearance-none cursor-pointer">
+                <option value="dateDesc">Date: Newest First</option>
+                <option value="dateAsc">Date: Oldest First</option>
+                <option value="room">Sort: Room #</option>
+                <option value="name">Sort: Resident (A-Z)</option>
+              </select>
+              <i class="fa-solid fa-arrow-down-wide-short absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none"></i>
+            </div>
+            <span id="history-count-badge" class="font-mono text-xs text-stone-600 bg-cream-dark px-2.5 py-2 rounded-xl border border-cream-border font-semibold whitespace-nowrap">0</span>
+          </div>
+
         </div>
       </div>
 
+      <!-- TABLE FEED -->
       <div class="bg-white border border-cream-border rounded-2xl overflow-hidden shadow-sm">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs sm:text-sm">
@@ -381,7 +420,7 @@
       </div>
     </div>
 
-    <!-- VIEW 4: AUDIT CALENDAR (WITH DRILLDOWN SORT + SCOPED ROOM DUPLICATES) -->
+    <!-- VIEW 4: AUDIT CALENDAR -->
     <div id="view-calendar" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
         <div>
@@ -419,7 +458,6 @@
         <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-2"></div>
       </div>
 
-      <!-- CALENDAR DRILLDOWN PANEL WITH SORT CONTROLS -->
       <div id="calendar-drilldown-panel" class="hidden bg-white border border-cream-border rounded-2xl p-5 shadow-sm space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-cream-border pb-3">
           <div>
@@ -430,7 +468,6 @@
           </div>
           
           <div class="flex items-center gap-2">
-            <!-- DRILLDOWN SORT -->
             <div class="relative">
               <select id="drilldown-sort-by" onchange="renderDrilldownTable()" class="bg-cream-dark border border-cream-border rounded-xl pl-3 pr-7 py-1.5 text-stone-800 text-xs font-medium focus:outline-none focus:border-brandGreen appearance-none cursor-pointer">
                 <option value="room">Sort: Room #</option>
@@ -597,6 +634,7 @@
     let selectedDrilldownDate = null;
 
     let hideZeroBalances = false;
+    let historyFilter = 'all'; // 'all', 'review', 'flagged', 'duplicates'
 
     let colVisible = {
       room: true,
@@ -687,7 +725,6 @@
     // ===================================================
     function isDuplicateCharge(charge) {
       if (!charge) return false;
-      // Multiple guests/caregivers are expected; only flag duplicate room deliveries
       if (charge.charge_type !== 'Room Charge') return false;
 
       const matches = charges.filter(c => 
@@ -1439,27 +1476,22 @@
               </td>
               <td class="py-2.5 px-4 text-stone-700 font-sans whitespace-nowrap">${r.name}</td>
 
-              <!-- Room Charges -->
               <td class="col-room py-1 px-3 text-right bg-brandGreen/[0.04] border-l border-cream-border ${colVisible.room ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.roomTotal.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${row.roomTotal})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs font-bold text-brandGreen">
               </td>
 
-              <!-- Guest Charges -->
               <td class="col-guest py-1 px-3 text-right ${colVisible.guest ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.guestCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Guest Charge', this.value, ${row.guestCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
               </td>
 
-              <!-- Caregiver Charges -->
               <td class="col-caregiver py-1 px-3 text-right ${colVisible.caregiver ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${row.caregiverCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
               </td>
 
-              <!-- Holiday Charges -->
               <td class="col-holiday py-1 px-3 text-right ${colVisible.holiday ? '' : 'hidden'}">
                 <input type="number" step="0.01" min="0" value="${row.holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${row.holidayCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
               </td>
 
-              <!-- Total Billed -->
               <td class="py-2.5 px-5 text-right font-black text-brandAmber bg-amber-50/30 whitespace-nowrap border-l border-cream-border">$${row.total.toFixed(2)}</td>
             </tr>
           `;
@@ -1473,7 +1505,7 @@
         <td class="col-room py-3 px-3 text-right text-brandGreen font-extrabold font-mono border-l border-cream-border bg-brandGreen/10 ${colVisible.room ? '' : 'hidden'}">$${grandTotals.roomDollars.toFixed(2)}</td>
         <td class="col-guest py-3 px-3 text-right text-stone-800 font-mono ${colVisible.guest ? '' : 'hidden'}">$${grandTotals.guestDollars.toFixed(2)}</td>
         <td class="col-caregiver py-3 px-3 text-right text-stone-800 font-mono ${colVisible.caregiver ? '' : 'hidden'}">$${grandTotals.caregiverDollars.toFixed(2)}</td>
-        <td class="col-holiday py-3 px-3 text-right text-stone-800 font-mono border-r border-cream-border ${colVisible.holiday ? '' : 'hidden'}">$${grandTotals.holidayDollars.toFixed(2)}</td>
+        <td class="col-holiday py-3 px-3 text-right text-stone-800 font-mono ${colVisible.holiday ? '' : 'hidden'}">$${grandTotals.holidayDollars.toFixed(2)}</td>
         
         <td class="py-3 px-5 text-right text-brandAmber font-black font-mono text-base bg-amber-50/40 border-l border-cream-border">$${grandTotals.amount.toFixed(2)}</td>
       `;
@@ -1580,16 +1612,59 @@
     }
 
     // ===================================================
-    // VIEW 3: HISTORY (FLAGGING + SCOPED DUPLICATE LABELS)
+    // VIEW 3: HISTORY (AUDIT FILTER + SORT)
     // ===================================================
+    function setHistoryFilter(filterType) {
+      historyFilter = filterType;
+      ['all', 'review', 'flagged', 'duplicates'].forEach(f => {
+        const btn = document.getElementById(`hfilter-${f}`);
+        if (btn) {
+          if (f === filterType) {
+            btn.className = 'flex-1 py-1.5 text-center rounded-lg bg-white text-stone-900 shadow-sm transition-all truncate px-1';
+          } else {
+            btn.className = 'flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-1';
+          }
+        }
+      });
+      renderHistoryTable();
+    }
+
     function renderHistoryTable() {
       const tbody = document.getElementById('history-table-body');
       const badge = document.getElementById('history-count-badge');
+      const reviewChip = document.getElementById('history-review-chip');
+      const reviewCountText = document.getElementById('history-review-count');
       const query = (document.getElementById('history-search').value || '').toLowerCase().trim();
+      const sortBy = document.getElementById('history-sort-by') ? document.getElementById('history-sort-by').value : 'dateDesc';
 
       const inRangeCharges = charges.filter(c => c.date >= historyRange.start && c.date <= historyRange.end);
 
-      const filtered = inRangeCharges.filter(c => {
+      // Count items that need review (duplicates or manually flagged)
+      const reviewList = inRangeCharges.filter(c => isDuplicateCharge(c) || !!c.is_flagged);
+      if (reviewChip && reviewCountText) {
+        if (reviewList.length > 0) {
+          reviewChip.classList.remove('hidden');
+          reviewChip.classList.add('flex');
+          reviewCountText.textContent = `${reviewList.length} to Review`;
+        } else {
+          reviewChip.classList.add('hidden');
+          reviewChip.classList.remove('flex');
+        }
+      }
+
+      // Apply audit filter tab
+      let filtered = inRangeCharges.filter(c => {
+        const isDup = isDuplicateCharge(c);
+        const isFlagged = !!c.is_flagged;
+
+        if (historyFilter === 'review') return isDup || isFlagged;
+        if (historyFilter === 'flagged') return isFlagged;
+        if (historyFilter === 'duplicates') return isDup;
+        return true;
+      });
+
+      // Apply text search
+      filtered = filtered.filter(c => {
         const writtenDate = formatWrittenDate(c.date).toLowerCase();
         return (
           String(c.room).toLowerCase().includes(query) ||
@@ -1601,10 +1676,29 @@
         );
       });
 
-      badge.textContent = `${filtered.length} Charges`;
+      // Apply sorting
+      filtered.sort((a, b) => {
+        if (sortBy === 'dateDesc') {
+          return b.date.localeCompare(a.date);
+        } else if (sortBy === 'dateAsc') {
+          return a.date.localeCompare(b.date);
+        } else if (sortBy === 'room') {
+          const roomComp = a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
+          if (roomComp !== 0) return roomComp;
+          return a.resident_name.localeCompare(b.resident_name);
+        } else if (sortBy === 'name') {
+          return a.resident_name.localeCompare(b.resident_name);
+        }
+        return 0;
+      });
+
+      badge.textContent = `${filtered.length}`;
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-stone-400 italic">No charges found in selected date range.</td></tr>`;
+        const emptyMsg = historyFilter === 'all' 
+          ? 'No charges found in selected date range.' 
+          : 'No flagged tickets or duplicate room trays found in this date range.';
+        tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-stone-400 italic">${emptyMsg}</td></tr>`;
         return;
       }
 
@@ -1656,7 +1750,7 @@
     }
 
     // ===================================================
-    // VIEW 4: CALENDAR (WITH DRILLDOWN SORT + SCOPED ROOM DUPLICATES)
+    // VIEW 4: CALENDAR
     // ===================================================
     function setCalendarToCurrentMonth() {
       const now = new Date();
