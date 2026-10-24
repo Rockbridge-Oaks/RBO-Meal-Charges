@@ -1537,20 +1537,32 @@
               </td>
               <td class="py-2.5 px-4 text-stone-700 font-sans whitespace-nowrap">${r.name}</td>
 
-              <td class="col-room py-1 px-3 text-right bg-brandGreen/[0.04] border-l border-cream-border ${colVisible.room ? '' : 'hidden'}">
-                <input type="number" step="0.01" min="0" value="${row.roomTotal.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Room Charge', this.value, ${row.roomTotal})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs font-bold text-brandGreen">
+              <!-- Room Charges -->
+              <td class="col-room py-2 px-3 text-right border-l border-cream-border ${colVisible.room ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Room Charge', ${row.roomTotal})">
+                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.roomTotal > 0 ? 'font-bold text-brandGreen' : 'text-stone-300'}">
+                  ${row.roomTotal > 0 ? `$${row.roomTotal.toFixed(2)}` : '—'}
+                </span>
               </td>
 
-              <td class="col-guest py-1 px-3 text-right ${colVisible.guest ? '' : 'hidden'}">
-                <input type="number" step="0.01" min="0" value="${row.guestCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Guest Charge', this.value, ${row.guestCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
+              <!-- Guest Charges -->
+              <td class="col-guest py-2 px-3 text-right ${colVisible.guest ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Guest Charge', ${row.guestCost})">
+                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.guestCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
+                  ${row.guestCost > 0 ? `$${row.guestCost.toFixed(2)}` : '—'}
+                </span>
               </td>
 
-              <td class="col-caregiver py-1 px-3 text-right ${colVisible.caregiver ? '' : 'hidden'}">
-                <input type="number" step="0.01" min="0" value="${row.caregiverCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Caregiver Charge', this.value, ${row.caregiverCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
+              <!-- Caregiver Charges -->
+              <td class="col-caregiver py-2 px-3 text-right ${colVisible.caregiver ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Caregiver Charge', ${row.caregiverCost})">
+                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.caregiverCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
+                  ${row.caregiverCost > 0 ? `$${row.caregiverCost.toFixed(2)}` : '—'}
+                </span>
               </td>
 
-              <td class="col-holiday py-1 px-3 text-right ${colVisible.holiday ? '' : 'hidden'}">
-                <input type="number" step="0.01" min="0" value="${row.holidayCost.toFixed(2)}" onchange="handleManualCellEdit('${r.id}', 'type', 'Holiday Charge', this.value, ${row.holidayCost})" class="w-16 sm:w-20 bg-white border border-cream-border focus:border-brandGreen rounded px-1.5 py-1 text-right text-stone-800 text-xs font-mono outline-none shadow-2xs">
+              <!-- Holiday Charges -->
+              <td class="col-holiday py-2 px-3 text-right ${colVisible.holiday ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Holiday Charge', ${row.holidayCost})">
+                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.holidayCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
+                  ${row.holidayCost > 0 ? `$${row.holidayCost.toFixed(2)}` : '—'}
+                </span>
               </td>
 
               <td class="py-2.5 px-5 text-right font-black text-brandAmber bg-amber-50/30 whitespace-nowrap border-l border-cream-border">$${row.total.toFixed(2)}</td>
@@ -1572,6 +1584,37 @@
       `;
     }
 
+function startCellEdit(tdElement, residentId, categoryValue, currentValue) {
+      // Prevent creating multiple inputs if already clicked
+      if (tdElement.querySelector('input')) return;
+
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.step = '0.01';
+      input.min = '0';
+      input.value = Number(currentValue).toFixed(2);
+      input.className = 'w-16 sm:w-20 bg-white border border-brandGreen rounded px-1.5 py-0.5 text-right text-stone-900 text-xs font-mono outline-none shadow-sm ring-1 ring-brandGreen';
+
+      // Save on blur (clicking outside) or Enter key
+      const save = () => {
+        handleManualCellEdit(residentId, 'type', categoryValue, input.value, currentValue);
+      };
+
+      input.onblur = save;
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          input.blur();
+        } else if (e.key === 'Escape') {
+          renderSummarySheet(); // Revert back without saving
+        }
+      };
+
+      tdElement.innerHTML = '';
+      tdElement.appendChild(input);
+      input.focus();
+      input.select();
+    }
+    
     async function handleManualCellEdit(residentId, categoryType, categoryValue, rawNewValue, previousValue) {
       const newAmount = parseFloat(rawNewValue);
       if (isNaN(newAmount) || newAmount < 0) {
