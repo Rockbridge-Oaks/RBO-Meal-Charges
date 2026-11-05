@@ -79,9 +79,7 @@
         </div>
       </div>
 
-      <!-- CENTER / RIGHT: AUDIT DATE BADGE + VIEW NAVIGATION -->
       <div class="flex flex-wrap items-center gap-2.5">
-        
         <!-- PERSISTENT LAST AUDIT PRINT DISPLAY -->
         <div class="flex items-center bg-cream-dark border border-cream-border rounded-xl px-2.5 py-1 text-xs font-sans shadow-2xs">
           <button onclick="openSingleDatePicker('audit')" title="Click to change date of last audit print" class="flex items-center gap-1.5 text-stone-700 hover:text-brandAmber transition-colors pr-2 border-r border-cream-borderDark/60">
@@ -120,9 +118,9 @@
     <div id="view-daily">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- LEFT COLUMN: STEP 1 PRESET CONTROLLER -->
-        <div class="lg:col-span-4 bg-white border border-cream-border rounded-2xl p-4 sm:p-5 shadow-sm sticky lg:top-20">
-          <div class="flex items-center justify-between mb-4 border-b border-cream-border pb-3">
+        <!-- LEFT COLUMN: STEP 1 PRESET CONTROLLER (WITH UNKNOWN DATE/MEAL TOGGLES) -->
+        <div class="lg:col-span-4 bg-white border border-cream-border rounded-2xl p-4 sm:p-5 shadow-sm sticky lg:top-20 space-y-4 text-xs sm:text-sm">
+          <div class="flex items-center justify-between border-b border-cream-border pb-3">
             <div>
               <span class="text-[11px] font-semibold uppercase tracking-wider text-brandAmber">Step 1</span>
               <h2 class="text-sm sm:text-base font-bold text-stone-900">Set Batch Preset</h2>
@@ -132,72 +130,80 @@
             </button>
           </div>
 
-          <div class="space-y-4 text-xs sm:text-sm">
-            <div>
-              <label class="block text-stone-600 font-medium mb-1.5">Target Charge Date</label>
-              <button type="button" onclick="openSingleDatePicker('preset')" class="w-full bg-cream-dark border border-cream-border hover:border-brandGreen rounded-xl px-3.5 py-2.5 text-stone-800 text-xs sm:text-sm flex items-center justify-between transition-all">
-                <span class="flex items-center gap-2">
-                  <i class="fa-regular fa-calendar text-brandAmber"></i>
-                  <span id="preset-date-display" class="font-medium">Today</span>
-                </span>
-                <i class="fa-solid fa-chevron-down text-[10px] text-stone-400"></i>
-              </button>
+          <!-- TARGET DATE OR NO DATE ON TICKET -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-stone-600 font-medium">Target Charge Date</label>
+              <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-stone-500 hover:text-stone-800">
+                <input type="checkbox" id="chk-no-date" onchange="toggleNoDate(this.checked)" class="accent-brandAmber rounded">
+                <span>No Date on Ticket</span>
+              </label>
             </div>
+            <button type="button" id="preset-date-btn" onclick="openSingleDatePicker('preset')" class="w-full bg-cream-dark border border-cream-border hover:border-brandGreen rounded-xl px-3.5 py-2.5 text-stone-800 text-xs sm:text-sm flex items-center justify-between transition-all">
+              <span class="flex items-center gap-2">
+                <i class="fa-regular fa-calendar text-brandAmber"></i>
+                <span id="preset-date-display" class="font-medium">Today</span>
+              </span>
+              <i class="fa-solid fa-chevron-down text-[10px] text-stone-400"></i>
+            </button>
+          </div>
 
-            <div>
-              <label class="block text-stone-600 font-medium mb-1.5">Meal Period</label>
-              <div class="grid grid-cols-3 gap-2">
-                <button type="button" onclick="setMeal('Breakfast')" id="meal-Breakfast" class="meal-btn py-2 px-2 rounded-xl border border-brandGreen bg-brandGreen/10 text-brandGreen font-bold text-center transition-all">Breakfast</button>
-                <button type="button" onclick="setMeal('Lunch')" id="meal-Lunch" class="meal-btn py-2 px-2 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all">Lunch</button>
-                <button type="button" onclick="setMeal('Dinner')" id="meal-Dinner" class="meal-btn py-2 px-2 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all">Dinner</button>
-              </div>
+          <!-- MEAL PERIOD (INCLUDES UNSPECIFIED OPTION) -->
+          <div>
+            <label class="block text-stone-600 font-medium mb-1.5">Meal Period</label>
+            <div class="grid grid-cols-4 gap-1.5">
+              <button type="button" onclick="setMeal('Breakfast')" id="meal-Breakfast" class="meal-btn py-2 px-1 rounded-xl border border-brandGreen bg-brandGreen/10 text-brandGreen font-bold text-center transition-all truncate text-[11px]">Breakfast</button>
+              <button type="button" onclick="setMeal('Lunch')" id="meal-Lunch" class="meal-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px]">Lunch</button>
+              <button type="button" onclick="setMeal('Dinner')" id="meal-Dinner" class="meal-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px]">Dinner</button>
+              <button type="button" onclick="setMeal('Unspecified')" id="meal-Unspecified" class="meal-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px]" title="No meal period written on ticket">Unspecified</button>
             </div>
+          </div>
 
-            <div>
-              <label class="block text-stone-600 font-medium mb-1.5">Charge Category</label>
-              <div class="grid grid-cols-4 gap-1.5">
-                <button type="button" onclick="setType('Room Charge')" id="type-Room Charge" class="type-btn py-2 px-1 rounded-xl border border-brandGreen bg-brandGreen/10 text-brandGreen font-bold text-center transition-all truncate text-[11px] sm:text-xs">Room</button>
-                <button type="button" onclick="setType('Guest Charge')" id="type-Guest Charge" class="type-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Guest</button>
-                <button type="button" onclick="setType('Caregiver Charge')" id="type-Caregiver Charge" class="type-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Caregiver</button>
-                <button type="button" onclick="setType('Holiday Charge')" id="type-Holiday Charge" class="type-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Holiday</button>
-              </div>
+          <!-- CHARGE CATEGORY -->
+          <div>
+            <label class="block text-stone-600 font-medium mb-1.5">Charge Category</label>
+            <div class="grid grid-cols-4 gap-1.5">
+              <button type="button" onclick="setType('Room Charge')" id="type-Room Charge" class="type-btn py-2 px-1 rounded-xl border border-brandGreen bg-brandGreen/10 text-brandGreen font-bold text-center transition-all truncate text-[11px] sm:text-xs">Room</button>
+              <button type="button" onclick="setType('Guest Charge')" id="type-Guest Charge" class="type-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Guest</button>
+              <button type="button" onclick="setType('Caregiver Charge')" id="type-Caregiver Charge" class="type-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Caregiver</button>
+              <button type="button" onclick="setType('Holiday Charge')" id="type-Holiday Charge" class="type-btn py-2 px-1 rounded-xl border border-cream-border bg-cream-dark text-stone-600 hover:border-stone-400 font-medium text-center transition-all truncate text-[11px] sm:text-xs">Holiday</button>
             </div>
+          </div>
 
-            <div id="holiday-custom-rate-container" class="hidden bg-amber-50/70 border border-brandAmber/40 p-3 rounded-xl transition-all space-y-1.5">
-              <div class="flex items-center justify-between">
-                <label for="custom-holiday-rate" class="block text-stone-700 font-semibold text-xs flex items-center gap-1.5">
-                  <i class="fa-solid fa-wand-magic-sparkles text-brandAmber"></i> Custom Holiday Rate ($)
-                </label>
-                <span class="text-[10px] text-brandAmber font-bold">Applies to all taps</span>
-              </div>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 font-mono text-sm font-bold">$</span>
-                <input type="number" step="0.50" min="0.00" id="custom-holiday-rate" value="10.00" oninput="updateCustomHolidayRate(this.value)" class="w-full bg-white border border-brandAmber/50 rounded-lg pl-7 pr-3 py-1.5 text-stone-900 font-mono font-bold text-sm focus:outline-none focus:ring-1 focus:ring-brandAmber">
-              </div>
+          <div id="holiday-custom-rate-container" class="hidden bg-amber-50/70 border border-brandAmber/40 p-3 rounded-xl transition-all space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label for="custom-holiday-rate" class="block text-stone-700 font-semibold text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-wand-magic-sparkles text-brandAmber"></i> Custom Holiday Rate ($)
+              </label>
+              <span class="text-[10px] text-brandAmber font-bold">Applies to all taps</span>
             </div>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 font-mono text-sm font-bold">$</span>
+              <input type="number" step="0.50" min="0.00" id="custom-holiday-rate" value="10.00" oninput="updateCustomHolidayRate(this.value)" class="w-full bg-white border border-brandAmber/50 rounded-lg pl-7 pr-3 py-1.5 text-stone-900 font-mono font-bold text-sm focus:outline-none focus:ring-1 focus:ring-brandAmber">
+            </div>
+          </div>
 
-            <div class="pt-2">
-              <div class="bg-cream-dark border border-cream-border rounded-xl p-3 flex items-center justify-between">
-                <div>
-                  <p class="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Active Selection</p>
-                  <p id="preset-badge" class="font-medium text-brandGreen text-xs sm:text-sm">Breakfast • Room</p>
-                </div>
-                <div class="text-right">
-                  <span id="active-rate-display" class="text-base font-extrabold text-brandAmber">+$5.00</span>
-                  <span class="block text-[10px] text-stone-500">per tap</span>
-                </div>
+          <div class="pt-1">
+            <div class="bg-cream-dark border border-cream-border rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <p class="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Active Selection</p>
+                <p id="preset-badge" class="font-medium text-brandGreen text-xs sm:text-sm">Breakfast • Room</p>
+              </div>
+              <div class="text-right">
+                <span id="active-rate-display" class="text-base font-extrabold text-brandAmber">+$5.00</span>
+                <span class="block text-[10px] text-stone-500">per tap</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- RIGHT WORK AREA -->
+        <!-- RIGHT WORK AREA (2-COLUMN COMPACT LIST) -->
         <div class="lg:col-span-8 space-y-4">
           <div class="bg-white border border-cream-border rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <span class="text-[11px] font-semibold uppercase tracking-wider text-brandAmber">Step 2</span>
-                <h2 id="step2-heading" class="text-base font-bold text-stone-900">Tap Card to Record Line Item</h2>
+                <h2 id="step2-heading" class="text-base font-bold text-stone-900">Tap to Record Line Item</h2>
               </div>
               
               <div class="flex items-center gap-2">
@@ -244,6 +250,7 @@
             <span id="total-residents-badge" class="font-mono text-stone-700 font-medium">0 Active Residents</span>
           </div>
 
+          <!-- 2-COLUMN COMPACT RESIDENTS LIST -->
           <div>
             <div id="residents-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-2.5"></div>
             <div id="no-residents-found" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-cream-borderDark">
@@ -257,14 +264,14 @@
       </div>
     </div>
 
-    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET -->
+    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (NO REPETITIVE BOXES) -->
     <div id="view-summary" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
         <div>
           <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
             <i class="fa-solid fa-file-invoice-dollar text-brandAmber"></i> Room Service Billing Matrix
           </h2>
-          <p class="text-xs text-stone-500">Summary of total billed charges by category. Room, Guest, Caregiver, and Holiday sum directly to Total Billed.</p>
+          <p class="text-xs text-stone-500">Summary of total billed charges by category. Click any number or dash to edit.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -386,12 +393,12 @@
             <button onclick="setHistoryFilter('review')" id="hfilter-review" class="flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-2 font-medium">⚠️ Review Queue</button>
           </div>
 
-          <div class="md:col-span-5 relative">
+          <div class="md:col-span-4 relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
             <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, resident, or meal..." class="w-full bg-cream-dark border border-cream-border rounded-xl pl-9 pr-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
           </div>
 
-          <div class="md:col-span-3 flex items-center gap-2">
+          <div class="md:col-span-4 flex items-center gap-2">
             <div class="relative w-full">
               <select id="history-sort-by" onchange="renderHistoryTable()" class="w-full bg-cream-dark border border-cream-border rounded-xl pl-3 pr-7 py-2 text-stone-800 text-xs font-medium focus:outline-none focus:border-brandGreen appearance-none cursor-pointer">
                 <option value="entryDesc">Recently Logged (Last Punched First)</option>
@@ -429,14 +436,14 @@
       </div>
     </div>
 
-    <!-- VIEW 4: AUDIT CALENDAR -->
+    <!-- VIEW 4: AUDIT CALENDAR (WITH MISSING MEAL BATCH WARNINGS) -->
     <div id="view-calendar" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
         <div>
           <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
             <i class="fa-solid fa-calendar-check text-brandAmber"></i> Charge Audit Calendar
           </h2>
-          <p class="text-xs text-stone-500">Days with unresolved duplicate room charges are badged with a warning icon.</p>
+          <p class="text-xs text-stone-500">Days with duplicates or missing ticket batches are flagged with alert badges.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -467,7 +474,10 @@
         <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-2"></div>
       </div>
 
+      <!-- DAY DRILLDOWN PANEL + MISSING BATCH CONTROLLER -->
       <div id="calendar-drilldown-panel" class="hidden bg-white border border-cream-border rounded-2xl p-5 shadow-sm space-y-4">
+        
+        <!-- HEADER -->
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-cream-border pb-3">
           <div>
             <h3 class="font-bold text-stone-900 text-sm sm:text-base flex items-center gap-2">
@@ -490,6 +500,31 @@
             <button onclick="closeDrilldown()" class="text-stone-600 hover:text-stone-900 text-xs px-2.5 py-1.5 rounded-xl bg-cream-dark border border-cream-border font-medium">
               <i class="fa-solid fa-xmark mr-1"></i> Close
             </button>
+          </div>
+        </div>
+
+        <!-- MISSING MEAL BATCH AUDIT PANEL -->
+        <div class="bg-amber-50/60 border border-amber-200/80 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div>
+            <span class="font-bold text-stone-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-triangle-exclamation text-brandAmber"></i> Missing Batch Alert:
+            </span>
+            <span class="text-stone-500 text-[11px]">Flag if kitchen staff failed to submit tickets for a meal period.</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-1.5 cursor-pointer font-medium text-stone-700">
+              <input type="checkbox" id="chk-miss-breakfast" onchange="toggleMissingMealBatch('Breakfast', this.checked)" class="accent-rose-600 rounded">
+              <span>Breakfast Missing</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer font-medium text-stone-700">
+              <input type="checkbox" id="chk-miss-lunch" onchange="toggleMissingMealBatch('Lunch', this.checked)" class="accent-rose-600 rounded">
+              <span>Lunch Missing</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer font-medium text-stone-700">
+              <input type="checkbox" id="chk-miss-dinner" onchange="toggleMissingMealBatch('Dinner', this.checked)" class="accent-rose-600 rounded">
+              <span>Dinner Missing</span>
+            </label>
           </div>
         </div>
 
@@ -612,7 +647,7 @@
 
       <div class="text-xs text-stone-500 bg-cream-dark p-2.5 rounded-xl border border-cream-border flex items-start gap-2">
         <i class="fa-solid fa-circle-info text-brandGreen mt-0.5"></i>
-        <span><strong>Archived residents</strong> are hidden from daily Quick Charge cards when they move out, but all their billing and historical logs stay preserved permanently. You can assign the same room number to incoming residents at any time.</span>
+        <span><strong>Archived residents</strong> are hidden from daily Quick Charge cards when they move out, but all their billing and historical logs stay preserved permanently.</span>
       </div>
 
       <div id="manage-rooms-list" class="max-h-72 overflow-y-auto space-y-2 pr-1 divide-y divide-cream-border"></div>
@@ -639,6 +674,7 @@
     let db = null;
     let residents = [];
     let charges = [];
+    let calendarAlerts = []; // Array of { date, meal, note }
     let currentView = 'daily';
     let balanceRange = 'month';
     let selectedDrilldownDate = null;
@@ -646,7 +682,6 @@
     let hideZeroBalances = false;
     let historyFilter = 'all';
 
-    // Global persistent setting for date of last audit print
     let lastAuditDate = localStorage.getItem('rbo_last_audit_date') || null;
 
     let colVisible = {
@@ -664,7 +699,7 @@
     }
 
     function formatWrittenDate(isoString) {
-      if (!isoString) return '';
+      if (!isoString) return 'No Date Recorded';
       const [year, month, day] = isoString.split('-').map(Number);
       const d = new Date(year, month - 1, day);
       return d.toLocaleDateString('en-US', {
@@ -685,12 +720,14 @@
     let calendarRange = { start: firstDayThisMonth, end: lastDayThisMonth };
 
     let pickerMode = 'range';
-    let pickerTarget = 'summary'; // 'summary', 'history', 'calendar', 'preset', 'audit'
+    let pickerTarget = 'summary';
     let pickerCurrentMonth = new Date(todayObj.getFullYear(), todayObj.getMonth(), 1);
     let pickerSelection = { start: null, end: null };
 
+    // Batch preset (supports no date and unspecified meal)
     let batchPreset = {
       date: todayISO,
+      noDate: false,
       meal: 'Breakfast',
       type: 'Room Charge',
       amount: 5.00
@@ -709,14 +746,17 @@
     async function loadData() {
       if (db) {
         try {
-          const [resResidents, resCharges, resSettings] = await Promise.all([
+          const [resResidents, resCharges, resSettings, resAlerts] = await Promise.all([
             db.from('residents').select('*').order('room', { ascending: true }),
             db.from('charges').select('*').order('date', { ascending: false }),
-            db.from('app_settings').select('last_audit_date').eq('id', 'facility_config').maybeSingle()
+            db.from('app_settings').select('last_audit_date').eq('id', 'facility_config').maybeSingle(),
+            db.from('calendar_alerts').select('*')
           ]);
 
           if (!resResidents.error && resResidents.data) residents = resResidents.data;
           if (!resCharges.error && resCharges.data) charges = resCharges.data;
+          if (!resAlerts.error && resAlerts.data) calendarAlerts = resAlerts.data;
+
           if (!resSettings.error && resSettings.data && resSettings.data.last_audit_date) {
             lastAuditDate = resSettings.data.last_audit_date;
             localStorage.setItem('rbo_last_audit_date', lastAuditDate);
@@ -740,16 +780,12 @@
     }
 
     // ===================================================
-    // PERSISTENT AUDIT PRINT DATE FUNCTIONS
+    // AUDIT PRINT DATE FUNCTIONS
     // ===================================================
     function updateNavAuditDateDisplay() {
       const display = document.getElementById('nav-last-audit-display');
       if (!display) return;
-      if (lastAuditDate) {
-        display.textContent = formatWrittenDate(lastAuditDate);
-      } else {
-        display.textContent = 'Not set';
-      }
+      display.textContent = lastAuditDate ? formatWrittenDate(lastAuditDate) : 'Not set';
     }
 
     async function setAuditPrintDate(isoDate) {
@@ -772,49 +808,24 @@
     }
 
     // ===================================================
-    // DUPLICATE & AUDIT DETECTION LOGIC
+    // PRESET CONTROLS: UNKNOWN DATE & MEAL
     // ===================================================
-    function isDuplicateCharge(charge) {
-      if (!charge) return false;
-      if (charge.charge_type !== 'Room Charge') return false;
+    function toggleNoDate(isChecked) {
+      batchPreset.noDate = isChecked;
+      const btn = document.getElementById('preset-date-btn');
+      const display = document.getElementById('preset-date-display');
 
-      const matches = charges.filter(c => 
-        c.date === charge.date &&
-        String(c.resident_id) === String(charge.resident_id) &&
-        c.meal === charge.meal &&
-        c.charge_type === 'Room Charge'
-      );
-      return matches.length > 1;
-    }
-
-    function isChargeIssue(charge) {
-      if (!charge) return false;
-      return isDuplicateCharge(charge) || !!charge.is_flagged;
-    }
-
-    function getDayDuplicateCount(dateISO) {
-      const dayCharges = charges.filter(c => c.date === dateISO && c.charge_type === 'Room Charge');
-      let unresolvedIds = new Set();
-      
-      for (let i = 0; i < dayCharges.length; i++) {
-        for (let j = i + 1; j < dayCharges.length; j++) {
-          const a = dayCharges[i];
-          const b = dayCharges[j];
-          if (
-            String(a.resident_id) === String(b.resident_id) &&
-            a.meal === b.meal
-          ) {
-            if (!a.is_resolved) unresolvedIds.add(a.id);
-            if (!b.is_resolved) unresolvedIds.add(b.id);
-          }
-        }
+      if (isChecked) {
+        btn.classList.add('opacity-50', 'pointer-events-none');
+        display.innerHTML = '<span class="text-amber-700 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> No Date on Ticket</span>';
+      } else {
+        btn.classList.remove('opacity-50', 'pointer-events-none');
+        updatePresetDateBadge();
       }
-      return unresolvedIds.size;
+      updatePresetBadge();
+      renderResidentsGrid();
     }
 
-    // ===================================================
-    // PRESET CONTROLS
-    // ===================================================
     function setMeal(meal) {
       batchPreset.meal = meal;
       document.querySelectorAll('.meal-btn').forEach(btn => {
@@ -869,6 +880,12 @@
 
     function resetToToday() {
       batchPreset.date = todayISO;
+      batchPreset.noDate = false;
+      const noDateChk = document.getElementById('chk-no-date');
+      if (noDateChk) noDateChk.checked = false;
+      toggleNoDate(false);
+      setMeal('Breakfast');
+      setType('Room Charge');
       updatePresetDateBadge();
       updatePresetBadge();
       renderResidentsGrid();
@@ -876,7 +893,7 @@
 
     function updatePresetDateBadge() {
       const display = document.getElementById('preset-date-display');
-      if (display) {
+      if (display && !batchPreset.noDate) {
         const formatted = formatWrittenDate(batchPreset.date);
         display.textContent = batchPreset.date === todayISO ? `Today (${formatted})` : formatted;
       }
@@ -889,15 +906,17 @@
 
       const amountFormatted = `$${Number(batchPreset.amount).toFixed(2)}`;
       const cleanTypeName = batchPreset.type === 'Room Charge' ? 'Room' : batchPreset.type.replace(' Charge', '');
+      const dateText = batchPreset.noDate ? 'No Date' : formatWrittenDate(batchPreset.date);
+      const mealText = batchPreset.meal === 'Unspecified' ? 'No Meal Time' : batchPreset.meal;
 
       if (badge) {
-        badge.textContent = `${batchPreset.meal} • ${cleanTypeName} (${formatWrittenDate(batchPreset.date)})`;
+        badge.textContent = `${mealText} • ${cleanTypeName} (${dateText})`;
       }
       if (rateDisplay) {
         rateDisplay.textContent = `+${amountFormatted}`;
       }
       if (step2Heading) {
-        step2Heading.textContent = `Tap Card to Record ${amountFormatted} Line Item`;
+        step2Heading.textContent = `Tap to Record ${amountFormatted} Line Item`;
       }
     }
 
@@ -916,19 +935,67 @@
       renderResidentsGrid();
     }
 
+    // ===================================================
+    // DUPLICATE & AUDIT DETECTION
+    // ===================================================
+    function isDuplicateCharge(charge) {
+      if (!charge) return false;
+      if (charge.charge_type !== 'Room Charge') return false;
+      if (!charge.date || !charge.meal || charge.meal === 'Unspecified') return false;
+
+      const matches = charges.filter(c => 
+        c.date === charge.date &&
+        String(c.resident_id) === String(charge.resident_id) &&
+        c.meal === charge.meal &&
+        c.charge_type === 'Room Charge'
+      );
+      return matches.length > 1;
+    }
+
+    function isChargeIssue(charge) {
+      if (!charge) return false;
+      return isDuplicateCharge(charge) || !!charge.is_flagged || !charge.date || charge.meal === 'Unspecified';
+    }
+
+    function getDayDuplicateCount(dateISO) {
+      const dayCharges = charges.filter(c => c.date === dateISO && c.charge_type === 'Room Charge');
+      let unresolvedIds = new Set();
+      
+      for (let i = 0; i < dayCharges.length; i++) {
+        for (let j = i + 1; j < dayCharges.length; j++) {
+          const a = dayCharges[i];
+          const b = dayCharges[j];
+          if (
+            String(a.resident_id) === String(b.resident_id) &&
+            a.meal && b.meal && a.meal === b.meal &&
+            a.meal !== 'Unspecified'
+          ) {
+            if (!a.is_resolved) unresolvedIds.add(a.id);
+            if (!b.is_resolved) unresolvedIds.add(b.id);
+          }
+        }
+      }
+      return unresolvedIds.size;
+    }
+
+    // ===================================================
+    // CHARGE ACTIONS
+    // ===================================================
     async function addQuickCharge(residentId) {
       const resident = residents.find(r => String(r.id) === String(residentId));
       if (!resident) return;
 
       const chargeAmount = Number(batchPreset.amount) || 5.00;
+      const targetDate = batchPreset.noDate ? null : batchPreset.date;
+      const targetMeal = batchPreset.meal === 'Unspecified' ? 'Unspecified' : batchPreset.meal;
 
       const newCharge = {
         id: crypto.randomUUID(),
         resident_id: resident.id,
         room: resident.room,
         resident_name: resident.name,
-        date: batchPreset.date,
-        meal: batchPreset.meal,
+        date: targetDate,
+        meal: targetMeal,
         charge_type: batchPreset.type,
         amount: chargeAmount,
         is_flagged: false,
@@ -958,9 +1025,11 @@
       const resident = residents.find(r => String(r.id) === String(residentId));
       if (!resident) return;
 
-      const targetIndex = charges.findIndex(c => String(c.resident_id) === String(residentId) && c.date === batchPreset.date);
+      const targetDate = batchPreset.noDate ? null : batchPreset.date;
+      const targetIndex = charges.findIndex(c => String(c.resident_id) === String(residentId) && c.date === targetDate);
+      
       if (targetIndex === -1) {
-        alert(`No charges found for ${resident.name} (Rm ${resident.room}) on ${formatWrittenDate(batchPreset.date)} to undo.`);
+        alert(`No charges found for ${resident.name} (Rm ${resident.room}) on ${targetDate ? formatWrittenDate(targetDate) : 'No Date'} to undo.`);
         return;
       }
 
@@ -968,7 +1037,7 @@
       const chargeCost = Number(targetCharge.amount).toFixed(2);
       const displayType = targetCharge.charge_type === 'Room Charge' ? 'Room' : targetCharge.charge_type;
 
-      if (confirm(`Remove latest $${chargeCost} charge (${targetCharge.meal} - ${displayType}) for ${resident.name} (Rm ${resident.room}) on ${formatWrittenDate(batchPreset.date)}?`)) {
+      if (confirm(`Remove latest $${chargeCost} charge (${targetCharge.meal || 'Unspecified'} - ${displayType}) for ${resident.name} (Rm ${resident.room})?`)) {
         charges.splice(targetIndex, 1);
         renderResidentsGrid();
         showToast(`Reverted $${chargeCost} for ${resident.name}`);
@@ -984,6 +1053,7 @@
       return charges
         .filter(c => {
           if (String(c.resident_id) !== String(residentId)) return false;
+          if (!c.date) return true; // Include undated tickets in current active accounting balance
           const chargeDate = new Date(c.date + 'T00:00:00');
           if (range === 'selectedDate') {
             return c.date === batchPreset.date;
@@ -999,6 +1069,9 @@
         .reduce((sum, c) => sum + Number(c.amount), 0);
     }
 
+    // ===================================================
+    // RENDER 2-COLUMN COMPACT QUICK CHARGE LIST
+    // ===================================================
     function renderResidentsGrid() {
       const grid = document.getElementById('residents-grid');
       const searchVal = document.getElementById('resident-search').value.toLowerCase().trim();
@@ -1038,29 +1111,29 @@
       }
       emptyState.classList.add('hidden');
 
-      const writtenPresetDate = formatWrittenDate(batchPreset.date);
       const activeBtnAmount = Number(batchPreset.amount).toFixed(2);
+      const queryDate = batchPreset.noDate ? null : batchPreset.date;
 
       grid.innerHTML = filtered.map(r => {
-        const dayCharges = charges.filter(c => String(c.resident_id) === String(r.id) && c.date === batchPreset.date);
+        const dayCharges = charges.filter(c => String(c.resident_id) === String(r.id) && c.date === queryDate);
         const dayCount = dayCharges.length;
         const dayCost = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
 
         return `
           <div id="card-${r.id}" class="bg-white border border-cream-border hover:border-cream-borderDark rounded-xl p-2.5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-all relative group">
             
-            <!-- LEFT: ACTION BUTTONS (ADD + QUICK UNDO) -->
+            <!-- LEFT: ADD + UNDO BUTTONS -->
             <div class="flex items-center gap-1.5 shrink-0">
               <button onclick="addQuickCharge('${r.id}')" title="Record charge" class="bg-brandAmber hover:bg-brandAmber-hover active:scale-95 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-lg flex items-center gap-1.5 shadow-xs transition-all">
                 <i class="fa-solid fa-plus text-[11px]"></i>
                 <span>$${activeBtnAmount}</span>
               </button>
-              <button onclick="undoLastCharge('${r.id}', event)" title="Undo last charge on this date" class="w-8 h-8 rounded-lg bg-cream-dark hover:bg-rose-50 text-stone-400 hover:text-rose-600 border border-cream-border flex items-center justify-center active:scale-90 transition-all text-xs">
+              <button onclick="undoLastCharge('${r.id}', event)" title="Undo last charge" class="w-8 h-8 rounded-lg bg-cream-dark hover:bg-rose-50 text-stone-400 hover:text-rose-600 border border-cream-border flex items-center justify-center active:scale-90 transition-all text-xs">
                 <i class="fa-solid fa-rotate-left"></i>
               </button>
             </div>
 
-            <!-- CENTER: PROMINENT ROOM NUMBER + RESIDENT NAME -->
+            <!-- CENTER: ROOM NUMBER + RESIDENT NAME -->
             <div class="flex items-center gap-2.5 min-w-0 flex-1">
               <span class="font-mono font-black text-stone-900 text-base sm:text-lg tracking-tight bg-cream-dark border border-cream-border px-2 py-0.5 rounded-md shrink-0">
                 ${r.room}
@@ -1070,7 +1143,7 @@
               </span>
             </div>
 
-            <!-- RIGHT: COMPACT TODAY COUNT -->
+            <!-- RIGHT: COMPACT COUNT -->
             <div class="text-right shrink-0 pr-1">
               <span class="font-mono text-xs font-bold ${dayCount > 0 ? 'text-brandAmber' : 'text-stone-300'}">
                 ${dayCount > 0 ? `${dayCount} ($${dayCost.toFixed(2)})` : '0'}
@@ -1207,6 +1280,729 @@
       if (db) {
         await db.from('residents').delete().eq('id', residentId);
       }
+    }
+
+    // ===================================================
+    // VIEW 2: MONTHLY SUMMARY SPREADSHEET (CLICK-TO-EDIT GHOST CELLS)
+    // ===================================================
+    function renderSummarySheet() {
+      const tbody = document.getElementById('summary-table-body');
+      const tfoot = document.getElementById('summary-table-footer');
+      const sortBy = document.getElementById('summary-sort-by') ? document.getElementById('summary-sort-by').value : 'room';
+
+      document.querySelectorAll('.col-room').forEach(el => colVisible.room ? el.classList.remove('hidden') : el.classList.add('hidden'));
+      document.querySelectorAll('.col-guest').forEach(el => colVisible.guest ? el.classList.remove('hidden') : el.classList.add('hidden'));
+      document.querySelectorAll('.col-caregiver').forEach(el => colVisible.caregiver ? el.classList.remove('hidden') : el.classList.add('hidden'));
+      document.querySelectorAll('.col-holiday').forEach(el => colVisible.holiday ? el.classList.remove('hidden') : el.classList.add('hidden'));
+
+      // Filter charges in date range (and include undated tickets for accurate billing)
+      const rangeCharges = charges.filter(c => {
+        if (!c.date) return true;
+        return c.date >= summaryRange.start && c.date <= summaryRange.end;
+      });
+
+      let targetResidents = residents.filter(r => {
+        const hasCharges = rangeCharges.some(c => String(c.resident_id) === String(r.id));
+        return hasCharges || !r.is_archived;
+      });
+
+      let computedRows = targetResidents.map(r => {
+        const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
+        
+        const roomTotal = rCharges.filter(c => c.charge_type === 'Room Charge').reduce((acc, c) => acc + Number(c.amount), 0);
+        const guestCost = rCharges.filter(c => c.charge_type === 'Guest Charge').reduce((acc, c) => acc + Number(c.amount), 0);
+        const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0);
+        const holidayCost = rCharges.filter(c => c.charge_type === 'Holiday Charge').reduce((acc, c) => acc + Number(c.amount), 0);
+        
+        const total = rCharges.reduce((acc, c) => acc + Number(c.amount), 0);
+
+        return {
+          resident: r,
+          roomTotal, guestCost, caregiverCost, holidayCost,
+          total
+        };
+      });
+
+      if (hideZeroBalances) {
+        computedRows = computedRows.filter(row => row.total > 0);
+      }
+
+      computedRows.sort((a, b) => {
+        if (sortBy === 'room') {
+          const roomCompare = a.resident.room.localeCompare(b.resident.room, undefined, { numeric: true, sensitivity: 'base' });
+          if (roomCompare !== 0) return roomCompare;
+          return a.resident.name.localeCompare(b.resident.name);
+        } else if (sortBy === 'totalDesc') {
+          return b.total - a.total;
+        } else if (sortBy === 'name') {
+          return a.resident.name.localeCompare(b.resident.name);
+        }
+        return 0;
+      });
+
+      let grandTotals = { 
+        roomDollars: 0, guestDollars: 0, caregiverDollars: 0, holidayDollars: 0, 
+        amount: 0 
+      };
+
+      if (computedRows.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-12 text-center text-stone-400 font-sans italic">
+              No residents with active charges in this date range. Click "Active Charges Only" above to reveal all residents.
+            </td>
+          </tr>
+        `;
+      } else {
+        tbody.innerHTML = computedRows.map(row => {
+          const r = row.resident;
+          grandTotals.roomDollars += row.roomTotal; 
+          grandTotals.guestDollars += row.guestCost;
+          grandTotals.caregiverDollars += row.caregiverCost; 
+          grandTotals.holidayDollars += row.holidayCost;
+          grandTotals.amount += row.total;
+
+          return `
+            <tr class="transition-colors">
+              <td class="py-2.5 px-4 font-bold text-stone-900 whitespace-nowrap">
+                Rm ${r.room}
+                ${r.is_archived ? `<span class="ml-1 text-[9px] bg-stone-200 text-stone-600 px-1 py-0.2 rounded font-sans font-semibold">Archived</span>` : ''}
+              </td>
+              <td class="py-2.5 px-4 text-stone-700 font-sans whitespace-nowrap">${r.name}</td>
+
+              <!-- ROOM (GHOST CELL CLICK-TO-EDIT) -->
+              <td class="col-room py-2 px-3 text-right border-l border-cream-border ${colVisible.room ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Room Charge', ${row.roomTotal})">
+                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.roomTotal > 0 ? 'font-bold text-brandGreen' : 'text-stone-300'}">
+                  ${row.roomTotal > 0 ? `$${row.roomTotal.toFixed(2)}` : '—'}
+                </span>
+              </td>
+
+              <!-- GUEST (GHOST CELL CLICK-TO-EDIT) -->
+              <td class="col-guest py-2 px-3 text-right ${colVisible.guest ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Guest Charge', ${row.guestCost})">
+                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.guestCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
+                  ${row.guestCost > 0 ? `$${row.guestCost.toFixed(2)}` : '—'}
+                </span>
+              </td>
+
+              <!-- CAREGIVER (GHOST CELL CLICK-TO-EDIT) -->
+              <td class="col-caregiver py-2 px-3 text-right ${colVisible.caregiver ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Caregiver Charge', ${row.caregiverCost})">
+                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.caregiverCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
+                  ${row.caregiverCost > 0 ? `$${row.caregiverCost.toFixed(2)}` : '—'}
+                </span>
+              </td>
+
+              <!-- HOLIDAY (GHOST CELL CLICK-TO-EDIT) -->
+              <td class="col-holiday py-2 px-3 text-right ${colVisible.holiday ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Holiday Charge', ${row.holidayCost})">
+                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.holidayCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
+                  ${row.holidayCost > 0 ? `$${row.holidayCost.toFixed(2)}` : '—'}
+                </span>
+              </td>
+
+              <!-- TOTAL BILLED -->
+              <td class="py-2.5 px-5 text-right font-black text-brandAmber bg-amber-50/30 whitespace-nowrap border-l border-cream-border">$${row.total.toFixed(2)}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      tfoot.innerHTML = `
+        <td class="py-3 px-4 uppercase text-stone-600 tracking-wider">Totals</td>
+        <td class="py-3 px-4 text-stone-600 font-sans">${computedRows.length} Residents</td>
+        
+        <td class="col-room py-3 px-3 text-right text-brandGreen font-extrabold font-mono border-l border-cream-border bg-brandGreen/10 ${colVisible.room ? '' : 'hidden'}">$${grandTotals.roomDollars.toFixed(2)}</td>
+        <td class="col-guest py-3 px-3 text-right text-stone-800 font-mono ${colVisible.guest ? '' : 'hidden'}">$${grandTotals.guestDollars.toFixed(2)}</td>
+        <td class="col-caregiver py-3 px-3 text-right text-stone-800 font-mono ${colVisible.caregiver ? '' : 'hidden'}">$${grandTotals.caregiverDollars.toFixed(2)}</td>
+        <td class="col-holiday py-3 px-3 text-right text-stone-800 font-mono border-r border-cream-border ${colVisible.holiday ? '' : 'hidden'}">$${grandTotals.holidayDollars.toFixed(2)}</td>
+        
+        <td class="py-3 px-5 text-right text-brandAmber font-black font-mono text-base bg-amber-50/40 border-l border-cream-border">$${grandTotals.amount.toFixed(2)}</td>
+      `;
+    }
+
+    function startCellEdit(tdElement, residentId, categoryValue, currentValue) {
+      if (tdElement.querySelector('input')) return;
+
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.step = '0.01';
+      input.min = '0';
+      input.value = Number(currentValue).toFixed(2);
+      input.className = 'w-16 sm:w-20 bg-white border border-brandGreen rounded px-1.5 py-0.5 text-right text-stone-900 text-xs font-mono outline-none shadow-sm ring-1 ring-brandGreen';
+
+      const save = () => {
+        handleManualCellEdit(residentId, 'type', categoryValue, input.value, currentValue);
+      };
+
+      input.onblur = save;
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          input.blur();
+        } else if (e.key === 'Escape') {
+          renderSummarySheet();
+        }
+      };
+
+      tdElement.innerHTML = '';
+      tdElement.appendChild(input);
+      input.focus();
+      input.select();
+    }
+
+    async function handleManualCellEdit(residentId, categoryType, categoryValue, rawNewValue, previousValue) {
+      const newAmount = parseFloat(rawNewValue);
+      if (isNaN(newAmount) || newAmount < 0) {
+        showToast('Please enter a valid dollar amount', true);
+        renderSummarySheet();
+        return;
+      }
+
+      const diff = newAmount - previousValue;
+      if (diff === 0) {
+        renderSummarySheet();
+        return;
+      }
+
+      const resident = residents.find(r => String(r.id) === String(residentId));
+      if (!resident) return;
+
+      const displayCategory = categoryValue === 'Room Charge' ? 'Room' : categoryValue;
+
+      if (diff > 0) {
+        const newCharge = {
+          id: crypto.randomUUID(),
+          resident_id: resident.id,
+          room: resident.room,
+          resident_name: resident.name,
+          date: summaryRange.end,
+          meal: 'Unspecified',
+          charge_type: categoryValue,
+          amount: diff,
+          is_flagged: false,
+          is_resolved: false,
+          resolution_note: 'Manual spreadsheet adjustment',
+          created_at: new Date().toISOString()
+        };
+
+        charges.unshift(newCharge);
+        showToast(`Adjusted ${resident.name} ${displayCategory} to $${newAmount.toFixed(2)}`);
+
+        if (db) {
+          await db.from('charges').insert([newCharge]);
+        }
+      } else {
+        let amountToReduce = Math.abs(diff);
+        const matching = charges.filter(c => 
+          String(c.resident_id) === String(residentId) &&
+          (!c.date || (c.date >= summaryRange.start && c.date <= summaryRange.end)) &&
+          c.charge_type === categoryValue
+        );
+
+        for (const item of matching) {
+          if (amountToReduce <= 0) break;
+          const itemAmt = Number(item.amount);
+
+          if (itemAmt <= amountToReduce) {
+            charges = charges.filter(c => String(c.id) !== String(item.id));
+            amountToReduce -= itemAmt;
+            if (db) await db.from('charges').delete().eq('id', item.id);
+          } else {
+            item.amount = itemAmt - amountToReduce;
+            if (db) await db.from('charges').update({ amount: item.amount }).eq('id', item.id);
+            amountToReduce = 0;
+          }
+        }
+
+        showToast(`Reduced ${resident.name} ${displayCategory} to $${newAmount.toFixed(2)}`);
+      }
+
+      renderSummarySheet();
+      renderResidentsGrid();
+    }
+
+    function exportToCSV() {
+      const rangeCharges = charges.filter(c => {
+        if (!c.date) return true;
+        return c.date >= summaryRange.start && c.date <= summaryRange.end;
+      });
+
+      let csv = [`"Billing Range: ${formatWrittenDate(summaryRange.start)} to ${formatWrittenDate(summaryRange.end)}"`];
+      csv.push('Room,Resident Name,Status,Room Total ($),Guest ($),Caregiver ($),Holiday ($),Total Billed ($)');
+
+      let exportResidents = residents.filter(r => {
+        const hasCharges = rangeCharges.some(c => String(c.resident_id) === String(r.id));
+        return hasCharges || !r.is_archived;
+      });
+
+      exportResidents.forEach(r => {
+        const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
+        const totalNum = rCharges.reduce((acc, c) => acc + Number(c.amount), 0);
+
+        if (hideZeroBalances && totalNum <= 0) return;
+        if (rCharges.length === 0 && r.is_archived) return;
+
+        const roomTotal = rCharges.filter(c => c.charge_type === 'Room Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+        const guestCost = rCharges.filter(c => c.charge_type === 'Guest Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+        const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+        const holidayCost = rCharges.filter(c => c.charge_type === 'Holiday Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
+
+        const total = totalNum.toFixed(2);
+        const status = r.is_archived ? 'Archived' : 'Active';
+
+        csv.push(`"${r.room}","${r.name}","${status}",${roomTotal},${guestCost},${caregiverCost},${holidayCost},${total}`);
+      });
+
+      const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = window.URL.createObjectURL(blob);
+      a.download = `Meal_Charges_${summaryRange.start}_to_${summaryRange.end}.csv`;
+      a.click();
+    }
+
+    // ===================================================
+    // VIEW 3: HISTORY (SORT BY PUNCH TIMESTAMP + AUDIT)
+    // ===================================================
+    function setHistoryFilter(filterType) {
+      historyFilter = filterType;
+      const btnAll = document.getElementById('hfilter-all');
+      const btnReview = document.getElementById('hfilter-review');
+
+      if (filterType === 'all') {
+        btnAll.className = 'flex-1 py-1.5 text-center rounded-lg bg-white text-stone-900 shadow-sm transition-all truncate px-2 font-bold';
+        btnReview.className = 'flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-2 font-medium';
+      } else {
+        btnReview.className = 'flex-1 py-1.5 text-center rounded-lg bg-white text-brandAmber shadow-sm transition-all truncate px-2 font-bold';
+        btnAll.className = 'flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-2 font-medium';
+      }
+      renderHistoryTable();
+    }
+
+    function renderHistoryTable() {
+      const tbody = document.getElementById('history-table-body');
+      const badge = document.getElementById('history-count-badge');
+      const reviewChip = document.getElementById('history-review-chip');
+      const reviewCountText = document.getElementById('history-review-count');
+      const reviewIcon = document.getElementById('history-review-icon');
+      const query = (document.getElementById('history-search').value || '').toLowerCase().trim();
+      const sortBy = document.getElementById('history-sort-by') ? document.getElementById('history-sort-by').value : 'entryDesc';
+
+      const inRangeCharges = charges.filter(c => {
+        if (!c.date) return true; // Always show undated tickets for review
+        return c.date >= historyRange.start && c.date <= historyRange.end;
+      });
+
+      const unresolvedIssues = inRangeCharges.filter(c => isChargeIssue(c) && !c.is_resolved);
+      const totalIssues = inRangeCharges.filter(c => isChargeIssue(c));
+
+      if (reviewChip && reviewCountText && reviewIcon) {
+        if (unresolvedIssues.length > 0) {
+          reviewChip.className = 'flex px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs font-bold items-center gap-1.5';
+          reviewIcon.className = 'fa-solid fa-triangle-exclamation text-amber-500';
+          reviewCountText.textContent = `${unresolvedIssues.length} to Review`;
+        } else if (totalIssues.length > 0) {
+          reviewChip.className = 'flex px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold items-center gap-1.5';
+          reviewIcon.className = 'fa-solid fa-circle-check text-emerald-600';
+          reviewCountText.textContent = `All Resolved (${totalIssues.length})`;
+        } else {
+          reviewChip.className = 'hidden';
+        }
+      }
+
+      let filtered = inRangeCharges.filter(c => {
+        if (historyFilter === 'review') return isChargeIssue(c);
+        return true;
+      });
+
+      filtered = filtered.filter(c => {
+        const writtenDate = formatWrittenDate(c.date).toLowerCase();
+        const note = (c.resolution_note || '').toLowerCase();
+        return (
+          String(c.room).toLowerCase().includes(query) ||
+          String(c.resident_name).toLowerCase().includes(query) ||
+          String(c.meal || '').toLowerCase().includes(query) ||
+          String(c.charge_type).toLowerCase().includes(query) ||
+          String(c.date || '').includes(query) ||
+          writtenDate.includes(query) ||
+          note.includes(query)
+        );
+      });
+
+      // Sort with 'entryDesc' priority
+      filtered.sort((a, b) => {
+        if (sortBy === 'entryDesc') {
+          const timeA = a.created_at || a.date || '';
+          const timeB = b.created_at || b.date || '';
+          return timeB.localeCompare(timeA);
+        } else if (sortBy === 'dateDesc') {
+          return (b.date || '').localeCompare(a.date || '');
+        } else if (sortBy === 'dateAsc') {
+          return (a.date || '').localeCompare(b.date || '');
+        } else if (sortBy === 'room') {
+          const roomComp = a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
+          if (roomComp !== 0) return roomComp;
+          return a.resident_name.localeCompare(b.resident_name);
+        } else if (sortBy === 'name') {
+          return a.resident_name.localeCompare(b.resident_name);
+        }
+        return 0;
+      });
+
+      badge.textContent = `${filtered.length}`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-stone-400 italic">No charges matching filter in this range.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => {
+        const cleanType = c.charge_type === 'Room Charge' ? 'Room' : c.charge_type;
+        const isDup = isDuplicateCharge(c);
+        const isFlagged = !!c.is_flagged;
+        const isResolved = !!c.is_resolved;
+        const noDate = !c.date;
+        const noMeal = !c.meal || c.meal === 'Unspecified';
+        const hasIssue = isDup || isFlagged || noDate || noMeal;
+
+        let rowHighlight = '';
+        if (hasIssue) {
+          rowHighlight = isResolved ? 'bg-emerald-50/40' : (isDup ? 'bg-amber-50/70' : 'bg-rose-50/40');
+        }
+
+        return `
+          <tr class="transition-colors ${rowHighlight}">
+            <td class="py-3 px-3 text-center">
+              <button onclick="toggleManualFlag('${c.id}')" title="${isFlagged ? 'Unflag ticket' : 'Flag ticket for review'}" class="p-1 rounded hover:bg-stone-200 transition-colors">
+                <i class="fa-solid fa-flag text-xs ${isFlagged ? 'text-rose-500 scale-110' : 'text-stone-300 hover:text-stone-500'}"></i>
+              </button>
+            </td>
+
+            <td class="py-3 px-4 font-sans font-medium text-stone-900 whitespace-nowrap">
+              ${c.date ? formatWrittenDate(c.date) : '<span class="text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-bold text-[11px]"><i class="fa-solid fa-triangle-exclamation mr-1"></i>No Date on Ticket</span>'}
+            </td>
+            <td class="py-3 px-3 font-bold text-brandAmber">Rm ${c.room}</td>
+            
+            <td class="py-3 px-4 text-stone-800 font-sans font-medium whitespace-nowrap">
+              <span>${c.resident_name}</span>
+              ${isDup ? `<span class="ml-1.5 text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded font-sans font-bold inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Duplicate Room Tray</span>` : ''}
+              ${isFlagged ? `<span class="ml-1.5 text-[10px] bg-rose-100 text-rose-700 border border-rose-300 px-1.5 py-0.5 rounded font-sans font-bold">Flagged</span>` : ''}
+              ${noMeal ? `<span class="ml-1.5 text-[10px] bg-stone-200 text-stone-700 border border-stone-300 px-1.5 py-0.5 rounded font-sans font-bold">No Meal Time</span>` : ''}
+              ${c.resolution_note ? `<span class="block text-[11px] text-emerald-800 font-sans italic font-normal mt-0.5">Note: "${c.resolution_note}"</span>` : ''}
+            </td>
+
+            <td class="py-3 px-3 text-stone-700">${c.meal || '<span class="italic text-stone-400">Unspecified</span>'}</td>
+            <td class="py-3 px-3 text-stone-600">${cleanType}</td>
+            <td class="py-3 px-4 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
+
+            <td class="py-3 px-4 text-center whitespace-nowrap">
+              ${hasIssue ? (
+                isResolved ? `
+                  <button onclick="toggleResolved('${c.id}')" title="Click to reopen / unresolve" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200 transition-colors">
+                    <i class="fa-solid fa-check"></i> Resolved
+                  </button>
+                ` : `
+                  <button onclick="toggleResolved('${c.id}')" title="Mark this ticket investigated and resolved" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-sans font-bold bg-cream-dark hover:bg-emerald-50 text-stone-600 hover:text-emerald-700 border border-cream-border hover:border-emerald-300 transition-all shadow-2xs">
+                    <i class="fa-regular fa-circle-check"></i> Resolve
+                  </button>
+                `
+              ) : `
+                <span class="text-stone-300 text-xs font-sans">-</span>
+              `}
+            </td>
+
+            <td class="py-3 px-3 text-center">
+              <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50 transition-colors" title="Delete entry">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function toggleManualFlag(chargeId) {
+      const charge = charges.find(c => String(c.id) === String(chargeId));
+      if (!charge) return;
+
+      charge.is_flagged = !charge.is_flagged;
+      renderHistoryTable();
+      showToast(charge.is_flagged ? 'Ticket flagged for review' : 'Ticket flag cleared');
+
+      if (db) {
+        await db.from('charges').update({ is_flagged: charge.is_flagged }).eq('id', chargeId);
+      }
+    }
+
+    async function toggleResolved(chargeId) {
+      const charge = charges.find(c => String(c.id) === String(chargeId));
+      if (!charge) return;
+
+      if (!charge.is_resolved) {
+        const note = prompt('Optional explanation / approval note (or leave blank and click OK):', charge.resolution_note || '');
+        if (note === null) return;
+        charge.is_resolved = true;
+        charge.resolution_note = note.trim() || null;
+        showToast('Ticket marked as resolved');
+      } else {
+        if (confirm('Reopen this ticket and mark it as unresolved?')) {
+          charge.is_resolved = false;
+          showToast('Ticket reopened');
+        } else {
+          return;
+        }
+      }
+
+      renderHistoryTable();
+      if (currentView === 'calendar') {
+        renderCalendar();
+        if (selectedDrilldownDate) renderDrilldownTable();
+      }
+
+      if (db) {
+        await db.from('charges').update({ 
+          is_resolved: charge.is_resolved,
+          resolution_note: charge.resolution_note 
+        }).eq('id', chargeId);
+      }
+    }
+
+    // ===================================================
+    // VIEW 4: AUDIT CALENDAR (WITH MISSING BATCH CONTROLS)
+    // ===================================================
+    function setCalendarToCurrentMonth() {
+      const now = new Date();
+      calendarRange.start = getFormattedDate(new Date(now.getFullYear(), now.getMonth(), 1));
+      calendarRange.end = getFormattedDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+      updateRangeDisplayBadges();
+      renderCalendar();
+    }
+
+    function changeCalendarMonth(delta) {
+      const parsed = new Date(calendarRange.start + 'T00:00:00');
+      parsed.setMonth(parsed.getMonth() + delta);
+      calendarRange.start = getFormattedDate(new Date(parsed.getFullYear(), parsed.getMonth(), 1));
+      calendarRange.end = getFormattedDate(new Date(parsed.getFullYear(), parsed.getMonth() + 1, 0));
+      updateRangeDisplayBadges();
+      renderCalendar();
+    }
+
+    function getDayAlerts(dateISO) {
+      return calendarAlerts.filter(a => a.date === dateISO);
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('calendar-days-grid');
+      grid.innerHTML = '';
+
+      const startDate = new Date(calendarRange.start + 'T00:00:00');
+      const endDate = new Date(calendarRange.end + 'T00:00:00');
+
+      const startDayOfWeek = startDate.getDay();
+      for (let i = 0; i < startDayOfWeek; i++) {
+        grid.innerHTML += `<div class="min-h-[75px] bg-cream-dark/40 rounded-xl border border-cream-border"></div>`;
+      }
+
+      let curr = new Date(startDate);
+      while (curr <= endDate) {
+        const dateISO = getFormattedDate(curr);
+        const dayNum = curr.getDate();
+        const monthShort = curr.toLocaleDateString('en-US', { month: 'short' });
+
+        const dayCharges = charges.filter(c => c.date === dateISO);
+        const dayTotal = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
+        const unresolvedDups = getDayDuplicateCount(dateISO);
+        const missingMealAlerts = getDayAlerts(dateISO);
+        const isToday = dateISO === todayISO;
+
+        const hasWarning = unresolvedDups > 0 || missingMealAlerts.length > 0;
+
+        grid.innerHTML += `
+          <div onclick="selectCalendarDate('${dateISO}')" class="min-h-[75px] p-2 bg-white border ${isToday ? 'border-brandAmber ring-1 ring-brandAmber/30' : (hasWarning ? 'border-amber-400 bg-amber-50/20' : 'border-cream-border')} rounded-xl cursor-pointer hover:border-brandGreen transition-all flex flex-col justify-between shadow-xs relative">
+            
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="${isToday ? 'text-brandAmber font-black' : 'text-stone-700'}">
+                ${dayNum === 1 || dateISO === calendarRange.start ? `<span class="text-[9px] uppercase tracking-tighter text-stone-400 mr-0.5">${monthShort}</span>` : ''}${dayNum}
+              </span>
+              
+              <div class="flex items-center gap-1">
+                ${unresolvedDups > 0 ? `
+                  <span title="${unresolvedDups} duplicate room tray charges" class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                    !
+                  </span>
+                ` : ''}
+                ${missingMealAlerts.length > 0 ? `
+                  <span title="${missingMealAlerts.map(m => m.meal).join(', ')} batch missing" class="w-4 h-4 rounded-full bg-rose-600 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                    <i class="fa-solid fa-utensils text-[7px]"></i>
+                  </span>
+                ` : ''}
+                ${dayCharges.length > 0 ? `<span class="text-[10px] bg-cream-dark text-stone-700 px-1.5 rounded font-mono font-semibold">${dayCharges.length}</span>` : ''}
+              </div>
+            </div>
+
+            <div>
+              ${missingMealAlerts.length > 0 ? `
+                <div class="text-[9px] text-rose-600 font-bold leading-tight truncate">
+                  ${missingMealAlerts.map(m => m.meal[0]).join('/')} Missing
+                </div>
+              ` : ''}
+              ${dayCharges.length > 0 ? `<div class="font-bold text-xs text-brandAmber font-mono">$${dayTotal.toFixed(2)}</div>` : `<div class="text-[10px] text-stone-300 italic">-</div>`}
+            </div>
+          </div>
+        `;
+
+        curr.setDate(curr.getDate() + 1);
+      }
+    }
+
+    function selectCalendarDate(dateISO) {
+      selectedDrilldownDate = dateISO;
+      const panel = document.getElementById('calendar-drilldown-panel');
+      panel.classList.remove('hidden');
+      document.getElementById('drilldown-date-title').textContent = formatWrittenDate(dateISO);
+
+      // Sync the missing batch checkboxes for this date
+      const alerts = getDayAlerts(dateISO);
+      document.getElementById('chk-miss-breakfast').checked = alerts.some(a => a.meal === 'Breakfast');
+      document.getElementById('chk-miss-lunch').checked = alerts.some(a => a.meal === 'Lunch');
+      document.getElementById('chk-miss-dinner').checked = alerts.some(a => a.meal === 'Dinner');
+
+      renderDrilldownTable();
+    }
+
+    async function toggleMissingMealBatch(meal, isChecked) {
+      if (!selectedDrilldownDate) return;
+
+      if (isChecked) {
+        const newAlert = { date: selectedDrilldownDate, meal: meal, note: 'Flagged as missing batch by staff' };
+        calendarAlerts = calendarAlerts.filter(a => !(a.date === selectedDrilldownDate && a.meal === meal));
+        calendarAlerts.push(newAlert);
+        showToast(`${meal} marked as missing for ${formatWrittenDate(selectedDrilldownDate)}`);
+
+        if (db) {
+          await db.from('calendar_alerts').upsert(newAlert);
+        }
+      } else {
+        calendarAlerts = calendarAlerts.filter(a => !(a.date === selectedDrilldownDate && a.meal === meal));
+        showToast(`${meal} alert cleared for ${formatWrittenDate(selectedDrilldownDate)}`);
+
+        if (db) {
+          await db.from('calendar_alerts').delete().match({ date: selectedDrilldownDate, meal: meal });
+        }
+      }
+
+      renderCalendar();
+    }
+
+    function renderDrilldownTable() {
+      if (!selectedDrilldownDate) return;
+      const sortBy = document.getElementById('drilldown-sort-by') ? document.getElementById('drilldown-sort-by').value : 'room';
+      const dayCharges = charges.filter(c => c.date === selectedDrilldownDate);
+      const dayCost = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
+      const unresolvedDups = getDayDuplicateCount(selectedDrilldownDate);
+
+      document.getElementById('drilldown-stats').textContent = `${dayCharges.length} total charges ($${dayCost.toFixed(2)})${unresolvedDups > 0 ? ` • ⚠️ ${unresolvedDups} unresolved duplicate charges` : ''}`;
+
+      const tbody = document.getElementById('drilldown-table-body');
+      if (dayCharges.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-stone-400 italic">No charges recorded on this date.</td></tr>`;
+        return;
+      }
+
+      const mealOrder = { 'Breakfast': 1, 'Lunch': 2, 'Dinner': 3, 'Unspecified': 4 };
+      let sortedCharges = [...dayCharges].sort((a, b) => {
+        if (sortBy === 'room') {
+          const roomCompare = a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
+          if (roomCompare !== 0) return roomCompare;
+          return a.resident_name.localeCompare(b.resident_name);
+        } else if (sortBy === 'meal') {
+          const mealA = mealOrder[a.meal] || 99;
+          const mealB = mealOrder[b.meal] || 99;
+          if (mealA !== mealB) return mealA - mealB;
+          return a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
+        } else if (sortBy === 'name') {
+          return a.resident_name.localeCompare(b.resident_name);
+        } else if (sortBy === 'amount') {
+          return Number(b.amount) - Number(a.amount);
+        }
+        return 0;
+      });
+
+      tbody.innerHTML = sortedCharges.map(c => {
+        const cleanType = c.charge_type === 'Room Charge' ? 'Room' : c.charge_type;
+        const isDup = isDuplicateCharge(c);
+        const isResolved = !!c.is_resolved;
+
+        return `
+          <tr class="hover:bg-cream-dark/50 font-mono text-xs ${isDup ? (isResolved ? 'bg-emerald-50/30' : 'bg-amber-50/70 border-l-2 border-amber-400') : ''}">
+            <td class="py-2.5 px-3 font-bold text-stone-900">Rm ${c.room}</td>
+            <td class="py-2.5 px-3 font-sans text-stone-800 font-medium">
+              ${c.resident_name}
+              ${isDup ? `<span class="ml-1 text-[9px] bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.2 rounded font-sans font-bold">⚠️ Duplicate Tray</span>` : ''}
+              ${c.resolution_note ? `<span class="block text-[10px] text-emerald-800 italic font-normal">"${c.resolution_note}"</span>` : ''}
+            </td>
+            <td class="py-2.5 px-3 text-stone-600">${c.meal || 'Unspecified'}</td>
+            <td class="py-2.5 px-3 text-stone-500">${cleanType}</td>
+            <td class="py-2.5 px-3 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
+            
+            <td class="py-2.5 px-3 text-center">
+              ${isDup ? (
+                isResolved ? `<span class="text-[10px] text-emerald-700 font-sans font-bold bg-emerald-100 border border-emerald-300 px-1.5 py-0.5 rounded">✓ Resolved</span>` 
+                           : `<span class="text-[10px] text-amber-700 font-sans font-bold bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded">Needs Review</span>`
+              ) : `<span class="text-stone-300">-</span>`}
+            </td>
+
+            <td class="py-2.5 px-3 text-center">
+              <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50" title="Delete entry">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function deleteSingleCharge(chargeId) {
+      charges = charges.filter(c => String(c.id) !== String(chargeId));
+      showToast('Charge deleted');
+
+      if (currentView === 'history') renderHistoryTable();
+      if (currentView === 'summary') renderSummarySheet();
+      if (currentView === 'daily') renderResidentsGrid();
+      if (currentView === 'calendar') {
+        if (selectedDrilldownDate) renderDrilldownTable();
+        renderCalendar();
+      }
+
+      if (db) {
+        await db.from('charges').delete().eq('id', chargeId);
+      }
+    }
+
+    function closeDrilldown() {
+      document.getElementById('calendar-drilldown-panel').classList.add('hidden');
+    }
+
+    // ===================================================
+    // NAVIGATION & UTILS
+    // ===================================================
+    function switchView(view) {
+      currentView = view;
+      ['daily', 'summary', 'history', 'calendar'].forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const btn = document.getElementById(`tab-${v}`);
+        if (v === view) {
+          el.classList.remove('hidden');
+          btn.className = 'px-3.5 py-1.5 rounded-lg bg-brandGreen text-white font-semibold shadow-sm transition-all';
+        } else {
+          el.classList.add('hidden');
+          btn.className = 'px-3.5 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 transition-all';
+        }
+      });
+      renderCurrentView();
+    }
+
+    function renderCurrentView() {
+      if (currentView === 'daily') renderResidentsGrid();
+      if (currentView === 'summary') renderSummarySheet();
+      if (currentView === 'history') renderHistoryTable();
+      if (currentView === 'calendar') renderCalendar();
     }
 
     function openRangePicker(target) {
@@ -1370,6 +2166,10 @@
         setAuditPrintDate(pickerSelection.start);
       } else if (pickerTarget === 'preset') {
         batchPreset.date = pickerSelection.start;
+        batchPreset.noDate = false;
+        const noDateChk = document.getElementById('chk-no-date');
+        if (noDateChk) noDateChk.checked = false;
+        toggleNoDate(false);
         updatePresetDateBadge();
         updatePresetBadge();
         renderResidentsGrid();
@@ -1448,664 +2248,6 @@
       }
 
       renderSummarySheet();
-    }
-
-    // ===================================================
-    // VIEW 2: BILLING MATRIX SPREADSHEET
-    // ===================================================
-    function renderSummarySheet() {
-      const tbody = document.getElementById('summary-table-body');
-      const tfoot = document.getElementById('summary-table-footer');
-      const sortBy = document.getElementById('summary-sort-by') ? document.getElementById('summary-sort-by').value : 'room';
-
-      document.querySelectorAll('.col-room').forEach(el => colVisible.room ? el.classList.remove('hidden') : el.classList.add('hidden'));
-      document.querySelectorAll('.col-guest').forEach(el => colVisible.guest ? el.classList.remove('hidden') : el.classList.add('hidden'));
-      document.querySelectorAll('.col-caregiver').forEach(el => colVisible.caregiver ? el.classList.remove('hidden') : el.classList.add('hidden'));
-      document.querySelectorAll('.col-holiday').forEach(el => colVisible.holiday ? el.classList.remove('hidden') : el.classList.add('hidden'));
-
-      const rangeCharges = charges.filter(c => c.date >= summaryRange.start && c.date <= summaryRange.end);
-
-      let targetResidents = residents.filter(r => {
-        const hasCharges = rangeCharges.some(c => String(c.resident_id) === String(r.id));
-        return hasCharges || !r.is_archived;
-      });
-
-      let computedRows = targetResidents.map(r => {
-        const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
-        
-        const roomTotal = rCharges.filter(c => c.charge_type === 'Room Charge').reduce((acc, c) => acc + Number(c.amount), 0);
-        const guestCost = rCharges.filter(c => c.charge_type === 'Guest Charge').reduce((acc, c) => acc + Number(c.amount), 0);
-        const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0);
-        const holidayCost = rCharges.filter(c => c.charge_type === 'Holiday Charge').reduce((acc, c) => acc + Number(c.amount), 0);
-        
-        const total = rCharges.reduce((acc, c) => acc + Number(c.amount), 0);
-
-        return {
-          resident: r,
-          roomTotal, guestCost, caregiverCost, holidayCost,
-          total
-        };
-      });
-
-      if (hideZeroBalances) {
-        computedRows = computedRows.filter(row => row.total > 0);
-      }
-
-      computedRows.sort((a, b) => {
-        if (sortBy === 'room') {
-          const roomCompare = a.resident.room.localeCompare(b.resident.room, undefined, { numeric: true, sensitivity: 'base' });
-          if (roomCompare !== 0) return roomCompare;
-          return a.resident.name.localeCompare(b.resident.name);
-        } else if (sortBy === 'totalDesc') {
-          return b.total - a.total;
-        } else if (sortBy === 'name') {
-          return a.resident.name.localeCompare(b.resident.name);
-        }
-        return 0;
-      });
-
-      let grandTotals = { 
-        roomDollars: 0, guestDollars: 0, caregiverDollars: 0, holidayDollars: 0, 
-        amount: 0 
-      };
-
-      if (computedRows.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="py-12 text-center text-stone-400 font-sans italic">
-              No residents with active charges in this date range. Click "Active Charges Only" above to reveal all residents.
-            </td>
-          </tr>
-        `;
-      } else {
-        tbody.innerHTML = computedRows.map(row => {
-          const r = row.resident;
-          grandTotals.roomDollars += row.roomTotal; 
-          grandTotals.guestDollars += row.guestCost;
-          grandTotals.caregiverDollars += row.caregiverCost; 
-          grandTotals.holidayDollars += row.holidayCost;
-          grandTotals.amount += row.total;
-
-          return `
-            <tr class="transition-colors">
-              <td class="py-2.5 px-4 font-bold text-stone-900 whitespace-nowrap">
-                Rm ${r.room}
-                ${r.is_archived ? `<span class="ml-1 text-[9px] bg-stone-200 text-stone-600 px-1 py-0.2 rounded font-sans font-semibold">Archived</span>` : ''}
-              </td>
-              <td class="py-2.5 px-4 text-stone-700 font-sans whitespace-nowrap">${r.name}</td>
-
-              <!-- Room Charges -->
-              <td class="col-room py-2 px-3 text-right border-l border-cream-border ${colVisible.room ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Room Charge', ${row.roomTotal})">
-                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.roomTotal > 0 ? 'font-bold text-brandGreen' : 'text-stone-300'}">
-                  ${row.roomTotal > 0 ? `$${row.roomTotal.toFixed(2)}` : '—'}
-                </span>
-              </td>
-
-              <!-- Guest Charges -->
-              <td class="col-guest py-2 px-3 text-right ${colVisible.guest ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Guest Charge', ${row.guestCost})">
-                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.guestCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
-                  ${row.guestCost > 0 ? `$${row.guestCost.toFixed(2)}` : '—'}
-                </span>
-              </td>
-
-              <!-- Caregiver Charges -->
-              <td class="col-caregiver py-2 px-3 text-right ${colVisible.caregiver ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Caregiver Charge', ${row.caregiverCost})">
-                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.caregiverCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
-                  ${row.caregiverCost > 0 ? `$${row.caregiverCost.toFixed(2)}` : '—'}
-                </span>
-              </td>
-
-              <!-- Holiday Charges -->
-              <td class="col-holiday py-2 px-3 text-right ${colVisible.holiday ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Holiday Charge', ${row.holidayCost})">
-                <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.holidayCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
-                  ${row.holidayCost > 0 ? `$${row.holidayCost.toFixed(2)}` : '—'}
-                </span>
-              </td>
-
-              <td class="py-2.5 px-5 text-right font-black text-brandAmber bg-amber-50/30 whitespace-nowrap border-l border-cream-border">$${row.total.toFixed(2)}</td>
-            </tr>
-          `;
-        }).join('');
-      }
-
-      tfoot.innerHTML = `
-        <td class="py-3 px-4 uppercase text-stone-600 tracking-wider">Totals</td>
-        <td class="py-3 px-4 text-stone-600 font-sans">${computedRows.length} Residents</td>
-        
-        <td class="col-room py-3 px-3 text-right text-brandGreen font-extrabold font-mono border-l border-cream-border bg-brandGreen/10 ${colVisible.room ? '' : 'hidden'}">$${grandTotals.roomDollars.toFixed(2)}</td>
-        <td class="col-guest py-3 px-3 text-right text-stone-800 font-mono ${colVisible.guest ? '' : 'hidden'}">$${grandTotals.guestDollars.toFixed(2)}</td>
-        <td class="col-caregiver py-3 px-3 text-right text-stone-800 font-mono ${colVisible.caregiver ? '' : 'hidden'}">$${grandTotals.caregiverDollars.toFixed(2)}</td>
-        <td class="col-holiday py-3 px-3 text-right text-stone-800 font-mono border-r border-cream-border ${colVisible.holiday ? '' : 'hidden'}">$${grandTotals.holidayDollars.toFixed(2)}</td>
-        
-        <td class="py-3 px-5 text-right text-brandAmber font-black font-mono text-base bg-amber-50/40 border-l border-cream-border">$${grandTotals.amount.toFixed(2)}</td>
-      `;
-    }
-
-function startCellEdit(tdElement, residentId, categoryValue, currentValue) {
-      // Prevent creating multiple inputs if already clicked
-      if (tdElement.querySelector('input')) return;
-
-      const input = document.createElement('input');
-      input.type = 'number';
-      input.step = '0.01';
-      input.min = '0';
-      input.value = Number(currentValue).toFixed(2);
-      input.className = 'w-16 sm:w-20 bg-white border border-brandGreen rounded px-1.5 py-0.5 text-right text-stone-900 text-xs font-mono outline-none shadow-sm ring-1 ring-brandGreen';
-
-      // Save on blur (clicking outside) or Enter key
-      const save = () => {
-        handleManualCellEdit(residentId, 'type', categoryValue, input.value, currentValue);
-      };
-
-      input.onblur = save;
-      input.onkeydown = (e) => {
-        if (e.key === 'Enter') {
-          input.blur();
-        } else if (e.key === 'Escape') {
-          renderSummarySheet(); // Revert back without saving
-        }
-      };
-
-      tdElement.innerHTML = '';
-      tdElement.appendChild(input);
-      input.focus();
-      input.select();
-    }
-    
-    async function handleManualCellEdit(residentId, categoryType, categoryValue, rawNewValue, previousValue) {
-      const newAmount = parseFloat(rawNewValue);
-      if (isNaN(newAmount) || newAmount < 0) {
-        showToast('Please enter a valid dollar amount', true);
-        renderSummarySheet();
-        return;
-      }
-
-      const diff = newAmount - previousValue;
-      if (diff === 0) return;
-
-      const resident = residents.find(r => String(r.id) === String(residentId));
-      if (!resident) return;
-
-      const displayCategory = categoryValue === 'Room Charge' ? 'Room' : categoryValue;
-
-      if (diff > 0) {
-        const newCharge = {
-          id: crypto.randomUUID(),
-          resident_id: resident.id,
-          room: resident.room,
-          resident_name: resident.name,
-          date: summaryRange.end,
-          meal: 'Breakfast',
-          charge_type: categoryValue,
-          amount: diff,
-          is_flagged: false,
-          is_resolved: false,
-          resolution_note: null
-        };
-
-        charges.unshift(newCharge);
-        showToast(`Adjusted ${resident.name} ${displayCategory} to $${newAmount.toFixed(2)}`);
-
-        if (db) {
-          await db.from('charges').insert([newCharge]);
-        }
-      } else {
-        let amountToReduce = Math.abs(diff);
-        const matching = charges.filter(c => 
-          String(c.resident_id) === String(residentId) &&
-          c.date >= summaryRange.start && c.date <= summaryRange.end &&
-          c.charge_type === categoryValue
-        );
-
-        for (const item of matching) {
-          if (amountToReduce <= 0) break;
-          const itemAmt = Number(item.amount);
-
-          if (itemAmt <= amountToReduce) {
-            charges = charges.filter(c => String(c.id) !== String(item.id));
-            amountToReduce -= itemAmt;
-            if (db) await db.from('charges').delete().eq('id', item.id);
-          } else {
-            item.amount = itemAmt - amountToReduce;
-            if (db) await db.from('charges').update({ amount: item.amount }).eq('id', item.id);
-            amountToReduce = 0;
-          }
-        }
-
-        showToast(`Reduced ${resident.name} ${displayCategory} to $${newAmount.toFixed(2)}`);
-      }
-
-      renderSummarySheet();
-      renderResidentsGrid();
-    }
-
-    function exportToCSV() {
-      const rangeCharges = charges.filter(c => c.date >= summaryRange.start && c.date <= summaryRange.end);
-      let csv = [`"Billing Range: ${formatWrittenDate(summaryRange.start)} to ${formatWrittenDate(summaryRange.end)}"`];
-      csv.push('Room,Resident Name,Status,Room Total ($),Guest ($),Caregiver ($),Holiday ($),Total Billed ($)');
-
-      let exportResidents = residents.filter(r => {
-        const hasCharges = rangeCharges.some(c => String(c.resident_id) === String(r.id));
-        return hasCharges || !r.is_archived;
-      });
-
-      exportResidents.forEach(r => {
-        const rCharges = rangeCharges.filter(c => String(c.resident_id) === String(r.id));
-        const totalNum = rCharges.reduce((acc, c) => acc + Number(c.amount), 0);
-
-        if (hideZeroBalances && totalNum <= 0) return;
-        if (rCharges.length === 0 && r.is_archived) return;
-
-        const roomTotal = rCharges.filter(c => c.charge_type === 'Room Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
-        const guestCost = rCharges.filter(c => c.charge_type === 'Guest Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
-        const caregiverCost = rCharges.filter(c => c.charge_type === 'Caregiver Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
-        const holidayCost = rCharges.filter(c => c.charge_type === 'Holiday Charge').reduce((acc, c) => acc + Number(c.amount), 0).toFixed(2);
-
-        const total = totalNum.toFixed(2);
-        const status = r.is_archived ? 'Archived' : 'Active';
-
-        csv.push(`"${r.room}","${r.name}","${status}",${roomTotal},${guestCost},${caregiverCost},${holidayCost},${total}`);
-      });
-
-      const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
-      const a = document.createElement('a');
-      a.href = window.URL.createObjectURL(blob);
-      a.download = `Meal_Charges_${summaryRange.start}_to_${summaryRange.end}.csv`;
-      a.click();
-    }
-
-    // ===================================================
-    // VIEW 3: HISTORY (STREAMLINED REVIEW QUEUE & RESOLUTION)
-    // ===================================================
-    function setHistoryFilter(filterType) {
-      historyFilter = filterType;
-      const btnAll = document.getElementById('hfilter-all');
-      const btnReview = document.getElementById('hfilter-review');
-
-      if (filterType === 'all') {
-        btnAll.className = 'flex-1 py-1.5 text-center rounded-lg bg-white text-stone-900 shadow-sm transition-all truncate px-2 font-bold';
-        btnReview.className = 'flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-2 font-medium';
-      } else {
-        btnReview.className = 'flex-1 py-1.5 text-center rounded-lg bg-white text-brandAmber shadow-sm transition-all truncate px-2 font-bold';
-        btnAll.className = 'flex-1 py-1.5 text-center rounded-lg text-stone-600 hover:text-stone-900 transition-all truncate px-2 font-medium';
-      }
-      renderHistoryTable();
-    }
-
-    function renderHistoryTable() {
-      const tbody = document.getElementById('history-table-body');
-      const badge = document.getElementById('history-count-badge');
-      const reviewChip = document.getElementById('history-review-chip');
-      const reviewCountText = document.getElementById('history-review-count');
-      const reviewIcon = document.getElementById('history-review-icon');
-      const query = (document.getElementById('history-search').value || '').toLowerCase().trim();
-      const sortBy = document.getElementById('history-sort-by') ? document.getElementById('history-sort-by').value : 'entryDesc';
-
-      const inRangeCharges = charges.filter(c => c.date >= historyRange.start && c.date <= historyRange.end);
-
-      const unresolvedIssues = inRangeCharges.filter(c => isChargeIssue(c) && !c.is_resolved);
-      const totalIssues = inRangeCharges.filter(c => isChargeIssue(c));
-
-      if (reviewChip && reviewCountText && reviewIcon) {
-        if (unresolvedIssues.length > 0) {
-          reviewChip.className = 'flex px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs font-bold items-center gap-1.5';
-          reviewIcon.className = 'fa-solid fa-triangle-exclamation text-amber-500';
-          reviewCountText.textContent = `${unresolvedIssues.length} to Review`;
-        } else if (totalIssues.length > 0) {
-          reviewChip.className = 'flex px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold items-center gap-1.5';
-          reviewIcon.className = 'fa-solid fa-circle-check text-emerald-600';
-          reviewCountText.textContent = `All Resolved (${totalIssues.length})`;
-        } else {
-          reviewChip.className = 'hidden';
-        }
-      }
-
-      let filtered = inRangeCharges.filter(c => {
-        if (historyFilter === 'review') return isChargeIssue(c);
-        return true;
-      });
-
-      filtered = filtered.filter(c => {
-        const writtenDate = formatWrittenDate(c.date).toLowerCase();
-        const note = (c.resolution_note || '').toLowerCase();
-        return (
-          String(c.room).toLowerCase().includes(query) ||
-          String(c.resident_name).toLowerCase().includes(query) ||
-          String(c.meal).toLowerCase().includes(query) ||
-          String(c.charge_type).toLowerCase().includes(query) ||
-          String(c.date).includes(query) ||
-          writtenDate.includes(query) ||
-          note.includes(query)
-        );
-      });
-
-      // Sort
-      filtered.sort((a, b) => {
-        if (sortBy === 'entryDesc') {
-          // Sort by creation timestamp; fall back to meal date if legacy entry
-          const timeA = a.created_at || a.date || '';
-          const timeB = b.created_at || b.date || '';
-          return timeB.localeCompare(timeA);
-        } else if (sortBy === 'dateDesc') {
-          return b.date.localeCompare(a.date);
-        } else if (sortBy === 'dateAsc') {
-          return a.date.localeCompare(b.date);
-        } else if (sortBy === 'room') {
-          const roomComp = a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
-          if (roomComp !== 0) return roomComp;
-          return a.resident_name.localeCompare(b.resident_name);
-        } else if (sortBy === 'name') {
-          return a.resident_name.localeCompare(b.resident_name);
-        }
-        return 0;
-      });
-
-      badge.textContent = `${filtered.length}`;
-
-      if (filtered.length === 0) {
-        const emptyMsg = historyFilter === 'all' 
-          ? 'No charges found in selected date range.' 
-          : 'No duplicate charges or flagged tickets found in this date range.';
-        tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-stone-400 italic">${emptyMsg}</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = filtered.map(c => {
-        const cleanType = c.charge_type === 'Room Charge' ? 'Room' : c.charge_type;
-        const isDup = isDuplicateCharge(c);
-        const isFlagged = !!c.is_flagged;
-        const isResolved = !!c.is_resolved;
-        const hasIssue = isDup || isFlagged;
-
-        let rowHighlight = '';
-        if (hasIssue) {
-          rowHighlight = isResolved ? 'bg-emerald-50/40' : (isDup ? 'bg-amber-50/70' : 'bg-rose-50/50');
-        }
-
-        return `
-          <tr class="transition-colors ${rowHighlight}">
-            <td class="py-3 px-3 text-center">
-              <button onclick="toggleManualFlag('${c.id}')" title="${isFlagged ? 'Unflag ticket' : 'Flag ticket for review'}" class="p-1 rounded hover:bg-stone-200 transition-colors">
-                <i class="fa-solid fa-flag text-xs ${isFlagged ? 'text-rose-500 scale-110' : 'text-stone-300 hover:text-stone-500'}"></i>
-              </button>
-            </td>
-
-            <td class="py-3 px-4 font-sans font-medium text-stone-900 whitespace-nowrap">
-              ${formatWrittenDate(c.date)}
-            </td>
-            <td class="py-3 px-3 font-bold text-brandAmber">Rm ${c.room}</td>
-            
-            <td class="py-3 px-4 text-stone-800 font-sans font-medium whitespace-nowrap">
-              <span>${c.resident_name}</span>
-              ${isDup ? `<span class="ml-1.5 text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded font-sans font-bold inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Duplicate Room Tray</span>` : ''}
-              ${isFlagged ? `<span class="ml-1.5 text-[10px] bg-rose-100 text-rose-700 border border-rose-300 px-1.5 py-0.5 rounded font-sans font-bold">Flagged</span>` : ''}
-              ${c.resolution_note ? `<span class="block text-[11px] text-emerald-800 font-sans italic font-normal mt-0.5">Note: "${c.resolution_note}"</span>` : ''}
-            </td>
-
-            <td class="py-3 px-3 text-stone-700">${c.meal}</td>
-            <td class="py-3 px-3 text-stone-600">${cleanType}</td>
-            <td class="py-3 px-4 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
-
-            <td class="py-3 px-4 text-center whitespace-nowrap">
-              ${hasIssue ? (
-                isResolved ? `
-                  <button onclick="toggleResolved('${c.id}')" title="Click to reopen / unresolve" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200 transition-colors">
-                    <i class="fa-solid fa-check"></i> Resolved
-                  </button>
-                ` : `
-                  <button onclick="toggleResolved('${c.id}')" title="Mark this duplicate or flag as investigated and approved" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-sans font-bold bg-cream-dark hover:bg-emerald-50 text-stone-600 hover:text-emerald-700 border border-cream-border hover:border-emerald-300 transition-all shadow-2xs">
-                    <i class="fa-regular fa-circle-check"></i> Resolve
-                  </button>
-                `
-              ) : `
-                <span class="text-stone-300 text-xs font-sans">-</span>
-              `}
-            </td>
-
-            <td class="py-3 px-3 text-center">
-              <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition-colors" title="Delete entry">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    async function toggleManualFlag(chargeId) {
-      const charge = charges.find(c => String(c.id) === String(chargeId));
-      if (!charge) return;
-
-      charge.is_flagged = !charge.is_flagged;
-      renderHistoryTable();
-      showToast(charge.is_flagged ? 'Ticket flagged for review' : 'Ticket flag cleared');
-
-      if (db) {
-        await db.from('charges').update({ is_flagged: charge.is_flagged }).eq('id', chargeId);
-      }
-    }
-
-    async function toggleResolved(chargeId) {
-      const charge = charges.find(c => String(c.id) === String(chargeId));
-      if (!charge) return;
-
-      if (!charge.is_resolved) {
-        const note = prompt('Optional explanation / approval note (or leave blank and click OK):', charge.resolution_note || '');
-        if (note === null) return;
-        charge.is_resolved = true;
-        charge.resolution_note = note.trim() || null;
-        showToast('Ticket marked as resolved');
-      } else {
-        if (confirm('Reopen this ticket and mark it as unresolved?')) {
-          charge.is_resolved = false;
-          showToast('Ticket reopened');
-        } else {
-          return;
-        }
-      }
-
-      renderHistoryTable();
-      if (currentView === 'calendar') {
-        renderCalendar();
-        if (selectedDrilldownDate) renderDrilldownTable();
-      }
-
-      if (db) {
-        await db.from('charges').update({ 
-          is_resolved: charge.is_resolved,
-          resolution_note: charge.resolution_note 
-        }).eq('id', chargeId);
-      }
-    }
-
-    // ===================================================
-    // VIEW 4: CALENDAR
-    // ===================================================
-    function setCalendarToCurrentMonth() {
-      const now = new Date();
-      calendarRange.start = getFormattedDate(new Date(now.getFullYear(), now.getMonth(), 1));
-      calendarRange.end = getFormattedDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
-      updateRangeDisplayBadges();
-      renderCalendar();
-    }
-
-    function changeCalendarMonth(delta) {
-      const parsed = new Date(calendarRange.start + 'T00:00:00');
-      parsed.setMonth(parsed.getMonth() + delta);
-      calendarRange.start = getFormattedDate(new Date(parsed.getFullYear(), parsed.getMonth(), 1));
-      calendarRange.end = getFormattedDate(new Date(parsed.getFullYear(), parsed.getMonth() + 1, 0));
-      updateRangeDisplayBadges();
-      renderCalendar();
-    }
-
-    function renderCalendar() {
-      const grid = document.getElementById('calendar-days-grid');
-      grid.innerHTML = '';
-
-      const startDate = new Date(calendarRange.start + 'T00:00:00');
-      const endDate = new Date(calendarRange.end + 'T00:00:00');
-
-      const startDayOfWeek = startDate.getDay();
-      for (let i = 0; i < startDayOfWeek; i++) {
-        grid.innerHTML += `<div class="min-h-[75px] bg-cream-dark/40 rounded-xl border border-cream-border"></div>`;
-      }
-
-      let curr = new Date(startDate);
-      while (curr <= endDate) {
-        const dateISO = getFormattedDate(curr);
-        const dayNum = curr.getDate();
-        const monthShort = curr.toLocaleDateString('en-US', { month: 'short' });
-
-        const dayCharges = charges.filter(c => c.date === dateISO);
-        const dayTotal = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
-        const unresolvedDups = getDayDuplicateCount(dateISO);
-        const isToday = dateISO === todayISO;
-
-        grid.innerHTML += `
-          <div onclick="selectCalendarDate('${dateISO}')" class="min-h-[75px] p-2 bg-white border ${isToday ? 'border-brandAmber ring-1 ring-brandAmber/30' : (unresolvedDups > 0 ? 'border-amber-400 bg-amber-50/20' : 'border-cream-border')} rounded-xl cursor-pointer hover:border-brandGreen transition-all flex flex-col justify-between shadow-xs relative">
-            
-            <div class="flex items-center justify-between text-xs font-bold">
-              <span class="${isToday ? 'text-brandAmber font-black' : 'text-stone-700'}">
-                ${dayNum === 1 || dateISO === calendarRange.start ? `<span class="text-[9px] uppercase tracking-tighter text-stone-400 mr-0.5">${monthShort}</span>` : ''}${dayNum}
-              </span>
-              
-              <div class="flex items-center gap-1">
-                ${unresolvedDups > 0 ? `
-                  <span title="${unresolvedDups} duplicate room tray charges" class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
-                    !
-                  </span>
-                ` : ''}
-                ${dayCharges.length > 0 ? `<span class="text-[10px] bg-cream-dark text-stone-700 px-1.5 rounded font-mono font-semibold">${dayCharges.length}</span>` : ''}
-              </div>
-            </div>
-
-            ${dayCharges.length > 0 ? `<div class="font-bold text-xs text-brandAmber font-mono">$${dayTotal.toFixed(2)}</div>` : `<div class="text-[10px] text-stone-300 italic">-</div>`}
-          </div>
-        `;
-
-        curr.setDate(curr.getDate() + 1);
-      }
-    }
-
-    function selectCalendarDate(dateISO) {
-      selectedDrilldownDate = dateISO;
-      const panel = document.getElementById('calendar-drilldown-panel');
-      panel.classList.remove('hidden');
-      document.getElementById('drilldown-date-title').textContent = formatWrittenDate(dateISO);
-
-      renderDrilldownTable();
-    }
-
-    function renderDrilldownTable() {
-      if (!selectedDrilldownDate) return;
-      const sortBy = document.getElementById('drilldown-sort-by') ? document.getElementById('drilldown-sort-by').value : 'room';
-      const dayCharges = charges.filter(c => c.date === selectedDrilldownDate);
-      const dayCost = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
-      const unresolvedDups = getDayDuplicateCount(selectedDrilldownDate);
-
-      document.getElementById('drilldown-stats').textContent = `${dayCharges.length} total charges ($${dayCost.toFixed(2)})${unresolvedDups > 0 ? ` • ⚠️ ${unresolvedDups} unresolved duplicate charges` : ''}`;
-
-      const tbody = document.getElementById('drilldown-table-body');
-      if (dayCharges.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-stone-400 italic">No charges recorded on this date.</td></tr>`;
-        return;
-      }
-
-      const mealOrder = { 'Breakfast': 1, 'Lunch': 2, 'Dinner': 3 };
-      let sortedCharges = [...dayCharges].sort((a, b) => {
-        if (sortBy === 'room') {
-          const roomCompare = a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
-          if (roomCompare !== 0) return roomCompare;
-          return a.resident_name.localeCompare(b.resident_name);
-        } else if (sortBy === 'meal') {
-          const mealA = mealOrder[a.meal] || 99;
-          const mealB = mealOrder[b.meal] || 99;
-          if (mealA !== mealB) return mealA - mealB;
-          return a.room.localeCompare(b.room, undefined, { numeric: true, sensitivity: 'base' });
-        } else if (sortBy === 'name') {
-          return a.resident_name.localeCompare(b.resident_name);
-        } else if (sortBy === 'amount') {
-          return Number(b.amount) - Number(a.amount);
-        }
-        return 0;
-      });
-
-      tbody.innerHTML = sortedCharges.map(c => {
-        const cleanType = c.charge_type === 'Room Charge' ? 'Room' : c.charge_type;
-        const isDup = isDuplicateCharge(c);
-        const isResolved = !!c.is_resolved;
-
-        return `
-          <tr class="hover:bg-cream-dark/50 font-mono text-xs ${isDup ? (isResolved ? 'bg-emerald-50/30' : 'bg-amber-50/70 border-l-2 border-amber-400') : ''}">
-            <td class="py-2.5 px-3 font-bold text-stone-900">Rm ${c.room}</td>
-            <td class="py-2.5 px-3 font-sans text-stone-800 font-medium">
-              ${c.resident_name}
-              ${isDup ? `<span class="ml-1 text-[9px] bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.2 rounded font-sans font-bold">⚠️ Duplicate Tray</span>` : ''}
-              ${c.resolution_note ? `<span class="block text-[10px] text-emerald-800 italic font-normal">"${c.resolution_note}"</span>` : ''}
-            </td>
-            <td class="py-2.5 px-3 text-stone-600">${c.meal}</td>
-            <td class="py-2.5 px-3 text-stone-500">${cleanType}</td>
-            <td class="py-2.5 px-3 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
-            
-            <td class="py-2.5 px-3 text-center">
-              ${isDup ? (
-                isResolved ? `<span class="text-[10px] text-emerald-700 font-sans font-bold bg-emerald-100 border border-emerald-300 px-1.5 py-0.5 rounded">✓ Resolved</span>` 
-                           : `<span class="text-[10px] text-amber-700 font-sans font-bold bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded">Needs Review</span>`
-              ) : `<span class="text-stone-300">-</span>`}
-            </td>
-
-            <td class="py-2.5 px-3 text-center">
-              <button onclick="deleteSingleCharge('${c.id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50" title="Delete entry">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    async function deleteSingleCharge(chargeId) {
-      charges = charges.filter(c => String(c.id) !== String(chargeId));
-      showToast('Charge deleted');
-
-      if (currentView === 'history') renderHistoryTable();
-      if (currentView === 'summary') renderSummarySheet();
-      if (currentView === 'daily') renderResidentsGrid();
-      if (currentView === 'calendar') {
-        if (selectedDrilldownDate) renderDrilldownTable();
-        renderCalendar();
-      }
-
-      if (db) {
-        await db.from('charges').delete().eq('id', chargeId);
-      }
-    }
-
-    function closeDrilldown() {
-      document.getElementById('calendar-drilldown-panel').classList.add('hidden');
-    }
-
-    function switchView(view) {
-      currentView = view;
-      ['daily', 'summary', 'history', 'calendar'].forEach(v => {
-        const el = document.getElementById(`view-${v}`);
-        const btn = document.getElementById(`tab-${v}`);
-        if (v === view) {
-          el.classList.remove('hidden');
-          btn.className = 'px-3.5 py-1.5 rounded-lg bg-brandGreen text-white font-semibold shadow-sm transition-all';
-        } else {
-          el.classList.add('hidden');
-          btn.className = 'px-3.5 py-1.5 rounded-lg text-stone-600 hover:text-stone-900 transition-all';
-        }
-      });
-      renderCurrentView();
-    }
-
-    function renderCurrentView() {
-      if (currentView === 'daily') renderResidentsGrid();
-      if (currentView === 'summary') renderSummarySheet();
-      if (currentView === 'history') renderHistoryTable();
-      if (currentView === 'calendar') renderCalendar();
     }
 
     function showToast(msg, isError = false) {
