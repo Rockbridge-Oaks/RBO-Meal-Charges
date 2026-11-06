@@ -56,6 +56,11 @@
       color: #ffffff !important;
       font-weight: 800 !important;
     }
+    .cal-day-active-drilldown {
+      outline: 2px solid #4A6B35;
+      outline-offset: -2px;
+      background-color: #EDF3E8 !important;
+    }
   </style>
 </head>
 <body class="bg-cream text-stone-900 font-sans min-h-screen flex flex-col antialiased selection:bg-brandAmber selection:text-white">
@@ -118,7 +123,7 @@
     <div id="view-daily">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- LEFT COLUMN: STEP 1 PRESET CONTROLLER (WITH UNKNOWN DATE/MEAL TOGGLES) -->
+        <!-- LEFT COLUMN: STEP 1 PRESET CONTROLLER -->
         <div class="lg:col-span-4 bg-white border border-cream-border rounded-2xl p-4 sm:p-5 shadow-sm sticky lg:top-20 space-y-4 text-xs sm:text-sm">
           <div class="flex items-center justify-between border-b border-cream-border pb-3">
             <div>
@@ -148,7 +153,7 @@
             </button>
           </div>
 
-          <!-- MEAL PERIOD (INCLUDES UNSPECIFIED OPTION) -->
+          <!-- MEAL PERIOD -->
           <div>
             <label class="block text-stone-600 font-medium mb-1.5">Meal Period</label>
             <div class="grid grid-cols-4 gap-1.5">
@@ -250,7 +255,6 @@
             <span id="total-residents-badge" class="font-mono text-stone-700 font-medium">0 Active Residents</span>
           </div>
 
-          <!-- 2-COLUMN COMPACT RESIDENTS LIST -->
           <div>
             <div id="residents-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-2.5"></div>
             <div id="no-residents-found" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-cream-borderDark">
@@ -264,7 +268,7 @@
       </div>
     </div>
 
-    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET (NO REPETITIVE BOXES) -->
+    <!-- VIEW 2: MONTHLY SUMMARY SPREADSHEET -->
     <div id="view-summary" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
         <div>
@@ -362,7 +366,7 @@
       </div>
     </div>
 
-    <!-- VIEW 3: GENERAL CHARGE HISTORY -->
+    <!-- VIEW 3: GENERAL CHARGE HISTORY (WITH INLINE AUDIT NOTES) -->
     <div id="view-history" class="hidden space-y-4">
       <div class="bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -370,7 +374,7 @@
             <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
               <i class="fa-solid fa-clock-rotate-left text-brandAmber"></i> Complete Charge History
             </h2>
-            <p class="text-xs text-stone-500">Audit logs and duplicate tracking. Click "Resolve" to mark expected duplicates as approved.</p>
+            <p class="text-xs text-stone-500">Audit logs and duplicate tracking. Add explanation notes inline for flagged or resolved tickets.</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
@@ -395,7 +399,7 @@
 
           <div class="md:col-span-4 relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
-            <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, resident, or meal..." class="w-full bg-cream-dark border border-cream-border rounded-xl pl-9 pr-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
+            <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Search room, resident, meal, or note..." class="w-full bg-cream-dark border border-cream-border rounded-xl pl-9 pr-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-brandGreen focus:bg-white transition-all">
           </div>
 
           <div class="md:col-span-4 flex items-center gap-2">
@@ -422,11 +426,11 @@
                 <th class="py-3 px-3 text-center w-10">Flag</th>
                 <th class="py-3 px-4">Date</th>
                 <th class="py-3 px-3">Room</th>
-                <th class="py-3 px-4">Resident</th>
+                <th class="py-3 px-4 min-w-[200px]">Resident</th>
                 <th class="py-3 px-3">Meal</th>
                 <th class="py-3 px-3">Category</th>
                 <th class="py-3 px-4 text-right">Amount</th>
-                <th class="py-3 px-4 text-center">Audit Status</th>
+                <th class="py-3 px-4 text-center min-w-[190px]">Audit Notes & Status</th>
                 <th class="py-3 px-3 text-center">Action</th>
               </tr>
             </thead>
@@ -436,14 +440,14 @@
       </div>
     </div>
 
-    <!-- VIEW 4: AUDIT CALENDAR (WITH MISSING MEAL BATCH WARNINGS) -->
+    <!-- VIEW 4: AUDIT CALENDAR (WITH ACTIVE DAY HIGHLIGHT & MISSING BATCH CONTROLS) -->
     <div id="view-calendar" class="hidden space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-cream-border p-4 sm:p-5 rounded-2xl shadow-sm">
         <div>
           <h2 class="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
             <i class="fa-solid fa-calendar-check text-brandAmber"></i> Charge Audit Calendar
           </h2>
-          <p class="text-xs text-stone-500">Days with duplicates or missing ticket batches are flagged with alert badges.</p>
+          <p class="text-xs text-stone-500">Days with duplicates or missing ticket batches are flagged. Selected day is highlighted in green.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -476,8 +480,6 @@
 
       <!-- DAY DRILLDOWN PANEL + MISSING BATCH CONTROLLER -->
       <div id="calendar-drilldown-panel" class="hidden bg-white border border-cream-border rounded-2xl p-5 shadow-sm space-y-4">
-        
-        <!-- HEADER -->
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-cream-border pb-3">
           <div>
             <h3 class="font-bold text-stone-900 text-sm sm:text-base flex items-center gap-2">
@@ -548,7 +550,7 @@
     </div>
   </main>
 
-  <!-- MODAL: DATE RANGE / SINGLE DATE POPUP CALENDAR -->
+  <!-- MODAL: DATE RANGE / SINGLE DATE POPUP CALENDAR (WITH TODAY HIGHLIGHT) -->
   <div id="range-picker-modal" class="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-white border border-cream-border rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-cream-border pb-3">
@@ -647,7 +649,7 @@
 
       <div class="text-xs text-stone-500 bg-cream-dark p-2.5 rounded-xl border border-cream-border flex items-start gap-2">
         <i class="fa-solid fa-circle-info text-brandGreen mt-0.5"></i>
-        <span><strong>Archived residents</strong> are hidden from daily Quick Charge cards when they move out, but all their billing and historical logs stay preserved permanently.</span>
+        <span><strong>Archived residents</strong> are hidden from daily Quick Charge cards when they move out, but all their billing and historical logs stay preserved permanently. You can assign the same room number to incoming residents at any time.</span>
       </div>
 
       <div id="manage-rooms-list" class="max-h-72 overflow-y-auto space-y-2 pr-1 divide-y divide-cream-border"></div>
@@ -674,7 +676,7 @@
     let db = null;
     let residents = [];
     let charges = [];
-    let calendarAlerts = []; // Array of { date, meal, note }
+    let calendarAlerts = [];
     let currentView = 'daily';
     let balanceRange = 'month';
     let selectedDrilldownDate = null;
@@ -724,7 +726,6 @@
     let pickerCurrentMonth = new Date(todayObj.getFullYear(), todayObj.getMonth(), 1);
     let pickerSelection = { start: null, end: null };
 
-    // Batch preset (supports no date and unspecified meal)
     let batchPreset = {
       date: todayISO,
       noDate: false,
@@ -779,9 +780,6 @@
       updateTotalResidentsBadge();
     }
 
-    // ===================================================
-    // AUDIT PRINT DATE FUNCTIONS
-    // ===================================================
     function updateNavAuditDateDisplay() {
       const display = document.getElementById('nav-last-audit-display');
       if (!display) return;
@@ -807,9 +805,6 @@
       setAuditPrintDate(todayISO);
     }
 
-    // ===================================================
-    // PRESET CONTROLS: UNKNOWN DATE & MEAL
-    // ===================================================
     function toggleNoDate(isChecked) {
       batchPreset.noDate = isChecked;
       const btn = document.getElementById('preset-date-btn');
@@ -935,9 +930,6 @@
       renderResidentsGrid();
     }
 
-    // ===================================================
-    // DUPLICATE & AUDIT DETECTION
-    // ===================================================
     function isDuplicateCharge(charge) {
       if (!charge) return false;
       if (charge.charge_type !== 'Room Charge') return false;
@@ -978,9 +970,6 @@
       return unresolvedIds.size;
     }
 
-    // ===================================================
-    // CHARGE ACTIONS
-    // ===================================================
     async function addQuickCharge(residentId) {
       const resident = residents.find(r => String(r.id) === String(residentId));
       if (!resident) return;
@@ -1053,7 +1042,7 @@
       return charges
         .filter(c => {
           if (String(c.resident_id) !== String(residentId)) return false;
-          if (!c.date) return true; // Include undated tickets in current active accounting balance
+          if (!c.date) return true;
           const chargeDate = new Date(c.date + 'T00:00:00');
           if (range === 'selectedDate') {
             return c.date === batchPreset.date;
@@ -1069,9 +1058,6 @@
         .reduce((sum, c) => sum + Number(c.amount), 0);
     }
 
-    // ===================================================
-    // RENDER 2-COLUMN COMPACT QUICK CHARGE LIST
-    // ===================================================
     function renderResidentsGrid() {
       const grid = document.getElementById('residents-grid');
       const searchVal = document.getElementById('resident-search').value.toLowerCase().trim();
@@ -1121,8 +1107,6 @@
 
         return `
           <div id="card-${r.id}" class="bg-white border border-cream-border hover:border-cream-borderDark rounded-xl p-2.5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-all relative group">
-            
-            <!-- LEFT: ADD + UNDO BUTTONS -->
             <div class="flex items-center gap-1.5 shrink-0">
               <button onclick="addQuickCharge('${r.id}')" title="Record charge" class="bg-brandAmber hover:bg-brandAmber-hover active:scale-95 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-lg flex items-center gap-1.5 shadow-xs transition-all">
                 <i class="fa-solid fa-plus text-[11px]"></i>
@@ -1133,7 +1117,6 @@
               </button>
             </div>
 
-            <!-- CENTER: ROOM NUMBER + RESIDENT NAME -->
             <div class="flex items-center gap-2.5 min-w-0 flex-1">
               <span class="font-mono font-black text-stone-900 text-base sm:text-lg tracking-tight bg-cream-dark border border-cream-border px-2 py-0.5 rounded-md shrink-0">
                 ${r.room}
@@ -1143,14 +1126,12 @@
               </span>
             </div>
 
-            <!-- RIGHT: COMPACT COUNT -->
             <div class="text-right shrink-0 pr-1">
               <span class="font-mono text-xs font-bold ${dayCount > 0 ? 'text-brandAmber' : 'text-stone-300'}">
                 ${dayCount > 0 ? `${dayCount} ($${dayCost.toFixed(2)})` : '0'}
               </span>
               <span class="text-[10px] text-stone-400 block -mt-0.5 uppercase tracking-wider font-medium">today</span>
             </div>
-
           </div>
         `;
       }).join('');
@@ -1295,7 +1276,6 @@
       document.querySelectorAll('.col-caregiver').forEach(el => colVisible.caregiver ? el.classList.remove('hidden') : el.classList.add('hidden'));
       document.querySelectorAll('.col-holiday').forEach(el => colVisible.holiday ? el.classList.remove('hidden') : el.classList.add('hidden'));
 
-      // Filter charges in date range (and include undated tickets for accurate billing)
       const rangeCharges = charges.filter(c => {
         if (!c.date) return true;
         return c.date >= summaryRange.start && c.date <= summaryRange.end;
@@ -1370,28 +1350,28 @@
               </td>
               <td class="py-2.5 px-4 text-stone-700 font-sans whitespace-nowrap">${r.name}</td>
 
-              <!-- ROOM (GHOST CELL CLICK-TO-EDIT) -->
+              <!-- ROOM GHOST CELL -->
               <td class="col-room py-2 px-3 text-right border-l border-cream-border ${colVisible.room ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Room Charge', ${row.roomTotal})">
                 <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.roomTotal > 0 ? 'font-bold text-brandGreen' : 'text-stone-300'}">
                   ${row.roomTotal > 0 ? `$${row.roomTotal.toFixed(2)}` : '—'}
                 </span>
               </td>
 
-              <!-- GUEST (GHOST CELL CLICK-TO-EDIT) -->
+              <!-- GUEST GHOST CELL -->
               <td class="col-guest py-2 px-3 text-right ${colVisible.guest ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Guest Charge', ${row.guestCost})">
                 <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.guestCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
                   ${row.guestCost > 0 ? `$${row.guestCost.toFixed(2)}` : '—'}
                 </span>
               </td>
 
-              <!-- CAREGIVER (GHOST CELL CLICK-TO-EDIT) -->
+              <!-- CAREGIVER GHOST CELL -->
               <td class="col-caregiver py-2 px-3 text-right ${colVisible.caregiver ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Caregiver Charge', ${row.caregiverCost})">
                 <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.caregiverCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
                   ${row.caregiverCost > 0 ? `$${row.caregiverCost.toFixed(2)}` : '—'}
                 </span>
               </td>
 
-              <!-- HOLIDAY (GHOST CELL CLICK-TO-EDIT) -->
+              <!-- HOLIDAY GHOST CELL -->
               <td class="col-holiday py-2 px-3 text-right ${colVisible.holiday ? '' : 'hidden'}" onclick="startCellEdit(this, '${r.id}', 'Holiday Charge', ${row.holidayCost})">
                 <span class="inline-block px-2 py-0.5 rounded cursor-pointer hover:bg-stone-200/60 font-mono text-xs transition-colors ${row.holidayCost > 0 ? 'font-bold text-stone-800' : 'text-stone-300'}">
                   ${row.holidayCost > 0 ? `$${row.holidayCost.toFixed(2)}` : '—'}
@@ -1558,7 +1538,7 @@
     }
 
     // ===================================================
-    // VIEW 3: HISTORY (SORT BY PUNCH TIMESTAMP + AUDIT)
+    // VIEW 3: HISTORY (INLINE AUDIT NOTES & FAST RESOLVE)
     // ===================================================
     function setHistoryFilter(filterType) {
       historyFilter = filterType;
@@ -1585,7 +1565,7 @@
       const sortBy = document.getElementById('history-sort-by') ? document.getElementById('history-sort-by').value : 'entryDesc';
 
       const inRangeCharges = charges.filter(c => {
-        if (!c.date) return true; // Always show undated tickets for review
+        if (!c.date) return true;
         return c.date >= historyRange.start && c.date <= historyRange.end;
       });
 
@@ -1625,7 +1605,6 @@
         );
       });
 
-      // Sort with 'entryDesc' priority
       filtered.sort((a, b) => {
         if (sortBy === 'entryDesc') {
           const timeA = a.created_at || a.date || '';
@@ -1679,30 +1658,37 @@
             </td>
             <td class="py-3 px-3 font-bold text-brandAmber">Rm ${c.room}</td>
             
-            <td class="py-3 px-4 text-stone-800 font-sans font-medium whitespace-nowrap">
-              <span>${c.resident_name}</span>
-              ${isDup ? `<span class="ml-1.5 text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded font-sans font-bold inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Duplicate Room Tray</span>` : ''}
-              ${isFlagged ? `<span class="ml-1.5 text-[10px] bg-rose-100 text-rose-700 border border-rose-300 px-1.5 py-0.5 rounded font-sans font-bold">Flagged</span>` : ''}
-              ${noMeal ? `<span class="ml-1.5 text-[10px] bg-stone-200 text-stone-700 border border-stone-300 px-1.5 py-0.5 rounded font-sans font-bold">No Meal Time</span>` : ''}
-              ${c.resolution_note ? `<span class="block text-[11px] text-emerald-800 font-sans italic font-normal mt-0.5">Note: "${c.resolution_note}"</span>` : ''}
+            <td class="py-3 px-4 text-stone-800 font-sans font-medium">
+              <div class="font-bold text-stone-900">${c.resident_name}</div>
+              <div class="flex flex-wrap gap-1 mt-0.5">
+                ${isDup ? `<span class="text-[9px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.2 rounded font-sans font-bold inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[8px]"></i> Duplicate Tray</span>` : ''}
+                ${isFlagged ? `<span class="text-[9px] bg-rose-100 text-rose-700 border border-rose-300 px-1.5 py-0.2 rounded font-sans font-bold">Flagged</span>` : ''}
+                ${noMeal ? `<span class="text-[9px] bg-stone-200 text-stone-700 border border-stone-300 px-1.5 py-0.2 rounded font-sans font-bold">No Meal Time</span>` : ''}
+              </div>
             </td>
 
             <td class="py-3 px-3 text-stone-700">${c.meal || '<span class="italic text-stone-400">Unspecified</span>'}</td>
             <td class="py-3 px-3 text-stone-600">${cleanType}</td>
             <td class="py-3 px-4 text-right font-black text-brandAmber">$${Number(c.amount).toFixed(2)}</td>
 
-            <td class="py-3 px-4 text-center whitespace-nowrap">
-              ${hasIssue ? (
-                isResolved ? `
-                  <button onclick="toggleResolved('${c.id}')" title="Click to reopen / unresolve" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200 transition-colors">
-                    <i class="fa-solid fa-check"></i> Resolved
-                  </button>
-                ` : `
-                  <button onclick="toggleResolved('${c.id}')" title="Mark this ticket investigated and resolved" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-sans font-bold bg-cream-dark hover:bg-emerald-50 text-stone-600 hover:text-emerald-700 border border-cream-border hover:border-emerald-300 transition-all shadow-2xs">
-                    <i class="fa-regular fa-circle-check"></i> Resolve
-                  </button>
-                `
-              ) : `
+            <!-- INLINE AUDIT NOTES & RESOLUTION STATUS -->
+            <td class="py-2.5 px-4 text-center">
+              ${hasIssue ? `
+                <div class="flex flex-col gap-1.5 max-w-[220px] mx-auto">
+                  <div class="flex items-center justify-between gap-1">
+                    <button onclick="toggleResolved('${c.id}')" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-sans font-bold ${isResolved ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200' : 'bg-white hover:bg-emerald-50 text-stone-700 hover:text-emerald-700 border border-cream-border hover:border-emerald-300 shadow-2xs'} transition-all">
+                      <i class="fa-solid ${isResolved ? 'fa-check' : 'fa-circle-check'} text-[9px]"></i>
+                      <span>${isResolved ? 'Resolved' : 'Resolve'}</span>
+                    </button>
+                    ${isResolved ? `<span class="text-[10px] text-emerald-700 font-sans font-semibold">Approved</span>` : `<span class="text-[10px] text-amber-700 font-sans font-semibold">Needs Review</span>`}
+                  </div>
+
+                  <!-- INLINE NOTES INPUT -->
+                  <div class="relative">
+                    <input type="text" value="${c.resolution_note || ''}" placeholder="Add review / resolution note..." onchange="updateChargeNote('${c.id}', this.value)" class="w-full bg-white border ${c.resolution_note ? 'border-cream-borderDark bg-stone-50/50' : 'border-dashed border-stone-300'} focus:border-brandGreen rounded-lg px-2 py-1 text-[11px] text-stone-800 placeholder-stone-400 outline-none font-sans transition-all">
+                  </div>
+                </div>
+              ` : `
                 <span class="text-stone-300 text-xs font-sans">-</span>
               `}
             </td>
@@ -1715,6 +1701,18 @@
           </tr>
         `;
       }).join('');
+    }
+
+    async function updateChargeNote(chargeId, noteText) {
+      const charge = charges.find(c => String(c.id) === String(chargeId));
+      if (!charge) return;
+
+      charge.resolution_note = noteText.trim() || null;
+      showToast('Note saved');
+
+      if (db) {
+        await db.from('charges').update({ resolution_note: charge.resolution_note }).eq('id', chargeId);
+      }
     }
 
     async function toggleManualFlag(chargeId) {
@@ -1734,20 +1732,8 @@
       const charge = charges.find(c => String(c.id) === String(chargeId));
       if (!charge) return;
 
-      if (!charge.is_resolved) {
-        const note = prompt('Optional explanation / approval note (or leave blank and click OK):', charge.resolution_note || '');
-        if (note === null) return;
-        charge.is_resolved = true;
-        charge.resolution_note = note.trim() || null;
-        showToast('Ticket marked as resolved');
-      } else {
-        if (confirm('Reopen this ticket and mark it as unresolved?')) {
-          charge.is_resolved = false;
-          showToast('Ticket reopened');
-        } else {
-          return;
-        }
-      }
+      charge.is_resolved = !charge.is_resolved;
+      showToast(charge.is_resolved ? 'Ticket marked as resolved' : 'Ticket marked unresolved');
 
       renderHistoryTable();
       if (currentView === 'calendar') {
@@ -1756,15 +1742,12 @@
       }
 
       if (db) {
-        await db.from('charges').update({ 
-          is_resolved: charge.is_resolved,
-          resolution_note: charge.resolution_note 
-        }).eq('id', chargeId);
+        await db.from('charges').update({ is_resolved: charge.is_resolved }).eq('id', chargeId);
       }
     }
 
     // ===================================================
-    // VIEW 4: AUDIT CALENDAR (WITH MISSING BATCH CONTROLS)
+    // VIEW 4: AUDIT CALENDAR (WITH ACTIVE DAY HIGHLIGHT & MISSING BATCH CONTROLS)
     // ===================================================
     function setCalendarToCurrentMonth() {
       const now = new Date();
@@ -1809,16 +1792,29 @@
         const dayTotal = dayCharges.reduce((acc, c) => acc + Number(c.amount), 0);
         const unresolvedDups = getDayDuplicateCount(dateISO);
         const missingMealAlerts = getDayAlerts(dateISO);
+        
         const isToday = dateISO === todayISO;
+        const isSelected = selectedDrilldownDate === dateISO;
 
         const hasWarning = unresolvedDups > 0 || missingMealAlerts.length > 0;
 
+        let borderClass = 'border-cream-border';
+        if (isSelected) {
+          borderClass = 'border-brandGreen ring-2 ring-brandGreen/40 bg-brandGreen/5';
+        } else if (isToday) {
+          borderClass = 'border-brandAmber ring-1 ring-brandAmber/40 bg-amber-50/20';
+        } else if (hasWarning) {
+          borderClass = 'border-amber-400 bg-amber-50/20';
+        }
+
         grid.innerHTML += `
-          <div onclick="selectCalendarDate('${dateISO}')" class="min-h-[75px] p-2 bg-white border ${isToday ? 'border-brandAmber ring-1 ring-brandAmber/30' : (hasWarning ? 'border-amber-400 bg-amber-50/20' : 'border-cream-border')} rounded-xl cursor-pointer hover:border-brandGreen transition-all flex flex-col justify-between shadow-xs relative">
+          <div onclick="selectCalendarDate('${dateISO}')" class="min-h-[75px] p-2 bg-white border ${borderClass} rounded-xl cursor-pointer hover:border-brandGreen transition-all flex flex-col justify-between shadow-xs relative">
             
             <div class="flex items-center justify-between text-xs font-bold">
-              <span class="${isToday ? 'text-brandAmber font-black' : 'text-stone-700'}">
+              <span class="flex items-center gap-1 ${isToday ? 'text-brandAmber font-black' : (isSelected ? 'text-brandGreen font-black' : 'text-stone-700')}">
                 ${dayNum === 1 || dateISO === calendarRange.start ? `<span class="text-[9px] uppercase tracking-tighter text-stone-400 mr-0.5">${monthShort}</span>` : ''}${dayNum}
+                ${isToday ? `<span class="text-[8px] bg-brandAmber text-white px-1 py-0.2 rounded font-sans uppercase">Today</span>` : ''}
+                ${isSelected ? `<span class="text-[9px] text-brandGreen"><i class="fa-solid fa-circle-check"></i></span>` : ''}
               </span>
               
               <div class="flex items-center gap-1">
@@ -1853,11 +1849,12 @@
 
     function selectCalendarDate(dateISO) {
       selectedDrilldownDate = dateISO;
+      renderCalendar();
+
       const panel = document.getElementById('calendar-drilldown-panel');
       panel.classList.remove('hidden');
       document.getElementById('drilldown-date-title').textContent = formatWrittenDate(dateISO);
 
-      // Sync the missing batch checkboxes for this date
       const alerts = getDayAlerts(dateISO);
       document.getElementById('chk-miss-breakfast').checked = alerts.some(a => a.meal === 'Breakfast');
       document.getElementById('chk-miss-lunch').checked = alerts.some(a => a.meal === 'Lunch');
@@ -1976,12 +1973,11 @@
     }
 
     function closeDrilldown() {
+      selectedDrilldownDate = null;
       document.getElementById('calendar-drilldown-panel').classList.add('hidden');
+      renderCalendar();
     }
 
-    // ===================================================
-    // NAVIGATION & UTILS
-    // ===================================================
     function switchView(view) {
       currentView = view;
       ['daily', 'summary', 'history', 'calendar'].forEach(v => {
@@ -2072,6 +2068,7 @@
 
       for (let day = 1; day <= totalDays; day++) {
         const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const isToday = dateISO === todayISO;
         
         let extraClass = 'text-stone-700 hover:bg-cream-border';
         if (pickerMode === 'single') {
@@ -2090,9 +2087,16 @@
           }
         }
 
+        // Highlight today in picker with an amber ring & dot if not already selected
+        let todayClasses = '';
+        if (isToday && dateISO !== pickerSelection.start && dateISO !== pickerSelection.end) {
+          todayClasses = 'ring-1 ring-brandAmber font-bold text-brandAmber bg-amber-50/50';
+        }
+
         grid.innerHTML += `
-          <button type="button" onclick="handlePickerDayClick('${dateISO}')" class="h-8 w-full rounded-lg text-xs font-mono font-medium flex items-center justify-center transition-all ${extraClass}">
+          <button type="button" onclick="handlePickerDayClick('${dateISO}')" class="h-8 w-full rounded-lg text-xs font-mono font-medium flex items-center justify-center transition-all relative ${extraClass} ${todayClasses}">
             ${day}
+            ${isToday && dateISO !== pickerSelection.start && dateISO !== pickerSelection.end ? `<span class="absolute bottom-0.5 w-1 h-1 rounded-full bg-brandAmber"></span>` : ''}
           </button>
         `;
       }
